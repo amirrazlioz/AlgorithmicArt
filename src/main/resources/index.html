@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8">
+<title>Algorithmic Art</title>
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+  }
+
+  .instructions {
+    text-align: right;
+    direction: rtl;
+    background-color: #f0f0f0;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-width: 700px;
+    font-size: 16px;
+  }
+
+  #code {
+    width: 700px;
+    height: 300px;
+    font-family: monospace;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: vertical;
+  }
+
+  button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  #canvas {
+    border: 1px solid black;
+    margin-top: 15px;
+    image-rendering: pixelated;
+  }
+</style>
+</head>
+<body>
+
+<div class="instructions">
+כתבו קוד שמממש מחלקה <b>MyArt</b><br>
+עם פונקציה סטטית <b>fillPixels(width, height)</b><br>
+שמחזירה מערך של פיקסלים – לכל פיקסל שלושה ערכים עבור RGB (0 עד 255).<br>
+דוגמא:
+</div>
+
+<textarea id="code">
+public class MyArt {
+    public static int[][][] fillPixels(int width, int height) {
+        int[][][] pixels = new int[height][width][3];
+        for(int y=0; y<height; y++) {
+            for(int x=0; x<width; x++) {
+                pixels[y][x][0] = y * 255 / height;
+                pixels[y][x][1] = x * 255 / width;
+                pixels[y][x][2] = 128;
+            }
+        }
+        return pixels;
+    }
+}
+</textarea><br>
+
+<button onclick="runCode()">הרץ ציור</button>
+
+<h3>תוצאה:</h3>
+<canvas id="canvas" width="400" height="400"></canvas>
+
+<script>
+const codeArea = document.getElementById("code");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// הפעלת TAB בתוך חלון הקוד
+codeArea.addEventListener("keydown", function(e) {
+    if (e.key === "Tab") {
+        e.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 1;
+    }
+});
+
+// Undo/Redo בסיסי כברירת מחדל בדפדפן (Ctrl+Z / Ctrl+Y) עובד עם textarea רגיל
+
+// const res = await fetch("http://localhost:8080/run", { method: "POST", body: code });
+// const res = await fetch("/run", { method: "POST", body: code });
+
+async function runCode() {
+    const code = codeArea.value;
+    try {
+        const res = await fetch("http://localhost:8080/run", { method: "POST", body: code });
+        const text = await res.text();
+        if (!text) { alert("תקלה בשרת: תגובה ריקה"); return; }
+        const data = JSON.parse(text);
+
+        if (data.error) {
+            alert("שגיאה: " + data.error);
+            return;
+        }
+
+        drawPixels(data.pixels);
+    } catch(e) {
+        alert("תקלה בשרת: " + e);
+    }
+}
+
+function drawPixels(pixels) {
+    const width = Math.max(...pixels.map(p => p.x)) + 1;
+    const height = Math.max(...pixels.map(p => p.y)) + 1;
+
+    const cellSizeX = canvas.width / width;
+    const cellSizeY = canvas.height / height;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    pixels.forEach(p => {
+        ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
+        ctx.fillRect(p.x * cellSizeX, p.y * cellSizeY, cellSizeX, cellSizeY);
+    });
+}
+</script>
+</body>
+</html>
