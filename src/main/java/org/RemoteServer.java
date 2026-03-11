@@ -1,0 +1,762 @@
+package org;
+
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import java.io.*;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ThreadPoolExecutor;
+
+
+public class RemoteServer {
+
+    private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
+	
+    public static void main(String[] args) throws IOException {
+        // 2. יצירת השרת בפורט 8080
+		int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+		
+		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
+		server.setExecutor(threadPool);
+
+        // --- נתיב 1: דף הבית ---
+        server.createContext("/", exchange -> {
+            String userIp = exchange.getRemoteAddress().getAddress().getHostAddress();
+            if (!onlineUsers.contains(userIp)) {
+                onlineUsers.add(userIp);
+            }
+
+            try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("/index.html")) {
+                if (is == null) {
+                    String notFound = "<h1>404 Not Found</h1>";
+                    exchange.sendResponseHeaders(404, notFound.getBytes().length);
+                    exchange.getResponseBody().write(notFound.getBytes());
+                } else {
+                    byte[] bytes = is.readAllBytes();
+                    exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
+                    exchange.sendResponseHeaders(200, bytes.length);
+                    exchange.getResponseBody().write(bytes);
+                }
+            } finally {
+                exchange.close();
+            }
+        });
+		
+		server.createContext("/admin123", exchange -> {
+			// אנחנו משתמשים ב-threadPool שהגדרנו למעלה ב-main
+			int activeThreads = threadPool.getActiveCount(); 
+			long completedTasks = threadPool.getCompletedTaskCount(); 
+			int queueSize = threadPool.getQueue().size(); 
+
+			String response = "--- Algorithmic Art Server Status ---\n" +
+							  "Active Students Running: " + activeThreads + " / 20\n" +
+							  "Total Executions Today: " + completedTasks + "\n" +
+							  "Students in Queue: " + queueSize + "\n\n" +
+							  "Current IPs Online:\n" + String.join("\n", onlineUsers);
+
+			exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+			exchange.sendResponseHeaders(200, bytes.length);
+			exchange.getResponseBody().write(bytes);
+			exchange.close();
+		});
+
+		server.createContext("/run1", new RunHandler1());
+        server.createContext("/run2", new RunHandler2());
+        server.createContext("/run3", new RunHandler3());
+        server.createContext("/run4", new RunHandler4());
+		server.createContext("/run5", new RunHandler5());
+        server.createContext("/run6", new RunHandler6());
+        server.createContext("/run-creative", new RunCreative());
+
+        
+
+        // 4. הפעלת השרת
+        server.start();
+        System.out.println("Server is running on http://localhost:" + port);
+        System.out.println("Admin panel: http://localhost:" + port + "/admin123"  );
+    }
+	
+	private static JsonObject executeStudentCodeImage(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
+		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
+		String className = "DynamicClass_" + uniqueId;
+		File requestDir = new File("temp_build/" + uniqueId);
+		if (!requestDir.exists()) requestDir.mkdirs();
+		
+		File javaFile = new File(requestDir, className + ".java");
+		
+		final int[][][] resultHolder = new int[1][][];
+		final String[] logHolder = new String[1];
+		
+		try {
+			String classCode = "package " + uniqueId + ";\n" +
+							   "public class " + className + " {\n" +
+							   "    public static int[][] run(int[][] image) {\n" +
+							   "        return " + wrapperMethodName + "(image);\n" +
+							   "    }\n" +
+							   studentCode + "\n" +
+							   "}";
+							   
+			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
+
+			ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
+			pb.redirectErrorStream(true);
+			Process compile = pb.start();
+			
+			StringBuilder compileOutput = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) compileOutput.append(line).append("\n");
+			}
+
+			if (compile.waitFor() != 0) {
+				throw new Exception("Compilation failed:\n" + compileOutput.toString());
+			}
+
+			URL[] urls = { requestDir.toURI().toURL() };
+			try (URLClassLoader loader = new URLClassLoader(urls)) {
+				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
+				Method method = cls.getMethod("run", int[][].class);
+
+				ExecutorService executor = Executors.newSingleThreadExecutor();
+				try {
+					Future<?> future = executor.submit(() -> {
+						try {
+							synchronized (System.out) {
+								PrintStream originalOut = System.out;
+								ByteArrayOutputStream baos = new ByteArrayOutputStream();
+								try (PrintStream newOut = new PrintStream(baos)) {
+									System.setOut(newOut);
+									
+									// הרצת קוד התלמיד
+									resultHolder[0] = (int[][]) method.invoke(null, (Object) image);
+									
+									System.out.flush();
+								} finally {
+									System.setOut(originalOut);
+								}
+								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+							}
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					});
+
+					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+					
+				} catch (java.util.concurrent.TimeoutException e) {
+					throw new Exception("Code execution timed out! (Possible infinite loop)");
+				} finally {
+					executor.shutdownNow(); 
+				}
+			}
+
+			JsonObject result = new JsonObject();
+			result.add("image", new Gson().toJsonTree(resultHolder[0]));
+			result.addProperty("consoleOutput", logHolder[0]);
+			return result;
+
+		} finally {
+			deleteDirectory(requestDir);
+		}
+	}
+	
+	private static JsonObject executeStudentCodeInt(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
+		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
+		String className = "DynamicClass_" + uniqueId;
+		File requestDir = new File("temp_build/" + uniqueId);
+		if (!requestDir.exists()) requestDir.mkdirs();
+		
+		final Number[] resultHolder = new Number[1];
+		final String[] logHolder = new String[1];
+		
+		File javaFile = new File(requestDir, className + ".java");
+		
+		try {
+			String classCode = "package " + uniqueId + ";\n" +
+							   "public class " + className + " {\n" +
+							   "    public static int run(int[][] image) {\n" +
+							   "        return " + wrapperMethodName + "(image);\n" +
+							   "    }\n" +
+							   studentCode + "\n" +
+							   "}";           
+							   
+			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
+
+			ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
+			pb.redirectErrorStream(true);
+			Process compile = pb.start();
+			
+			StringBuilder compileOutput = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) compileOutput.append(line).append("\n");
+			}
+
+			if (compile.waitFor() != 0) {
+				throw new Exception("Compilation failed:\n" + compileOutput.toString());
+			}
+
+			URL[] urls = { requestDir.toURI().toURL() };
+			try (URLClassLoader loader = new URLClassLoader(urls)) {
+				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
+				Method method = cls.getMethod("run", int[][].class);
+
+				ExecutorService executor = Executors.newSingleThreadExecutor();
+				try {
+					Future<?> future = executor.submit(() -> {
+						try {
+							synchronized (System.out) {
+								PrintStream originalOut = System.out;
+								ByteArrayOutputStream baos = new ByteArrayOutputStream();
+								try (PrintStream newOut = new PrintStream(baos)) {
+									System.setOut(newOut);
+									
+									resultHolder[0] = (Number) method.invoke(null, (Object) image);
+									
+									System.out.flush();
+								} finally {
+									System.setOut(originalOut);
+								}
+								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+							}
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					});
+
+					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+					
+				} catch (java.util.concurrent.TimeoutException e) {
+					throw new Exception("Code execution timed out! (Possible infinite loop)");
+				} finally {
+					executor.shutdownNow(); // עצירת ה-Thread של התלמיד
+				}
+			}
+
+			JsonObject response = new JsonObject();
+			response.addProperty("result", resultHolder[0]);
+			response.addProperty("consoleOutput", logHolder[0]);
+			return response;
+
+		} finally {
+			deleteDirectory(requestDir);
+		}
+	}
+
+	private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][] image, int r, int c, int count, String wrapperMethodName) throws Exception {		
+		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
+		String className = "DynamicClass_" + uniqueId;
+		File requestDir = new File("temp_build/" + uniqueId);
+		if (!requestDir.exists()) requestDir.mkdirs();
+		
+		File javaFile = new File(requestDir, className + ".java");
+		
+		final int[][][] resultHolder = new int[1][][];
+		final String[] logHolder = new String[1];
+		
+		try {
+			String classCode = "package " + uniqueId + ";\n" +
+							   "public class " + className + " {\n" +
+							   "    public static int[][] run(int[][] image, int r, int c, int count) {\n" +
+							   "        return " + wrapperMethodName + "(image, r, c, count);\n" +
+							   "    }\n" +
+							   studentCode + "\n" +
+							   "}";       
+							   
+			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
+
+			ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
+			pb.redirectErrorStream(true);
+			Process compile = pb.start();
+			
+			StringBuilder compileOutput = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) compileOutput.append(line).append("\n");
+			}
+
+			if (compile.waitFor() != 0) {
+				throw new Exception("Compilation failed:\n" + compileOutput.toString());
+			}
+
+			URL[] urls = { requestDir.toURI().toURL() };
+			try (URLClassLoader loader = new URLClassLoader(urls)) {
+				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
+				// הגדרת הפרמטרים של המתודה: מערך דו-מימדי ושלושה אינטים
+				Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class);
+
+				ExecutorService executor = Executors.newSingleThreadExecutor();
+				try {
+					Future<?> future = executor.submit(() -> {
+						try {
+							synchronized (System.out) {
+								PrintStream originalOut = System.out;
+								ByteArrayOutputStream baos = new ByteArrayOutputStream();
+								try (PrintStream newOut = new PrintStream(baos)) {
+									System.setOut(newOut);
+									
+									// הרצה עם הפרמטרים r, c, count
+									resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, count);
+									
+									System.out.flush();
+								} finally {
+									System.setOut(originalOut);
+								}
+								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+							}
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					});
+
+					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+					
+				} catch (java.util.concurrent.TimeoutException e) {
+					throw new Exception("Code execution timed out! (Possible infinite loop or very slow code)");
+				} finally {
+					executor.shutdownNow(); // עצירת ה-Thread במידה וחרג מהזמן
+				}
+			}
+
+			JsonObject result = new JsonObject();
+			result.add("image", new Gson().toJsonTree(resultHolder[0]));
+			result.addProperty("consoleOutput", logHolder[0]);
+			return result;
+
+		} finally {
+			deleteDirectory(requestDir);
+		}
+	}
+
+	private static JsonObject executeStudentCodeRepRec(String studentCode, int[][] image, int r, int c, int rCount, int cCount, String wrapperMethodName) throws Exception {		
+		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
+		String className = "DynamicClass_" + uniqueId;
+		File requestDir = new File("temp_build/" + uniqueId);
+		if (!requestDir.exists()) requestDir.mkdirs();
+		
+		File javaFile = new File(requestDir, className + ".java");
+		
+		final int[][][] resultHolder = new int[1][][];
+		final String[] logHolder = new String[1];
+		
+		try {
+			String classCode = "package " + uniqueId + ";\n" +
+							   "public class " + className + " {\n" +
+							   "    public static int[][] run(int[][] image, int r, int c, int rCount, int cCount) {\n" +
+							   "        return " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +
+							   "    }\n" +
+							   studentCode + "\n" +
+							   "}";       
+							   
+			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
+
+			ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
+			pb.redirectErrorStream(true);
+			Process compile = pb.start();
+			
+			StringBuilder compileOutput = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) compileOutput.append(line).append("\n");
+			}
+
+			if (compile.waitFor() != 0) {
+				throw new Exception("Compilation failed:\n" + compileOutput.toString());
+			}
+
+			URL[] urls = { requestDir.toURI().toURL() };
+			try (URLClassLoader loader = new URLClassLoader(urls)) {
+				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
+				Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class, int.class);
+
+				ExecutorService executor = Executors.newSingleThreadExecutor();
+				try {
+					Future<?> future = executor.submit(() -> {
+						try {
+							synchronized (System.out) {
+								PrintStream originalOut = System.out;
+								ByteArrayOutputStream baos = new ByteArrayOutputStream();
+								try (PrintStream newOut = new PrintStream(baos)) {
+									System.setOut(newOut);
+									
+									resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, rCount, cCount);
+									
+									System.out.flush();
+								} finally {
+									System.setOut(originalOut);
+								}
+								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+							}
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					});
+
+					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+					
+				} catch (java.util.concurrent.TimeoutException e) {
+					throw new Exception("Code execution timed out! (Possible infinite loop in rectangle logic)");
+				} finally {
+					executor.shutdownNow(); // עצירת ה-Thread מיד בסיום או בטיימאאוט
+				}
+			}
+
+			JsonObject result = new JsonObject();
+			result.add("image", new Gson().toJsonTree(resultHolder[0]));
+			result.addProperty("consoleOutput", logHolder[0]);
+			return result;
+
+		} finally {
+			deleteDirectory(requestDir);
+		}
+	}
+
+	private static void deleteDirectory(File dir) {
+		File[] files = dir.listFiles();
+		if (files != null) {
+			for (File f : files) f.delete();
+		}
+		dir.delete();
+	}
+
+	static class RunHandler1 implements HttpHandler {
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				// שימוש בפונקציה המרכזית!
+				JsonObject responseJson = executeStudentCodeImage(code, image, "addFrame");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				t.getResponseBody().write(b);
+
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				t.getResponseBody().write(b);
+			} finally {
+				t.close();
+			}
+		}
+	}	
+
+	static class RunHandler2 implements HttpHandler {	
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				// שימוש בפונקציה המרכזית!
+				JsonObject responseJson = executeStudentCodeImage(code, image, "createDiagonal");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				t.getResponseBody().write(b);
+				
+				
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				t.getResponseBody().write(b);
+			} finally {
+				t.close();
+			}
+		}
+	}
+
+	static class RunHandler3 implements HttpHandler {	
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				// שימוש בפונקציה המרכזית!
+				JsonObject responseJson = executeStudentCodeInt(code, image, "findMaxDiagonal");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				t.getResponseBody().write(b);
+				
+				
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				t.getResponseBody().write(b);
+			} finally {
+				t.close();
+			}
+		}
+	}
+
+	static class RunHandler4 implements HttpHandler {	
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				// שימוש בפונקציה המרכזית!
+				JsonObject responseJson = executeStudentCodeInt(code, image, "findMinSecondaryDiagonal");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				t.getResponseBody().write(b);
+				
+				
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				t.getResponseBody().write(b);
+			} finally {
+				t.close();
+			}
+		}
+	}
+
+	static class RunHandler5 implements HttpHandler {	
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				
+				
+				JsonObject req = gson.fromJson(body, JsonObject.class);
+					String code = req.get("code").getAsString();
+					int[][] image = gson.fromJson(req.get("image"), int[][].class);
+					int countToReplicate = req.has("count") ? req.get("count").getAsInt() : 1;
+
+					// 2. חישוב המיקום הראשון שאינו רקע (לוגיקה שלך)
+					int rPos = 0, cPos = 0;
+					boolean found = false;
+					for (int r = 0; r < image.length && !found; r++) {
+						for (int c = 0; c < image[r].length; c++) {
+							if (image[r][c] != 1) { // מניח ש-1 הוא צבע הרקע
+								rPos = r; cPos = c;
+								found = true;
+								break;
+							}
+						}
+					}
+				
+				// שימוש בפונקציה המרכזית!
+				JsonObject responseJson = executeStudentCodeRepPixel(code, image, rPos, cPos, countToReplicate, "replicatePixel");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				t.getResponseBody().write(b);
+						
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				t.getResponseBody().write(b);
+			} finally {
+				t.close();
+			}
+		}
+	}
+
+	static class RunHandler6 implements HttpHandler {	
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+			
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				
+				
+				JsonObject req = gson.fromJson(body, JsonObject.class);
+					String code = req.get("code").getAsString();
+					int[][] image = gson.fromJson(req.get("image"), int[][].class);
+					int rowsCount = req.get("rows").getAsInt();
+					int colsCount = req.get("cols").getAsInt();
+
+					// 2. חישוב המיקום הראשון שאינו רקע (לוגיקה שלך)
+					int rPos = 0, cPos = 0;
+					boolean found = false;
+					for (int r = 0; r < image.length && !found; r++) {
+						for (int c = 0; c < image[r].length; c++) {
+							if (image[r][c] != 1) { // מניח ש-1 הוא צבע הרקע
+								rPos = r; cPos = c;
+								found = true;
+								break;
+							}
+						}
+					}
+					
+				// שימוש בפונקציה המרכזית!
+				JsonObject responseJson = executeStudentCodeRepRec(code, image, rPos, cPos, rowsCount, colsCount, "replicateRectangle");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				t.getResponseBody().write(b);
+						
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				t.getResponseBody().write(b);
+			} finally {
+				t.close();
+			}
+		}
+	}
+
+	static class RunCreative implements HttpHandler {
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				// שימוש בפונקציה המרכזית!
+				JsonObject responseJson = executeStudentCodeImage(code, image, "createImage");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				t.getResponseBody().write(b);
+
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				t.getResponseBody().write(b);
+			} finally {
+				t.close();
+			}
+		}
+	}		
+}	
+
+	
