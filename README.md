@@ -1,2 +1,3 @@
 # AlgorithmicArt
 AlgorithmicArt
+first commit
