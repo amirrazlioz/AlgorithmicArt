@@ -43,7 +43,7 @@ public class RemoteServer {
                 onlineUsers.add(userIp);
             }
 
-            try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("/index.html")) {
+            try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("index.html")) {
                 if (is == null) {
                     String notFound = "<h1>404 Not Found</h1>";
                     exchange.sendResponseHeaders(404, notFound.getBytes().length);
