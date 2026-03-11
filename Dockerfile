@@ -1,17 +1,17 @@
 
-# שלב 1: בנייה (Build)
+# שלב הבנייה
 FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
 COPY . .
+# פקודת בנייה שמנקה הכל ובונת מחדש
 RUN mvn clean package -DskipTests
 
-# שלב 2: הרצה (Runtime) - כאן השינוי!
-# במקום openjdk:17-jdk-slim, נשתמש בזה:
+# שלב ההרצה
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
-# העתקת ה-JAR (שים לב שהשם תואם ל-ArtifactId ב-pom.xml)
-COPY --from=build /app/target/AlgorithmicArtServer-1.0-SNAPSHOT.jar app.jar
+# העתקה עם Wildcard כדי לוודא שאנחנו תופסים את ה-JAR הנכון
+COPY --from=build /app/target/AlgorithmicArtServer-*.jar app.jar
 
-# הגדרת זיכרון ל-15 תלמידים בתוכנית Hobby
-ENTRYPOINT ["java", "-Xmx2g", "-jar", "app.jar"]
+# הגבלת זיכרון ל-512MB כדי שלא יקרוס ב-Railway
+ENTRYPOINT ["java", "-Xmx512m", "-jar", "app.jar"]
