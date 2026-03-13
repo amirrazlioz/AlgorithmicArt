@@ -755,10 +755,10 @@ public static int[][] addFrame(
 	int height = image.length;
 	int width = image[0].length;
 	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			if ( i==0 || j==0 || i==height-1 || j==width-1)
-				image[i][j] = 1;  
-		}
+	 for (int j = 0; j < width; j++) {
+	  if ( i==0 || j==0 || i==height-1 || j==width-1)
+		image[i][j] = 1;  
+	 }
 	}
 	System.out.println("height is " + height );
 	System.out.println("width is " + width );
