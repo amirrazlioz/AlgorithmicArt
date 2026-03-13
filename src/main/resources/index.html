@@ -751,18 +751,18 @@ input[type=range]::-webkit-slider-thumb {
 					<div class="editor-side">
 						<textarea id="code1" spellcheck="false" data-clarity-unmask="true" >
 public static int[][] addFrame(
-	int[][] image){
-	int height = image.length;
-	int width = image[0].length;
-	for (int i = 0; i < height; i++) {
-	 for (int j = 0; j < width; j++) {
-	  if ( i==0 || j==0 || i==height-1 || j==width-1)
-		image[i][j] = 1;  
-	 }
-	}
-	System.out.println("height is " + height );
-	System.out.println("width is " + width );
-	return image;
+ int[][] image){
+ int height = image.length;
+ int width = image[0].length;
+ for (int i = 0; i < height; i++) {
+  for (int j = 0; j < width; j++) {
+   if ( i==0 || j==0 || i==height-1 || j==width-1)
+	 image[i][j] = 1;  
+  }
+ }
+ System.out.println("height is " + height );
+ System.out.println("width is " + width );
+ return image;
 }
 </textarea>			
 						<button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
@@ -816,19 +816,19 @@ public static int[][] addFrame(
 					<div class="editor-side">
 						<textarea id="code2" spellcheck="false">
 public static int[][] createDiagonal(
-	int[][] image){
-	int height = image.length;
-	int width = image[0].length;
+ int[][] image){
+ int height = image.length;
+ int width = image[0].length;
 	
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			if ( i==j)
-				image[i][j] = 1; 
-			if ( i==15-j)
-				image[i][j] = 10;      
-		}
-	}
-	return image;
+ for (int i = 0; i < height; i++) {
+  for (int j = 0; j < width; j++) {
+   if ( i==j)
+ 	image[i][j] = 1; 
+ 	 if ( i==15-j)
+ 	  image[i][j] = 10;      
+  }
+ }
+ return image;
 }
 </textarea>		
 						<button class="btn-run" onclick="runDiagonalCode() ; gtag('event', 'run_code', {'level': '02'});" 
@@ -894,17 +894,17 @@ public static int[][] createDiagonal(
 						<textarea id="code3" spellcheck="false">
 				
 public static int findMaxDiagonal(int[][] image){
-	int max = 0;
-	int size = image.length;
+ int max = 0;
+ int size = image.length;
 
-	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == j && image[i][j] > max )
-			max = image[i][j];  
-		}
-	}
+ for (int i = 0; i < size ; i++) {
+  for (int j = 0; j < size ; j++) {
+   if ( i == j && image[i][j] > max )
+ 	max = image[i][j];  
+  }
+ }
 	
-	return max ;
+ return max ;
 }
 	
 						</textarea>	
@@ -973,17 +973,17 @@ public static int findMaxDiagonal(int[][] image){
 						<textarea id="code4" spellcheck="false">
 				
 public static int findMinSecondaryDiagonal(
-	int[][] image){
-	int min = 48; 
-	int size = image.length;
-
-	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == 15-j && image[i][j] < min)
-				min= image[i][j];  
-		}
-	}
-	return min;
+ int[][] image){
+ int min = 48; 
+ int size = image.length;
+ 
+ for (int i = 0; i < size ; i++) {
+  for (int j = 0; j < size ; j++) {
+   if ( i == 15-j && image[i][j] < min)
+ 	min= image[i][j];  
+  }
+ }
+ return min;
 }
 
 </textarea>	
@@ -1056,14 +1056,14 @@ public static int findMinSecondaryDiagonal(
 						<textarea id="code5" spellcheck="false">
 
 public static int[][] replicatePixel(
-	int[][]image, int row, int col, int count){
-	int colorToCopy = image[row][col];
-	int width = image[0].length;
-	for (int j = 0; j < count; j++) {
-	if ( j + col <= 15 )
-			image[row][j+col]=colorToCopy ;  
-	 }        
-	return image;
+ int[][]image, int row, int col, int count){
+ int colorToCopy = image[row][col];
+ int width = image[0].length;
+ for (int j = 0; j < count; j++){
+  if ( j + col <= 15 )
+    image[row][j+col]=colorToCopy ;  
+ }        
+ return image;
 }
 
 </textarea>		
@@ -1123,17 +1123,17 @@ public static int[][] replicatePixel(
 						<textarea id="code6" spellcheck="false">
 			
 public static int[][] replicateRectangle(
-	int[][]image, int row, int col, 
-	int rowsCount, int colsCount){
-        int colorToCopy = image[row][col];
-        int width = image[0].length;
-        for (int i = 0; i < rowsCount; i++) {
-            for (int j = 0; j < colsCount; j++) {
-                if ( j + col <= 15 && i + row <= 15)
-                image[i+row][j+col]=colorToCopy ;  
-            }
-         } 
-    return image;
+ int[][]image, int row, int col, 
+ int rowsCount, int colsCount){
+ int colorToCopy = image[row][col];
+ int width = image[0].length;
+ for (int i = 0; i < rowsCount; i++) {
+  for (int j = 0; j < colsCount; j++) {
+   if ( j + col <= 15 && i + row <= 15)
+    image[i+row][j+col]=colorToCopy ;  
+  }
+ } 
+ return image;
 }
 
 </textarea>		
@@ -1262,15 +1262,15 @@ public static int[][] replicateRectangle(
 					<textarea id="creative-code" spellcheck="false">
 				
 public static int[][] createImage(int[][] image){
-	int rows = image.length;
-	int cols = image[0].length;
+ int rows = image.length;
+ int cols = image[0].length;
 
-	for (int r = 0; r < rows; r++) {
-		for (int c = 0; c < cols; c++) {
-			image[r][c] = (c + r * 2) % 48 + 1;
-		}
-	}
-	return image;
+ for (int r = 0; r < rows; r++) {
+  for (int c = 0; c < cols; c++) {
+   image[r][c] = (c + r * 2) % 48 + 1;
+  }
+ }
+ return image;
 }
 
 				</textarea>
