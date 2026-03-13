@@ -2,8 +2,26 @@
 <html lang="he" dir="rtl">
 <head>
 
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KMVZY6SX7F"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KMVZY6SX7F');
+</script>
+
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "vv0d1skwxi");
+</script>
+
 <meta charset="UTF-8">
-<title>Algorithmic Art Studio | כיתה י' מדעי המחשב</title>
+<title>Algorithmic Art Studio</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -731,23 +749,23 @@ input[type=range]::-webkit-slider-thumb {
 						<canvas id="canvas" width="280" height="280"></canvas>
 					</div>
 					<div class="editor-side">
-						<textarea id="code1" spellcheck="false">
+						<textarea id="code1" spellcheck="false" data-clarity-unmask="true" >
 public static int[][] addFrame(
-	int[][] image){
-	int height = image.length;
-	int width = image[0].length;
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			if ( i==0 || j==0 || i==height-1 || j==width-1)
-				image[i][j] = 1;  
-		}
-	}
-	System.out.println("height is " + height );
-	System.out.println("width is " + width );
-	return image;
+ int[][] image){
+ int height = image.length;
+ int width = image[0].length;
+ for (int i = 0; i < height; i++) {
+  for (int j = 0; j < width; j++) {
+   if ( i==0 || j==0 || i==height-1 || j==width-1)
+	 image[i][j] = 1;  
+  }
+ }
+ System.out.println("height is " + height );
+ System.out.println("width is " + width );
+ return image;
 }
 </textarea>			
-						<button class="btn-run" onclick="runFrameCode()" 
+						<button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
 						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -798,22 +816,22 @@ public static int[][] addFrame(
 					<div class="editor-side">
 						<textarea id="code2" spellcheck="false">
 public static int[][] createDiagonal(
-	int[][] image){
-	int height = image.length;
-	int width = image[0].length;
+ int[][] image){
+ int height = image.length;
+ int width = image[0].length;
 	
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			if ( i==j)
-				image[i][j] = 1; 
-			if ( i==15-j)
-				image[i][j] = 10;      
-		}
-	}
-	return image;
+ for (int i = 0; i < height; i++) {
+  for (int j = 0; j < width; j++) {
+   if ( i==j)
+ 	image[i][j] = 1; 
+ 	 if ( i==15-j)
+ 	  image[i][j] = 10;      
+  }
+ }
+ return image;
 }
 </textarea>		
-						<button class="btn-run" onclick="runDiagonalCode()" 
+						<button class="btn-run" onclick="runDiagonalCode() ; gtag('event', 'run_code', {'level': '02'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
 						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -876,21 +894,21 @@ public static int[][] createDiagonal(
 						<textarea id="code3" spellcheck="false">
 				
 public static int findMaxDiagonal(int[][] image){
-	int max = 0;
-	int size = image.length;
+ int max = 0;
+ int size = image.length;
 
-	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == j && image[i][j] > max )
-			max = image[i][j];  
-		}
-	}
+ for (int i = 0; i < size ; i++) {
+  for (int j = 0; j < size ; j++) {
+   if ( i == j && image[i][j] > max )
+ 	max = image[i][j];  
+  }
+ }
 	
-	return max ;
+ return max ;
 }
 	
 						</textarea>	
-						<button class="btn-run" onclick="runMaxCode()" 
+						<button class="btn-run" onclick="runMaxCode(); gtag('event', 'run_code', {'level': '03'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
 						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -955,21 +973,21 @@ public static int findMaxDiagonal(int[][] image){
 						<textarea id="code4" spellcheck="false">
 				
 public static int findMinSecondaryDiagonal(
-	int[][] image){
-	int min = 48; 
-	int size = image.length;
-
-	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == 15-j && image[i][j] < min)
-				min= image[i][j];  
-		}
-	}
-	return min;
+ int[][] image){
+ int min = 48; 
+ int size = image.length;
+ 
+ for (int i = 0; i < size ; i++) {
+  for (int j = 0; j < size ; j++) {
+   if ( i == 15-j && image[i][j] < min)
+ 	min= image[i][j];  
+  }
+ }
+ return min;
 }
 
 </textarea>	
-						<button class="btn-run" onclick="runMinCode()" 
+						<button class="btn-run" onclick="runMinCode(); gtag('event', 'run_code', {'level': '04'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
 						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -1038,18 +1056,18 @@ public static int findMinSecondaryDiagonal(
 						<textarea id="code5" spellcheck="false">
 
 public static int[][] replicatePixel(
-	int[][]image, int row, int col, int count){
-	int colorToCopy = image[row][col];
-	int width = image[0].length;
-	for (int j = 0; j < count; j++) {
-	if ( j + col <= 15 )
-			image[row][j+col]=colorToCopy ;  
-	 }        
-	return image;
+ int[][]image, int row, int col, int count){
+ int colorToCopy = image[row][col];
+ int width = image[0].length;
+ for (int j = 0; j < count; j++){
+  if ( j + col <= 15 )
+    image[row][j+col]=colorToCopy ;  
+ }        
+ return image;
 }
 
 </textarea>		
-						<button class="btn-run" onclick="runReplicateCode()" 
+						<button class="btn-run" onclick="runReplicateCode(); gtag('event', 'run_code', {'level': '05'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
 						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -1105,21 +1123,21 @@ public static int[][] replicatePixel(
 						<textarea id="code6" spellcheck="false">
 			
 public static int[][] replicateRectangle(
-	int[][]image, int row, int col, 
-	int rowsCount, int colsCount){
-        int colorToCopy = image[row][col];
-        int width = image[0].length;
-        for (int i = 0; i < rowsCount; i++) {
-            for (int j = 0; j < colsCount; j++) {
-                if ( j + col <= 15 && i + row <= 15)
-                image[i+row][j+col]=colorToCopy ;  
-            }
-         } 
-    return image;
+ int[][]image, int row, int col, 
+ int rowsCount, int colsCount){
+ int colorToCopy = image[row][col];
+ int width = image[0].length;
+ for (int i = 0; i < rowsCount; i++) {
+  for (int j = 0; j < colsCount; j++) {
+   if ( j + col <= 15 && i + row <= 15)
+    image[i+row][j+col]=colorToCopy ;  
+  }
+ } 
+ return image;
 }
 
 </textarea>		
-						<button class="btn-run" onclick="runRectCode()" 
+						<button class="btn-run" onclick="runRectCode(); gtag('event', 'run_code', {'level': '06'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
 						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -1157,7 +1175,7 @@ public static int[][] replicateRectangle(
 			
 			<div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center;">
 				<div style="max-width: 500px;">
-					<button class="btn-run" onclick="saveWorkAsPDF()" 
+					<button class="btn-run" onclick="saveWorkAsPDF(); gtag('event', 'save_pdf', {'level': '01'});" 
 			style="display: flex; justify-content: center; padding: 15px 100px; font-size: 20px; width: auto; 
 				   background: linear-gradient(135deg, #10b981, #047857); border: none; 
 				   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -1182,7 +1200,7 @@ public static int[][] replicateRectangle(
 					<div id="palette-card" class="color-palette-container palette-grid"></div>
 				</div>
 				<div style="text-align: center; margin-top: 25px;">    
-					<button class="btn-run" onclick="downloadGeneratedPalette()" 
+					<button class="btn-run" onclick="downloadGeneratedPalette() ; gtag('event', 'download_generated_palette', {'level': '01'});" 
 					style="padding: 15px 60px; font-size: 18px; width: auto; display: inline-block;">
 					📸 שמור את תמונת הפלטה ל-JPG
 					</button>				
@@ -1220,7 +1238,7 @@ public static int[][] replicateRectangle(
 			</textarea>
 			
 			<div style="text-align: center; margin-top: 25px;">    
-					<button class="btn-run" onclick="copyAiPrompt()" 
+					<button class="btn-run" onclick="copyAiPrompt() ; gtag('event', 'copy_ai_prompt', {'level': '01'});" 
 					style="padding: 15px 60px; font-size: 18px; width: auto; display: inline-block;">
 					📋 העתק הנחיה מעודכנת ללוח
 					</button>				
@@ -1244,20 +1262,20 @@ public static int[][] replicateRectangle(
 					<textarea id="creative-code" spellcheck="false">
 				
 public static int[][] createImage(int[][] image){
-	int rows = image.length;
-	int cols = image[0].length;
+ int rows = image.length;
+ int cols = image[0].length;
 
-	for (int r = 0; r < rows; r++) {
-		for (int c = 0; c < cols; c++) {
-			image[r][c] = (c + r * 2) % 48 + 1;
-		}
-	}
-	return image;
+ for (int r = 0; r < rows; r++) {
+  for (int c = 0; c < cols; c++) {
+   image[r][c] = (c + r * 2) % 48 + 1;
+  }
+ }
+ return image;
 }
 
 				</textarea>
 								
-				<button class="btn-run" onclick="runCreativeCode()" 
+				<button class="btn-run" onclick="runCreativeCode() ; gtag('event', 'run_creative_code', {'level': '01'});" 
 					style="padding: 10px 15px; font-size: 13px; min-width: 90px; flex: 1; 
 					background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; 
 					box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -1288,7 +1306,7 @@ public static int[][] createImage(int[][] image){
 </textarea>
 			
 				<div style="text-align: center; margin-top: 25px;">    
-						<button class="btn-run" onclick="copyAiPrompt()" 
+						<button class="btn-run" onclick="copyAiPrompt() ; gtag('event', 'run_ai_prompt', {'level': '02'});" 
 						style="padding: 15px 60px; font-size: 18px; width: auto; display: inline-block;">
 						📋 העתק הנחיה מעודכנת ללוח
 						</button>				
@@ -1298,14 +1316,14 @@ public static int[][] createImage(int[][] image){
 		
 			<div style="display: flex; gap: 20px; margin-top: 15px;">
 			
-			<button class="btn-run" onclick="toggleCreativeGrid()" 
+			<button class="btn-run" onclick="toggleCreativeGrid() ; gtag('event', 'toggle_grid', {'level': '01'});" 
 				style="padding: 10px 40px; font-size: 18px; min-width: 90px; flex: 1; 
 					   background: linear-gradient(135deg, #a855f7, #6b21a8); border: none; 
 					   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
 				🌐 GRID ON/OFF
 			</button>
 			
-			<button class="btn-run" onclick="saveAsImage()" 
+			<button class="btn-run" onclick="saveAsImage() ; gtag('event', 'save_image', {'level': '01'});" 
 				style="padding: 10px 40px; font-size: 18px; min-width: 90px; flex: 1; 
 					   background: linear-gradient(135deg, #10b981, #047857); border: none; 
 					   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -1356,7 +1374,7 @@ public static int[][] createImage(int[][] image){
 		</div>
 		
 		<div style="text-align: center; margin: 50px 0;">	
-		<button class="btn-run" onclick="printCreativePage()" 
+		<button class="btn-run" onclick="printCreativePage() ; gtag('event', 'save_creative_pdf', {'level': '01'});" 
 		style="padding: 15px 90px; font-size: 20px; width: auto; 
 			   background: linear-gradient(135deg, #10b981, #047857); border: none; 
 			   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
@@ -1372,7 +1390,7 @@ public static int[][] createImage(int[][] image){
 			<div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap; justify-content: center;">
 				<div style="max-width: 300px;">
 					<p style="margin-bottom: 15px; font-size: 16px;">המשוב שלך עוזר למחקר שלנו ומשפר את הפעילות עבור תלמידים אחרים.</p>
-					<button class="btn-run" onclick="goToFeedback()" 
+					<button class="btn-run" onclick="goToFeedback() ; gtag('event', 'go_to_feedback', {'level': '01'});" 
 						style="padding: 15px 30px; font-size: 16px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; font-weight: bold; width: 100%;">
 						 למילוי השאלון
 					</button>
@@ -1533,6 +1551,12 @@ function recordAction(actionName, details) {
     const entry = `[${timestamp}] ${actionName}: ${details}`;
     activityLog.push(entry);
     console.log("Logged:", entry); // לצפייה בזמן אמת ב-Console
+	
+// שליחה לגוגל אנליטיקס עם השמות הנכונים של המשתנים
+//    gtag('event', 'user_action', {
+//        'action_name': actionName,  // תיקון מ-action ל-actionName
+//        'action_detail': details    // תיקון מ-detail ל-details
+//    });
 }
 
 // תיעוד כניסה לדף
@@ -2392,6 +2416,11 @@ function saveWorkAsPDF() {
     window.print();
 	
 	recordAction("Level End", "הדפסת PDF ");
+	
+	gtag('event', 'generate_report', {
+    'student_name': document.getElementById('studentName').value
+	});
+
 }
 
 // פונקציית עזר משותפת לעיצוב ה-PDF (כדי שלא נשחזר קוד)
@@ -2434,6 +2463,7 @@ function generatePrintHTML(studentName, title, code, canvasImg, aiLog) {
 
 // 2. פונקציה להדפסת דף היצירה (Creative Page)
 function printCreativePage() {
+	
     // 1. שליפת נתונים - שימוש ב-IDs הנכונים וב-value עבור תיבות טקסט
     const studentName = document.getElementById('studentName')?.value || "לא הוכנס שם";
     const creativeCode = document.getElementById('creative-code')?.value || "// לא נכתב קוד";
@@ -2454,6 +2484,12 @@ function printCreativePage() {
     } catch (e) {
         console.error("קנבס לא זמין לצילום");
     }
+	
+	// שליחת אירוע לגוגל אנליטיקס
+    gtag('event', 'generate_creative_pdf', {
+        'student_name': document.getElementById('studentName').value || 'anonymous',
+        'page_type': 'creative_free_style'
+    });
 
     // 3. בניית ה-HTML עם מעברי דף
     const printHtml = `
@@ -2574,26 +2610,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 
 // פונקציית המשוב עם הזרקת הנתונים ל-Section 2
-/*
-function goToFeedback() {
-    // ה-ID שמצאת
-    const fieldId = "entry.1965439981"; 
-    
-    // הכתובת של הטופס שלך
-    // const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
-	
-	const baseUrl = "https://forms.gle/Vk6RGxbr6cjkupfn9";
-    
-    // הפיכת המערך לטקסט אחד עם ירידות שורה
-    const fullLog = activityLog.length > 0 ? activityLog.join('\n') : "No actions recorded";
-    
-    // יצירת הקישור המיוחד (Pre-filled URL)
-    const finalUrl = `${baseUrl}?usp=pp_url&${fieldId}=${encodeURIComponent(fullLog)}`;
-    
-    // פתיחת הטופס
-    window.open(finalUrl, '_blank');
-}
-*/
 
 function goToFeedback() {
     // שליפת שני הדפים הרלוונטיים
@@ -2661,6 +2677,12 @@ function rateTask(btn, score) {
     
     // חיווי קטן ב-console לדיבוג
     console.log(`משימה ${challengeNum} דורגה כ-${score}`);
+	
+	// שליחת האירוע לגוגל
+    //gtag('event', 'task_rating', {
+    //    'challenge_num': challengeNum,
+    //    'score': score
+    //});
 }
 
 // הפעלה ברגע שהדף נטען
