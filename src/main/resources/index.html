@@ -1551,13 +1551,14 @@ function recordAction(actionName, details) {
     const entry = `[${timestamp}] ${actionName}: ${details}`;
     activityLog.push(entry);
     console.log("Logged:", entry); // לצפייה בזמן אמת ב-Console
+}
 	
 // שליחה לגוגל אנליטיקס עם השמות הנכונים של המשתנים
 //    gtag('event', 'user_action', {
 //        'action_name': actionName,  // תיקון מ-action ל-actionName
 //        'action_detail': details    // תיקון מ-detail ל-details
 //    });
-}
+
 
 // תיעוד כניסה לדף
 recordAction("Page Load", "כניסה לאתר");
@@ -2611,6 +2612,63 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 // פונקציית המשוב עם הזרקת הנתונים ל-Section 2
 
+/*
+function goToFeedback() {
+    // ה-ID שמצאת
+    const fieldId = "entry.1965439981"; 
+    
+    // הכתובת של הטופס שלך
+    // const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
+	
+	const baseUrl = "https://forms.gle/Vk6RGxbr6cjkupfn9";
+    
+    // הפיכת המערך לטקסט אחד עם ירידות שורה
+    const fullLog = activityLog.length > 0 ? activityLog.join('\n') : "No actions recorded";
+    
+    // יצירת הקישור המיוחד (Pre-filled URL)
+    const finalUrl = `${baseUrl}?usp=pp_url&${fieldId}=${encodeURIComponent(fullLog)}`;
+    
+    // פתיחת הטופס
+    window.open(finalUrl, '_blank');
+}
+*/
+
+function goToFeedback() {
+    // 1. הגדרת ה-ID של השדה בטופס (המספר ששמרת בהערה)
+    const fieldId = "entry.1965439981"; 
+    
+    // 2. הכנת ה-Log כטקסט אחד ארוך
+    const fullLog = activityLog.length > 0 ? activityLog.join('\n') : "No actions recorded";
+    
+    let baseUrl = "";
+
+    // 3. בחירת הטופס המתאים לפי הדף הפעיל
+    const studioPage = document.getElementById('studio-page');
+    const creativePage = document.getElementById('creative-page');
+
+    if (studioPage && studioPage.classList.contains('active')) {
+        // קישור מלא לטופס "אתגרי הקוד" (חייב להיות הקישור הארוך!)
+        baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
+    } else if (creativePage && creativePage.classList.contains('active')) {
+        // קישור מלא לטופס "דף יצירתי" (תחליף כאן לקישור הארוך של הטופס השני)
+        baseUrl = "https://docs.google.com/forms/d/e/YOUR_CREATIVE_FORM_ID/viewform";
+    }
+
+    if (baseUrl) {
+        // 4. בניית הכתובת הסופית עם הנתונים (Pre-filled URL)
+        const finalUrl = `${baseUrl}?usp=pp_url&${fieldId}=${encodeURIComponent(fullLog)}`;
+        
+        // 5. פתיחת הטופס
+        window.open(finalUrl, '_blank');
+        
+        // תיעוד בגוגל אנליטיקס שמישהו עבר למשוב
+        gtag('event', 'open_feedback', {
+            'page': studioPage.classList.contains('active') ? 'studio' : 'creative'
+        });
+    }
+}
+
+/*
 function goToFeedback() {
     // שליפת שני הדפים הרלוונטיים
     const studioPage = document.getElementById('studio-page');
@@ -2635,6 +2693,7 @@ function goToFeedback() {
         window.open(formUrl, '_blank');
     }
 }
+*/
 
 // פונקציה שמאפשרת TAB בתוך כל תיבות הטקסט באתר
 function enableTabOnAllTextareas() {
