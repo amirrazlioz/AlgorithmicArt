@@ -1559,13 +1559,6 @@ function creativeRecordAction(actionName, details) {
     creativeActivityLog.push(entry);
     console.log("Logged:", entry); // לצפייה בזמן אמת ב-Console
 }
-	
-// שליחה לגוגל אנליטיקס עם השמות הנכונים של המשתנים
-//    gtag('event', 'user_action', {
-//        'action_name': actionName,  // תיקון מ-action ל-actionName
-//        'action_detail': details    // תיקון מ-detail ל-details
-//    });
-
 
 // תיעוד כניסה לדף
 recordAction("Page Load", "כניסה לאתר");
@@ -2618,28 +2611,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 
 // פונקציית המשוב עם הזרקת הנתונים ל-Section 2
-
-/*
-function goToFeedback() {
-    // ה-ID שמצאת
-    const fieldId = "entry.1965439981"; 
-    
-    // הכתובת של הטופס שלך
-    // const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
-	
-	const baseUrl = "https://forms.gle/Vk6RGxbr6cjkupfn9";
-    
-    // הפיכת המערך לטקסט אחד עם ירידות שורה
-    const fullLog = activityLog.length > 0 ? activityLog.join('\n') : "No actions recorded";
-    
-    // יצירת הקישור המיוחד (Pre-filled URL)
-    const finalUrl = `${baseUrl}?usp=pp_url&${fieldId}=${encodeURIComponent(fullLog)}`;
-    
-    // פתיחת הטופס
-    window.open(finalUrl, '_blank');
-}
-*/
-
 function goToFeedback() {
     // 1. הגדרת ה-ID של השדה בטופס (המספר ששמרת בהערה)
     const fieldId = "entry.1965439981"; 
@@ -2683,33 +2654,6 @@ function goToFeedback() {
        'page': studioPage.classList.contains('active') ? 'studio' : 'creative'
     });
 }
-
-/*
-function goToFeedback() {
-    // שליפת שני הדפים הרלוונטיים
-    const studioPage = document.getElementById('studio-page');
-    const creativePage = document.getElementById('creative-page');
-    
-    let formUrl = "";
-
-    // בדיקה איזה דף מוצג כרגע למשתמש
-    if (studioPage && studioPage.classList.contains('active')) {
-        // הקישור של דף "אתגרי הקוד"
-        formUrl = "https://forms.gle/oW3D3nHbbV4F6rYq6";
-    } else if (creativePage && creativePage.classList.contains('active')) {
-        // הקישור של "דף יצירתי"
-        formUrl = "https://forms.gle/crj1HLuAAzkqR52J9";
-    } else {
-        // קישור ברירת מחדל אם נלחץ מדף אחר
-        formUrl = "https://docs.google.com/forms/d/DEFAULT_FORM_ID/viewform";
-    }
-
-    // פתיחת הקישור בלשונית חדשה
-    if (formUrl) {
-        window.open(formUrl, '_blank');
-    }
-}
-*/
 
 // פונקציה שמאפשרת TAB בתוך כל תיבות הטקסט באתר
 function enableTabOnAllTextareas() {
@@ -2757,12 +2701,6 @@ function rateTask(btn, score) {
 	
     // חיווי קטן ב-console לדיבוג
     console.log(`משימה ${challengeNum} דורגה כ-${score}`);
-	
-	// שליחת האירוע לגוגל
-    //gtag('event', 'task_rating', {
-    //    'challenge_num': challengeNum,
-    //    'score': score
-    //});
 }
 
 // הפעלה ברגע שהדף נטען
