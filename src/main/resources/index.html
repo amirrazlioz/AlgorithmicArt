@@ -2748,8 +2748,13 @@ function rateTask(btn, score) {
     
     // 4. שליפת מספר המשימה ותיעוד הפעולה
     const challengeNum = optionsContainer.getAttribute('data-challenge');
-    recordAction(`דירוג משימה ${challengeNum}`, `ציון עניין: ${score}/5`);
-    
+	if (challengeNum === 55) {
+		creativeActivityLog(`דירוג משימה ${challengeNum}`, `ציון עניין: ${score}/5`);
+	}
+	else{
+		recordAction(`דירוג משימה ${challengeNum}`, `ציון עניין: ${score}/5`);
+    }
+	
     // חיווי קטן ב-console לדיבוג
     console.log(`משימה ${challengeNum} דורגה כ-${score}`);
 	
