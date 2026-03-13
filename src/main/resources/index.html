@@ -1545,11 +1545,18 @@ window.onload = () => {
 // יומן האירועים של התלמיד
 
 let activityLog = [];
-
 function recordAction(actionName, details) {
     const timestamp = new Date().toLocaleTimeString();
     const entry = `[${timestamp}] ${actionName}: ${details}`;
     activityLog.push(entry);
+    console.log("Logged:", entry); // לצפייה בזמן אמת ב-Console
+}
+
+let creativeActivityLog = [];
+function creativeRecordAction(actionName, details) {
+    const timestamp = new Date().toLocaleTimeString();
+    const entry = `[${timestamp}] ${actionName}: ${details}`;
+    creativeActivityLog.push(entry);
     console.log("Logged:", entry); // לצפייה בזמן אמת ב-Console
 }
 	
@@ -2387,7 +2394,7 @@ async function runCreativeCode() {
         }
     }
         
-    recordAction("Run Creative Code", "אורך הקוד: " + code.length + " תווים");
+    creativeRecordAction("Run Creative Code", "אורך הקוד: " + code.length + " תווים");
 }
 // פונקציה לניקוי הקונסולה
 function clearCurrentConsoleCreative(btn) {
@@ -2583,14 +2590,14 @@ function saveAsImage() {
     // לחיצה וירטואלית להורדה
     link.click();
 	
-	recordAction("Save Image", "שמירת התמונה כ-JPEG");
+	creativeRecordAction("Save Image", "שמירת התמונה כ-JPEG");
 }
 
 function toggleCreativeGrid() {
     if (typeof creativeChallenge !== 'undefined') {
         creativeChallenge.toggleGrid();
     }
-	recordAction("Toggle Creative Grid", "הוספה או הורדה של הגריד ");צ
+	creativeRecordAction("Toggle Creative Grid", "הוספה או הורדה של הגריד ");צ
 }
 
 
@@ -2639,6 +2646,8 @@ function goToFeedback() {
     
     // 2. הכנת ה-Log כטקסט אחד ארוך
     const fullLog = activityLog.length > 0 ? activityLog.join('\n') : "No actions recorded";
+	
+	const creativeFullLog = creativeActivityLog.length > 0 ? creativeActivityLog.join('\n') : "No actions recorded"; 
     
     let baseUrl = "";
 
@@ -2647,14 +2656,10 @@ function goToFeedback() {
     const creativePage = document.getElementById('creative-page');
 
     if (studioPage && studioPage.classList.contains('active')) {
-        // קישור מלא לטופס "אתגרי הקוד" (חייב להיות הקישור הארוך!)
         baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
-		//baseUrl = "https://forms.gle/oW3D3nHbbV4F6rYq6";
     } else if (creativePage && creativePage.classList.contains('active')) {
         // קישור מלא לטופס "דף יצירתי" (תחליף כאן לקישור הארוך של הטופס השני)
-        //baseUrl = "https://docs.google.com/forms/d/e/YOUR_CREATIVE_FORM_ID/viewform";
-		baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
-		// baseUrl = "https://forms.gle/crj1HLuAAzkqR52J9";
+		creativeBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
     }
 
     if (baseUrl) {
@@ -2663,12 +2668,20 @@ function goToFeedback() {
         
         // 5. פתיחת הטופס
         window.open(finalUrl, '_blank');
-        
-        // תיעוד בגוגל אנליטיקס שמישהו עבר למשוב
-        gtag('event', 'open_feedback', {
-            'page': studioPage.classList.contains('active') ? 'studio' : 'creative'
-        });
     }
+
+    if (creativeBaseUrl) {
+        // 4. בניית הכתובת הסופית עם הנתונים (Pre-filled URL)
+        const finalUrl = `${creativeBaseUrl}?usp=pp_url&${fieldId}=${encodeURIComponent(creativeFullLog)}`;
+        
+        // 5. פתיחת הטופס
+        window.open(finalUrl, '_blank');
+    }
+	
+	// תיעוד בגוגל אנליטיקס שמישהו עבר למשוב
+    gtag('event', 'open_feedback', {
+       'page': studioPage.classList.contains('active') ? 'studio' : 'creative'
+    });
 }
 
 /*
