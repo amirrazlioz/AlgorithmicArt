@@ -750,8 +750,7 @@ input[type=range]::-webkit-slider-thumb {
 					</div>
 					<div class="editor-side">
 						<textarea id="code1" spellcheck="false" data-clarity-unmask="true" >
-public static int[][] addFrame(
- int[][] image){
+public static int[][] addFrame(int[][] image){
  int height = image.length;
  int width = image[0].length;
  for (int i = 0; i < height; i++) {
@@ -815,8 +814,7 @@ public static int[][] addFrame(
 					</div>
 					<div class="editor-side">
 						<textarea id="code2" spellcheck="false">
-public static int[][] createDiagonal(
- int[][] image){
+public static int[][] createDiagonal(int[][] image){
  int height = image.length;
  int width = image[0].length;
 	
@@ -972,8 +970,7 @@ public static int findMaxDiagonal(int[][] image){
 					<div class="editor-side">
 						<textarea id="code4" spellcheck="false">
 				
-public static int findMinSecondaryDiagonal(
- int[][] image){
+public static int findMinSecondaryDiagonal(int[][] image){
  int min = 48; 
  int size = image.length;
  
@@ -1055,8 +1052,7 @@ public static int findMinSecondaryDiagonal(
 					<div class="editor-side">
 						<textarea id="code5" spellcheck="false">
 
-public static int[][] replicatePixel(
- int[][]image, int row, int col, int count){
+public static int[][] replicatePixel(int[][]image, int row, int col, int count){
  int colorToCopy = image[row][col];
  int width = image[0].length;
  for (int j = 0; j < count; j++){
@@ -1122,9 +1118,7 @@ public static int[][] replicatePixel(
 					<div class="editor-side">
 						<textarea id="code6" spellcheck="false">
 			
-public static int[][] replicateRectangle(
- int[][]image, int row, int col, 
- int rowsCount, int colsCount){
+public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
  int colorToCopy = image[row][col];
  int width = image[0].length;
  for (int i = 0; i < rowsCount; i++) {
@@ -1262,7 +1256,7 @@ public static int[][] replicateRectangle(
 					<textarea id="creative-code" spellcheck="false">
 				
 public static int[][] createImage(int[][] image){
- int rows = image.length;
+int rows = image.length;
  int cols = image[0].length;
 
  for (int r = 0; r < rows; r++) {
