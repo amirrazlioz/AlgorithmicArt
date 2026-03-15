@@ -1205,7 +1205,7 @@ public static int[][] replicateRectangle( int[][]image, int row, int col,int row
 	<section class="challenge-card printable">
 	
 		<div style="text-align: center; padding: 15px 25px; background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color);">
-			<h2 style="margin:0; color: var(--accent-secondary);">סימפוניה של פיקסלים  - לוח ציור אלגוריתמי (32x32) </h2>
+			<h2 style="margin:0; color: var(--accent-secondary);">סימפוניה של פיקסלים  - לוח ציור אלגוריתמי (256x256) </h2>
 		</div>
 		<div class="challenge-card" style="padding: 15px 25px; background: rgba(168, 85, 247, 0.1); border-bottom: 1px solid var(--border-color);">
 			<h2 style="margin:0; color: var(--accent-primary); text-align: right;">🤖 הכנת הנחיה (Prompt) ל-AI</h2>
@@ -1255,17 +1255,92 @@ public static int[][] replicateRectangle( int[][]image, int row, int col,int row
 			<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
 					<textarea id="creative-code" spellcheck="false">
 				
-public static int[][] createImage(int[][] image){
-int rows = image.length;
- int cols = image[0].length;
+public static int[][] createImage(int[][] image) {
+        int height = image.length;
+        int width = image[0].length;
 
- for (int r = 0; r < rows; r++) {
-  for (int c = 0; c < cols; c++) {
-   image[r][c] = (c + r * 2) % 48 + 1;
-  }
- }
- return image;
-}
+        // מילוי המערך במספר 32 (צבע רקע כחול כהה) ללא שימוש ב-Arrays.fill
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                image[i][j] = 32;
+            }
+        }
+
+        // נקודת מרכז התמונה
+        double centerX = width / 2.0;
+        double centerY = height / 2.0;
+        
+        // רדיוס התחלתי (גודל הריבוע הראשון)
+        double radius = Math.min(width, height) * 0.45;
+        
+        // זווית התחלה (45 מעלות ברדיאנים)
+        double angle = Math.PI / 4; 
+
+        // קריאה לפעולה הרקורסיבית שמתחילה מהצבע ה-1
+        drawRecursiveSpiral(image, centerX, centerY, radius, angle, 1);
+
+        return image;
+    }
+
+    /**
+     * פעולה רקורסיבית המציירת ריבועים מסובבים
+     */
+    private static void drawRecursiveSpiral(int[][] image, double cx, double cy, double r, double a, int iter) {
+        // תנאי עצירה: סיימנו את כל 48 הצבעים או שהרדיוס קטן מדי
+        if (iter > 48 || r < 1) {
+            return;
+        }
+
+        // חישוב 4 פינות הריבוע הנוכחי
+        int x1 = (int) (cx + r * Math.cos(a));
+        int y1 = (int) (cy + r * Math.sin(a));
+        
+        int x2 = (int) (cx + r * Math.cos(a + Math.PI / 2));
+        int y2 = (int) (cy + r * Math.sin(a + Math.PI / 2));
+        
+        int x3 = (int) (cx + r * Math.cos(a + Math.PI));
+        int y3 = (int) (cy + r * Math.sin(a + Math.PI));
+        
+        int x4 = (int) (cx + r * Math.cos(a + 3 * Math.PI / 2));
+        int y4 = (int) (cy + r * Math.sin(a + 3 * Math.PI / 2));
+
+        // ציור צלעות הריבוע עם אינדקס הצבע הנוכחי (iter)
+        simpleLine(image, x1, y1, x2, y2, iter);
+        simpleLine(image, x2, y2, x3, y3, iter);
+        simpleLine(image, x3, y3, x4, y4, iter);
+        simpleLine(image, x4, y4, x1, y1, iter);
+
+        // קריאה רקורסיבית: הקטנת רדיוס ב-4% וסיבוב ב-0.1 רדיאנים
+        drawRecursiveSpiral(image, cx, cy, r * 0.96, a + 0.1, iter + 1);
+    }
+
+    /**
+     * אלגוריתם לציור קו ישר במערך (Bresenham)
+     */
+    private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
+        int dx = Math.abs(x1 - x0);
+        int dy = -Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy;
+
+        while (true) {
+            // בדיקת תקינות גבולות המערך
+            if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
+                image[y0][x0] = val;
+            }
+            if (x0 == x1 && y0 == y1) break;
+            int e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x0 += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
 
 				</textarea>
 								
