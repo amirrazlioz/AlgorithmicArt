@@ -1259,10 +1259,9 @@ public static int[][] createImage(int[][] image) {
         int height = image.length;
         int width = image[0].length;
 
-        // מילוי המערך במספר 32 (צבע רקע כחול כהה) ללא שימוש ב-Arrays.fill
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                image[i][j] = 32;
+                image[i][j] = 27;
             }
         }
 
