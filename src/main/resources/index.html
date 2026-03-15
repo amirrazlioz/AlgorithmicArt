@@ -2396,8 +2396,8 @@ function clearCurrentConsole6(btn) {
 
 function refreshRectReplicator() {
     const newImg = Array.from({ length: 16 }, () => Array(16).fill(1));
-    const r = Math.floor(Math.random() * 6); // שורה גבוהה כדי שיהיה מקום למטה
-    const c = Math.floor(Math.random() * 6); // עמודה שמאלית כדי שיהיה מקום ימינה
+    const r = Math.floor(Math.random() * 10); // שורה גבוהה כדי שיהיה מקום למטה
+    const c = Math.floor(Math.random() * 10); // עמודה שמאלית כדי שיהיה מקום ימינה
     const color = Math.floor(Math.random() * 47) + 2;
     newImg[r][c] = color;
     
