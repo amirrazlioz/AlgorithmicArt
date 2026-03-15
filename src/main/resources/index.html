@@ -2281,13 +2281,13 @@ function refreshReplicator() {
     
     // 2. הגרלת מיקום וצבע
     const ry = Math.floor(Math.random() * 16);
-    const rx = Math.floor(Math.random() * 6); // משאיר מקום לשכפול ימינה
+    const rx = Math.floor(Math.random() * 10); // משאיר מקום לשכפול ימינה
     const randomColor = Math.floor(Math.random() * 46) + 2; // צבע אקראי מהפלטה
     
     newImg[ry][rx] = randomColor;
     
     // 3. הגרלת כמות השכפולים (count)
-    currentCount5 = Math.floor(Math.random() * 8) + 3; // בין 3 ל-10
+    currentCount5 = Math.floor(Math.random() * 10) + 3; //  בין 3 ל 12
     
     // 4. עדכון התצוגה הויזואלית במסך
     const display = document.getElementById("pixel-count-display");
@@ -2401,8 +2401,8 @@ function refreshRectReplicator() {
     const color = Math.floor(Math.random() * 47) + 2;
     newImg[r][c] = color;
     
-    currentRows6 = Math.floor(Math.random() * 5) + 3; // 3-8 שורות
-    currentCols6 = Math.floor(Math.random() * 5) + 3; // 3-8 עמודות
+    currentRows6 = Math.floor(Math.random() * 10) + 3; // 3-8 שורות
+    currentCols6 = Math.floor(Math.random() * 10) + 3; // 3-8 עמודות
     
     document.getElementById("rows-count-display").innerText = currentRows6;
     document.getElementById("cols-count-display").innerText = currentCols6;
