@@ -1,2 +1,2 @@
-web: java -cp target/classes org.RemoteServer
+web: java -cp target/classes RemoteServer
 
