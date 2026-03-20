@@ -1299,7 +1299,7 @@ public static int[][] createImage(int[][] image) {
         simpleLine(image, x3, y3, x4, y4, iter);
         simpleLine(image, x4, y4, x1, y1, iter);
 
-        // עדכון הפרמטרים לסיבוב הבא (במקום לשלוח אותם לקריאה רקורסיבית)
+		// עדכון הפרמטרים לסיבוב הבא
         r = r * 0.96; // הקטנת רדיוס
         a = a + 0.1;  // שינוי זווית
     }
