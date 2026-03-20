@@ -1,2 +1,1 @@
-web: java -cp target/classes RemoteServer
-
+web: java -jar target/AlgorithmicArtServer-1.0-SNAPSHOT.jar
