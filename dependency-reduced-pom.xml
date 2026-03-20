@@ -22,7 +22,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>RemoteServer</mainClass>
+                  <mainClass>org.RemoteServer</mainClass>
                 </transformer>
               </transformers>
             </configuration>
