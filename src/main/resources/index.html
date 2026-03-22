@@ -2,38 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KMVZY6SX7F"></script>
-
-<script>
-    // רשימת ה-ID של כל תיבות הקוד באתר שלך
-    const editors = {};
-    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5'];
-
-    codeIds.forEach(id => {
-        const textArea = document.getElementById(id);
-        if (textArea) {
-            editors[id] = CodeMirror.fromTextArea(textArea, {
-                lineNumbers: true,       // הצגת מספרי שורות
-                mode: "text/x-java",     // הגדרה לשפת Java
-                theme: "dracula",        // ערכת נושא כהה
-                tabSize: 4,              // גודל Tab
-                indentUnit: 4,
-                lineWrapping: true,      // גלישת שורות
-                viewportMargin: Infinity
-            });
-            
-            // התאמת גובה העורך (דומה ל-400px שהגדרת ב-CSS)
-            editors[id].setSize(null, "400px");
-        }
-    });
-</script>
-
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -715,24 +685,7 @@ input[type=range]::-webkit-slider-thumb {
     box-shadow: 0 0 15px var(--accent-secondary);
 }
 
-.CodeMirror {
-    text-align: left !important;
-    direction: ltr !important;
-    font-family: 'Fira Code', monospace !important;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    
-    /* תוספות מומלצות לחוויית Editor אמיתית: */
-    line-height: 1.5;            /* מרווח שורות נוח לקריאה */
-    padding: 10px 0;             /* מרווח פנימי קטן למעלה ולמטה */
-    background-color: #282a36 !important; /* צבע הרקע של ערכת הנושא Dracula */
-}
 
-/* הדגשה של השורה הנוכחית (אופציונלי - עוזר לתלמידים להתמקד) */
-.CodeMirror-activeline-background {
-    background: rgba(255, 255, 255, 0.05) !important;
-}
 
 </style>
 </head>
@@ -1885,7 +1838,6 @@ let challenge5 = setupCanvas('canvas5', (x, y) => (x === 2 && y === 4) ? 5 : 1, 
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
     const code = document.getElementById("code1").value;
-	//const code = editors['code1'].getValue();
     
     if (logElement) {
         logElement.style.color = "#22d3ee";
