@@ -796,6 +796,38 @@ textarea.code-hidden {
     }
 }
 
+/* רקע ומסגרת של VS Code */
+.cm-s-dracula.CodeMirror { 
+    background: #1E1E1E !important; 
+    color: #D4D4D4 !important; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* סרגל מספרי השורות */
+.cm-s-dracula .CodeMirror-gutters { 
+    background: #1E1E1E !important; 
+    border-right: 1px solid #333 !important; 
+}
+.cm-s-dracula .CodeMirror-linenumber { 
+    color: #858585 !important; 
+}
+
+/* צבעי Syntax של VS Code */
+.cm-s-dracula .cm-keyword { color: #569CD6 !important; }   /* public, static, void - כחול */
+.cm-s-dracula .cm-type { color: #4EC9B0 !important; }      /* String, int - טורקיז */
+.cm-s-dracula .cm-string { color: #CE9178 !important; }    /* "text" - כתום-חום */
+.cm-s-dracula .cm-number { color: #B5CEA8 !important; }    /* 123 - ירוק בהיר */
+.cm-s-dracula .cm-comment { color: #6A9955 !important; }   /* // הערות - ירוק */
+.cm-s-dracula .cm-def { color: #DCDCAA !important; }       /* שמות פונקציות - צהוב */
+.cm-s-dracula .cm-variable { color: #9CDCFE !important; }  /* משתנים - תכלת */
+.cm-s-dracula .cm-operator { color: #D4D4D4 !important; }  /* + - = */
+
+/* סימון שורה נבחרת וסמן מהבהב */
+.cm-s-dracula .CodeMirror-cursor { border-left: 2px solid #569CD6 !important; }
+.cm-s-dracula .CodeMirror-activeline-background { background: rgba(255, 255, 255, 0.05) !important; }
+
+font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+
 </style>
 </head>
 <body>
@@ -2959,8 +2991,8 @@ function setupJavaEditors() {
             javaEditors[id] = CodeMirror(container, {
                 value: textArea.value,
                 mode: "text/x-java",
-                // theme: "dracula",
-				theme: "material-palenight",
+                theme: "dracula",
+				//theme: "material-palenight",
                 lineNumbers: true,
                 tabSize: 4,
                 indentUnit: 4,
