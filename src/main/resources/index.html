@@ -97,7 +97,7 @@ body {
 
 textarea {
     width: 100%;
-    height: 400px;
+    height: auto; !important; 
     background: transparent;
     color: #38bdf8;
     caret-color: white;
@@ -508,7 +508,7 @@ input[type=range]::-webkit-slider-thumb {
 .console-log {
     padding: 10px;
     font-size: 20px;
-    height: 250px;
+    height: auto; !important; 
     overflow-y: auto;
     color: #22d3ee; /* צבע ברירת מחדל */
     white-space: pre-wrap;
@@ -713,7 +713,7 @@ textarea.code-hidden {
 
 /* הגדרת המכולה של העורך */
 .editor-container {
-    height: auto;               /* מאפשר לחלון להיות קטן אם יש מעט קוד */
+    height: auto; !important;              /* מאפשר לחלון להיות קטן אם יש מעט קוד */
     border: 1px solid #334155;
     border-radius: 8px;
     margin-bottom: 10px;
@@ -739,7 +739,7 @@ textarea.code-hidden {
 
 
 #editor-code {
-    height: auto !important; /* גובה העורך */
+
     width: 100%;             /* רוחב מלא */
     text-align: left;        /* יישור קוד לשמאל */
     direction: ltr;          /* כתיבה משמאל לימין */
@@ -830,7 +830,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #3# " + height );
+    System.out.println("height is #4# " + height );
     System.out.println("width is " + width );
     return image;
 }
