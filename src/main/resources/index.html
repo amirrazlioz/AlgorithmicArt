@@ -309,9 +309,6 @@ input[type=range]::-webkit-slider-thumb {
     /* הסתרת הכפתור עצמו מההדפסה */
     button { display: none !important; }
 	
-	.CodeMirror {
-        font-size: 8px; /* יקטין את הפונט רק בזמן שמירה ל-PDF/הדפסה */
-    }
 }
 
 /* עיצוב השדה באתר */
@@ -731,6 +728,14 @@ textarea.code-hidden {
     margin-bottom: 15px;
 }
 
+@media print {
+    /* הגדרת גודל פונט מפורשת לכל מה שנכנס ל-PDF */
+    .CodeMirror, .CodeMirror-line, .CodeMirror pre {
+        font-size: 10pt !important; /* השתמש ב-pt במקום px עבור PDF */
+        line-height: 1.2 !important;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -805,7 +810,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #7# " + height );
+    System.out.println("height is #8# " + height );
     System.out.println("width is " + width );
     return image;
 }
