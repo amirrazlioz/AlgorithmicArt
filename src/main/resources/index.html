@@ -3041,19 +3041,17 @@ var javaEditors = {};
 function setupJavaEditors() {
     console.log("Setting up editors...");
     
-    // רשימת כל ה-IDs שקיימים באתר שלך
- 	const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
+    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
+    
     codeIds.forEach(id => {
         const textArea = document.getElementById(id);
         const container = document.getElementById('editor-' + id);
 
         if (textArea && container) {
-            // יצירת העורך
             javaEditors[id] = CodeMirror(container, {
                 value: textArea.value,
                 mode: "text/x-java",
                 theme: "dracula",
-				//theme: "material-palenight",
                 lineNumbers: true,
                 tabSize: 4,
                 indentUnit: 4,
@@ -3061,20 +3059,24 @@ function setupJavaEditors() {
                 matchBrackets: true,
                 autoCloseBrackets: true
             });
+
+            // הפתרון: רענון כפול כדי להבטיח נראות
+            setTimeout(() => {
+                javaEditors[id].refresh();
+            }, 100);
+            
             console.log("Editor '" + id + "' loaded successfully!");
-        } else {
-            console.error("Missing element for " + id, {textArea, container});
         }
     });
-	
-	// הפתרון: רענון כפול כדי להבטיח נראות
-	setTimeout(() => {
-		javaEditors[id].refresh();
-	}, 100);
-            
-    console.log("Editor '" + id + "' loaded successfully!");
 
-    // 3. הרצת פונקציות העזר המקוריות של האתר שלך
+    // רענון נוסף לכל המערכת אחרי חצי שנייה לביטחון
+    setTimeout(() => {
+        for (let id in javaEditors) {
+            javaEditors[id].refresh();
+        }
+    }, 500);
+	
+	    // 3. הרצת פונקציות העזר המקוריות של האתר שלך
     if (typeof refreshReplicator === "function") refreshReplicator();
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();
 }
