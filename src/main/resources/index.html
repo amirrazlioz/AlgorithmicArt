@@ -845,7 +845,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #1# " + height );
+    System.out.println("height is #2# " + height );
     System.out.println("width is " + width );
     return image;
 }
@@ -1996,10 +1996,10 @@ async function runFrameCode() {
             if (data.image) {
                 challenge1.draw(data.image);
             }
-            
+			            
             if (data.consoleOutput) {
                 logElement.innerHTML = `<div style="color: #4ade80">✅ הקוד בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px; background: #1e293b; padding: 10px; border-radius: 5px; text-align: left; direction: ltr;">${data.consoleOutput}</pre>`;
+                       `<div style="color: #fff; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
