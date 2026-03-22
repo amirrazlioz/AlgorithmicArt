@@ -714,7 +714,6 @@ textarea.code-hidden {
 /* הגדרת המכולה של העורך */
 .editor-container {
     height: auto;               /* מאפשר לחלון להיות קטן אם יש מעט קוד */
-    
     border: 1px solid #334155;
     border-radius: 8px;
     margin-bottom: 10px;
@@ -732,36 +731,15 @@ textarea.code-hidden {
     text-align: left;
 }
 
-/* הבטחת גלילה בתוך ה-CodeMirror 
-.CodeMirror-scroll {
-    max-height: 100%;
-    overflow-y: auto;
-    overflow-x: auto;
-}
-*/
-
 .CodeMirror {
     height: auto !important;   /* גובה גמיש לפי התוכן */
     max-height: 500px;         /* גובה מקסימלי לפני שתתחיל גלילה */
     min-height: 200px;         /* גובה מינימלי שלא יהיה קטן מדי */
 }
 
-/*
-.CodeMirror-vscrollbar, .CodeMirror-hscrollbar {
-    background: #282a36; 
-}
 
-.CodeMirror-vscrollbar::-webkit-scrollbar {
-    width: 8px;
-}
-
-.CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
-    background: #6272a4; 
-    border-radius: 10px;
-}
-*/
-#editor-code1 {
-    height: 400px;           /* גובה העורך */
+#editor-code {
+    height: auto !important; /* גובה העורך */
     width: 100%;             /* רוחב מלא */
     text-align: left;        /* יישור קוד לשמאל */
     direction: ltr;          /* כתיבה משמאל לימין */
@@ -840,7 +818,7 @@ textarea.code-hidden {
         <canvas id="canvas" width="280" height="280"></canvas>
     </div>
     <div class="editor-side">
-        <div id="editor-code1" class="editor-container"></div>
+        <div id="editor-code" class="editor-container"></div>
 
         <textarea id="code1" spellcheck="false" style="display:none;">				
 public static int[][] addFrame(int[][] image){
@@ -852,7 +830,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #2# " + height );
+    System.out.println("height is #3# " + height );
     System.out.println("width is " + width );
     return image;
 }
