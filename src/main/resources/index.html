@@ -1884,8 +1884,8 @@ let challenge5 = setupCanvas('canvas5', (x, y) => (x === 2 && y === 4) ? 5 : 1, 
 
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
-  //  const code = document.getElementById("code1").value;
-	const code = editors['code1'].getValue();
+    const code = document.getElementById("code1").value;
+	//const code = editors['code1'].getValue();
     
     if (logElement) {
         logElement.style.color = "#22d3ee";
