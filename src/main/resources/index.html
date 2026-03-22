@@ -714,10 +714,10 @@ textarea.code-hidden {
 /* הגדרת המכולה של העורך */
 .editor-container {
     height: auto;               /* מאפשר לחלון להיות קטן אם יש מעט קוד */
-    max-height: 400px;          /* ברגע שהקוד עובר את הגובה הזה, תופיע גלילה */
+    
     border: 1px solid #334155;
     border-radius: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     overflow: hidden;           /* שומר על הפינות המעוגלות של המכולה */
     display: flex;
     flex-direction: column;
@@ -732,12 +732,13 @@ textarea.code-hidden {
     text-align: left;
 }
 
-/* הבטחת גלילה בתוך ה-CodeMirror */
+/* הבטחת גלילה בתוך ה-CodeMirror 
 .CodeMirror-scroll {
     max-height: 100%;
     overflow-y: auto;
     overflow-x: auto;
 }
+*/
 
 .CodeMirror {
     height: auto !important;   /* גובה גמיש לפי התוכן */
@@ -745,8 +746,9 @@ textarea.code-hidden {
     min-height: 200px;         /* גובה מינימלי שלא יהיה קטן מדי */
 }
 
+/*
 .CodeMirror-vscrollbar, .CodeMirror-hscrollbar {
-    background: #282a36; /* צבע הרקע של דראקולה */
+    background: #282a36; 
 }
 
 .CodeMirror-vscrollbar::-webkit-scrollbar {
@@ -754,10 +756,10 @@ textarea.code-hidden {
 }
 
 .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
-    background: #6272a4; /* צבע הסמן של הגלילה */
+    background: #6272a4; 
     border-radius: 10px;
 }
-
+*/
 #editor-code1 {
     height: 400px;           /* גובה העורך */
     width: 100%;             /* רוחב מלא */
@@ -850,7 +852,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #1# " + height );
+    System.out.println("height is #2# " + height );
     System.out.println("width is " + width );
     return image;
 }
