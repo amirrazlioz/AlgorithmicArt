@@ -507,19 +507,19 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .console-log {
+    background-color: #000000 !important; /* רקע שחור מוחלט */
+    color: #ffffff;                       /* טקסט לבן */
     padding: 15px;
-    font-size: 16px;      /* גודל נוח לקריאה */
-    max-height: 200px;    /* גובה מקסימלי */
-    overflow-y: auto;     /* גלילה אנכית */
-    background: #1e293b;  /* צבע הרקע */
-    color: #ffffff;
+    font-size: 18px;
+    max-height: 200px;
+    overflow-y: auto;                     /* גלילה פנימית */
     white-space: pre-wrap;
     word-wrap: break-word;
-    direction: ltr; 
+    direction: ltr;
     text-align: left;
     border-radius: 8px;
-    border: 1px solid #334155;
-    box-sizing: border-box; /* חשוב מאוד! מונע מהפדינג לנפח את האלמנט */
+    border: 1px solid #444;               /* מסגרת עדינה כדי שיראו את הגבולות */
+    box-sizing: border-box;               /* מונע מהתיבה לגדול מעבר ל-200px */
 }
 
 .console-log::-webkit-scrollbar {
