@@ -949,7 +949,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 
 <div class="workspace">
     <div class="preview-side">
-        <canvas id="canvas" width="280" height="280"></canvas>
+        <canvas id="canvas1" width="280" height="280"></canvas>
     </div>
     <div class="editor-side">
         <div id="editor-code1" class="editor-container"></div>
@@ -1015,7 +1015,7 @@ public static int[][] addFrame(int[][] image){
 				</div>
 <div class="workspace">
     <div class="preview-side">
-        <canvas id="canvas" width="280" height="280"></canvas>
+        <canvas id="canvas2" width="280" height="280"></canvas>
     </div>
     <div class="editor-side">
         <div id="editor-code2" class="editor-container"></div>
@@ -2013,7 +2013,7 @@ function copyAiPrompt() {
     });
 }
 
-const challenge1 = setupCanvas('canvas', (x,y) => ((x + y * 2) % 48) + 1);
+const challenge1 = setupCanvas('canvas1', (x,y) => ((x + y * 2) % 48) + 1);
 const challenge2 = setupCanvas('canvas2', (x,y) => (Math.abs(x-8)+Math.abs(y-8)*3 % 48) + 1);
 // הגדרת קנבס המקור למשימה 3 - רק אלכסון צבעוני, השאר לבן
 const challenge3 = setupCanvas('canvas3', (x, y) => {
@@ -3054,8 +3054,7 @@ function setupJavaEditors() {
     console.log("Setting up editors...");
     
     // רשימת כל ה-IDs שקיימים באתר שלך
-    const codeIds = ['code1','code2', 'code3', 'code4', 'code5', 'code6', 'creative-code']; // אם תוסיף בעתיד עוד משימות, פשוט תוסיף כאן: 'code2', 'code3'
-
+ 	const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
     codeIds.forEach(id => {
         const textArea = document.getElementById(id);
         const container = document.getElementById('editor-' + id);
