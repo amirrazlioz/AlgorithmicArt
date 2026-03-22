@@ -757,7 +757,8 @@ textarea.code-hidden {
 						<canvas id="canvas" width="280" height="280"></canvas>
 					</div>
 					<div class="editor-side">
-						<textarea id="code1" spellcheck="false" data-clarity-unmask="true" >
+						<textarea id="code1" class="code-hidden" spellcheck="false" data-clarity-unmask="true">					
+						
 public static int[][] addFrame(int[][] image){
  int height = image.length;
  int width = image[0].length;
@@ -767,7 +768,7 @@ public static int[][] addFrame(int[][] image){
 	 image[i][j] = 1;  
   }
  }
- System.out.println("height is #4# " + height );
+ System.out.println("height is #5# " + height );
  System.out.println("width is " + width );
  return image;
 }
