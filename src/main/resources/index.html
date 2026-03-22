@@ -507,14 +507,27 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .console-log {
-    padding: 10px;
-    font-size: 20px;
+    padding: 15px;
+    font-size: 16px;      /* גודל נוח לקריאה */
     max-height: 200px;    /* גובה מקסימלי */
-    overflow-y: auto;
-    /* color: #22d3ee;  צבע ברירת מחדל */
+    overflow-y: auto;     /* גלילה אנכית */
+    background: #1e293b;  /* צבע הרקע */
+    color: #ffffff;
     white-space: pre-wrap;
-    direction: ltr; /* קוד ושגיאות משמאל לימין */
+    word-wrap: break-word;
+    direction: ltr; 
     text-align: left;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    box-sizing: border-box; /* חשוב מאוד! מונע מהפדינג לנפח את האלמנט */
+}
+
+.console-log::-webkit-scrollbar {
+    width: 8px;
+}
+.console-log::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 10px;
 }
 
 /* מבטיח שרק דף עם המחלקה active יוצג */
@@ -1997,8 +2010,8 @@ async function runFrameCode() {
             }
 			            
             if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ הקוד בוצע בהצלחה:</div>` + 
-                       `<div style="color: #4ade80"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
+                logElement.innerHTML = `<div style="color: #4ade80: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה:</div>` + 
+                       `<div style="color: #fff"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
