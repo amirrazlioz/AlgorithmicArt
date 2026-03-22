@@ -767,7 +767,7 @@ public static int[][] addFrame(int[][] image){
 	 image[i][j] = 1;  
   }
  }
- System.out.println("height is #3# " + height );
+ System.out.println("height is #4# " + height );
  System.out.println("width is " + width );
  return image;
 }
@@ -1267,7 +1267,6 @@ public static int[][] createImage(int[][] image) {
     int height = image.length;
     int width = image[0].length;
 
-    // מילוי רקע (צבע 27 כפי שביקשת)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             image[i][j] = 27;
@@ -1284,7 +1283,6 @@ public static int[][] createImage(int[][] image) {
     // זווית התחלה
     double a = Math.PI / 4; 
 
-    // לולאה שמחליפה את הרקורסיה
     // רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
     for (int iter = 1; iter <= 48 && r >= 1; iter++) {
         
@@ -1315,9 +1313,6 @@ public static int[][] createImage(int[][] image) {
     return image;
 }
 
-/**
- * אלגוריתם לציור קו ישר במערך (נשאר ללא שינוי)
- */
 private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
     int dx = Math.abs(x1 - x0);
     int dy = -Math.abs(y1 - y0);
