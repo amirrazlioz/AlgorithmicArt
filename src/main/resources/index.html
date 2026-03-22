@@ -3066,6 +3066,13 @@ function setupJavaEditors() {
             console.error("Missing element for " + id, {textArea, container});
         }
     });
+	
+	// הפתרון: רענון כפול כדי להבטיח נראות
+	setTimeout(() => {
+		javaEditors[id].refresh();
+	}, 100);
+            
+    console.log("Editor '" + id + "' loaded successfully!");
 
     // 3. הרצת פונקציות העזר המקוריות של האתר שלך
     if (typeof refreshReplicator === "function") refreshReplicator();
