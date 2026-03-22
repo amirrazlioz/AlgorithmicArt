@@ -74,15 +74,7 @@ body {
     width: 100%;
 }
 
-/* עמודת הקוד - 60% מהרוחב */
-.editor-side {
-    flex: 1.5; 
-    min-width: 0;
-    padding: 30px;
-    background: #020617;
-    display: flex;
-    flex-direction: column;
-}
+
 
 /* עמודת התמונה - מורחבת ל-40% מהרוחב */
 .preview-side {
@@ -685,7 +677,23 @@ input[type=range]::-webkit-slider-thumb {
     box-shadow: 0 0 15px var(--accent-secondary);
 }
 
+/* עמודת הקוד - 60% מהרוחב */
+.editor-side {
+    flex: 1.5; 
+    min-width: 0;
+    padding: 30px;
+    background: #020617;
+    display: flex;
+    flex-direction: column;
+}
 
+textarea.code-hidden {
+    display: none;
+}
+.editor-container {
+    height: 400px;
+    border-radius: 8px;
+}
 
 </style>
 </head>
@@ -759,7 +767,7 @@ public static int[][] addFrame(int[][] image){
 	 image[i][j] = 1;  
   }
  }
- System.out.println("height is #2# " + height );
+ System.out.println("height is #3# " + height );
  System.out.println("width is " + width );
  return image;
 }
