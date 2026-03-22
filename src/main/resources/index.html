@@ -512,15 +512,15 @@ input[type=range]::-webkit-slider-thumb {
     padding: 15px;
     font-size: 18px;
     
-    /* הגדרות הגובה והגלילה */
-    max-height: 250px; 
-    overflow-y: auto !important;    /* גלילה פנימית בלבד */
-    overflow-x: hidden;  /* מניעת גלילה לצדדים */
+    /* הגדרות גובה וגלילה */
+    max-height: 200px; 
+    overflow-y: auto !important;
+    overflow-x: hidden;
     
-    /* מניעת חפיפה עם אלמנטים אחרים */
-    display: block;      /* מבטיח שהוא תופס שורה שלמה */
-    clear: both;         /* מבטיח ששום דבר לא יצוף לידו */
-    position: relative;  /* שומר אותו בזרימה הרגילה של הדף */
+    /* מניעת דריסה של אלמנטים אחרים */
+    display: block !important;    /* מבטיח שהוא תופס מקום בשורה */
+    position: relative !important; /* מבטיח שהוא נשאר בזרימה של הדף ולא צף */
+    clear: both !important;       /* מנקה אלמנטים צפים מסביבו */
     
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -528,8 +528,8 @@ input[type=range]::-webkit-slider-thumb {
     text-align: left;
     border-radius: 8px;
     border: 1px solid #334155;
-    margin-bottom: 20px; /* רווח מהמשימה הבאה */
-    box-sizing: border-box;
+    box-sizing: border-box;       /* קריטי: מחשב פדינג בתוך ה-200px */
+    margin-bottom: 20px !important; /* יוצר רווח פיזי מהאלמנט הבא */
 }
 
 .console-log::-webkit-scrollbar {
