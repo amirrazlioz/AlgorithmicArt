@@ -801,7 +801,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #1# " + height );
+    System.out.println("height is #2# " + height );
     System.out.println("width is " + width );
     return image;
 }
@@ -1871,7 +1871,7 @@ const challenge4 = setupCanvas('canvas4', (x, y) => {
 // אתחול הקנבס במיקום אקראי כבר בהתחלה
 // אתחול הקנבס - שים לב שהוספנו let כדי שנוכל לעדכן את img בקלות
 let challenge5 = setupCanvas('canvas5', (x, y) => (x === 2 && y === 4) ? 5 : 1, true);
-
+/*
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
     
@@ -1915,10 +1915,16 @@ async function runFrameCode() {
 	recordAction("Level 1 Attempt", "בדיקת שלב מסגרת");
 }
 
-/*
+*/
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
-    const code = document.getElementById("code1").value;
+    
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['code1']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['code1'].getValue(); 
     
     if (logElement) {
         logElement.style.color = "#22d3ee";
@@ -1984,7 +1990,7 @@ async function runFrameCode() {
     }       
     recordAction("Level 1 Attempt", "בדיקת שלב מסגרת");
 }
-*/
+
 
 // פונקציה לניקוי הקונסולה
 function clearCurrentConsole1(btn) {
