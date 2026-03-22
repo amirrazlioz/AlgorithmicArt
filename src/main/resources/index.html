@@ -765,6 +765,66 @@ textarea.code-hidden {
     margin-bottom: 15px;
 }
 
+#editor-code2 {
+    height: 300px; 			 /* גובה העורך */
+    width: 100%;             /* רוחב מלא */
+    text-align: left;        /* יישור קוד לשמאל */
+    direction: ltr;          /* כתיבה משמאל לימין */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+#editor-code3 {
+    height: 300px; 			 /* גובה העורך */
+    width: 100%;             /* רוחב מלא */
+    text-align: left;        /* יישור קוד לשמאל */
+    direction: ltr;          /* כתיבה משמאל לימין */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+#editor-code4 {
+    height: 300px; 			 /* גובה העורך */
+    width: 100%;             /* רוחב מלא */
+    text-align: left;        /* יישור קוד לשמאל */
+    direction: ltr;          /* כתיבה משמאל לימין */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+#editor-code5 {
+    height: 300px; 			 /* גובה העורך */
+    width: 100%;             /* רוחב מלא */
+    text-align: left;        /* יישור קוד לשמאל */
+    direction: ltr;          /* כתיבה משמאל לימין */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+#editor-code6 {
+    height: 300px; 			 /* גובה העורך */
+    width: 100%;             /* רוחב מלא */
+    text-align: left;        /* יישור קוד לשמאל */
+    direction: ltr;          /* כתיבה משמאל לימין */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+#editor-creative-code {
+    height: 300px; 			 /* גובה העורך */
+    width: 100%;             /* רוחב מלא */
+    text-align: left;        /* יישור קוד לשמאל */
+    direction: ltr;          /* כתיבה משמאל לימין */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
 @media print {
     /* הגדרת גודל פונט מפורשת לכל מה שנכנס ל-PDF */
     .CodeMirror, .CodeMirror-line, .CodeMirror pre {
@@ -953,12 +1013,13 @@ public static int[][] addFrame(int[][] image){
 					2. צבעו את <b>האלכסון המשני</b> בצבע אחר לבחירתכם.
 					<b>ממש\י את הפעולה : createDiagonal</b>
 				</div>
-				<div class="workspace">
-					<div class="preview-side">
-						<canvas id="canvas2" width="280" height="280"></canvas>
-					</div>
-					<div class="editor-side">
-						<textarea id="code2" spellcheck="false">
+<div class="workspace">
+    <div class="preview-side">
+        <canvas id="canvas" width="280" height="280"></canvas>
+    </div>
+    <div class="editor-side">
+        <div id="editor-code2" class="editor-container"></div>
+			<textarea id="code2" spellcheck="false" style="display:none;">
 public static int[][] createDiagonal(int[][] image){
  int height = image.length;
  int width = image[0].length;
@@ -1034,7 +1095,8 @@ public static int[][] createDiagonal(int[][] image){
 					</div>
 
 					<div class="editor-side">
-						<textarea id="code3" spellcheck="false">
+						<div id="editor-code3" class="editor-container"></div>
+							<textarea id="code3" spellcheck="false" style="display:none;">						
 				
 public static int findMaxDiagonal(int[][] image){
  int max = 0;
@@ -1113,7 +1175,8 @@ public static int findMaxDiagonal(int[][] image){
 						<span class="task-desc no-print"><b>זהו הצבע שציפית לו ?</b></span>
 					</div>
 					<div class="editor-side">
-						<textarea id="code4" spellcheck="false">
+						<div id="editor-code4" class="editor-container"></div>
+							<textarea id="code4" spellcheck="false" style="display:none;">	
 				
 public static int findMinSecondaryDiagonal(int[][] image){
  int min = 48; 
@@ -1195,7 +1258,8 @@ public static int findMinSecondaryDiagonal(int[][] image){
 						<button onclick="refreshReplicator()" class="btn-refresh no-print ">🔄 הגרל נקודת מוצא</button>
 					</div>
 					<div class="editor-side">
-						<textarea id="code5" spellcheck="false">
+						<div id="editor-code5" class="editor-container"></div>
+							<textarea id="code5" spellcheck="false" style="display:none;">	
 
 public static int[][] replicatePixel(int[][]image, int row, int col, int count){
  int colorToCopy = image[row][col];
@@ -1261,7 +1325,8 @@ public static int[][] replicatePixel(int[][]image, int row, int col, int count){
 						<button onclick="refreshRectReplicator()" class="btn-refresh no-print">🔄 הגרל משימה חדשה</button>
 					</div>
 					<div class="editor-side">
-						<textarea id="code6" spellcheck="false">
+						<div id="editor-code6" class="editor-container"></div>
+							<textarea id="code6" spellcheck="false" style="display:none;">	
 			
 public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
  int colorToCopy = image[row][col];
@@ -1398,7 +1463,8 @@ public static int[][] replicateRectangle( int[][]image, int row, int col,int row
 			
 		<div class="workspace" style="flex-direction: column; align-items: center;">
 			<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
-					<textarea id="creative-code" spellcheck="false">
+				<div id="editor-creative-code" class="editor-container"></div>
+					<textarea id="creative-code" spellcheck="false" style="display:none;">			
 				
 public static int[][] createImage(int[][] image) {
     int height = image.length;
@@ -1974,51 +2040,7 @@ const challenge4 = setupCanvas('canvas4', (x, y) => {
 // אתחול הקנבס במיקום אקראי כבר בהתחלה
 // אתחול הקנבס - שים לב שהוספנו let כדי שנוכל לעדכן את img בקלות
 let challenge5 = setupCanvas('canvas5', (x, y) => (x === 2 && y === 4) ? 5 : 1, true);
-/*
-async function runFrameCode() {
-    const logElement = document.getElementById('console-log1');
-    
-    // שליפת הקוד מהעורך המקצועי
-    if (!javaEditors['code1']) {
-        alert("העורך עדיין לא נטען");
-        return;
-    }
-    const code = javaEditors['code1'].getValue(); 
-    
-    if (logElement) {
-        logElement.style.color = "#22d3ee";
-        logElement.innerHTML = "⏳ מריץ קוד...";
-    }
 
-    try {
-        const res = await fetch("/run1", { 
-            method: "POST", 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code: code, image: challenge1.img }) 
-        });
-
-        const data = await res.json();
-        
-        if (res.ok) {
-            if (data.image) challenge1.draw(data.image);
-            if (logElement) {
-                logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
-                logElement.style.color = "#4ade80";
-            }
-        } else {
-            throw new Error(data.error || "שגיאה בשרת");
-        }
-    } catch (error) {
-        if (logElement) {
-            logElement.style.color = "#ff4444";
-            logElement.innerHTML = "❌ שגיאה: " + error.message;
-        }
-    }
-	
-	recordAction("Level 1 Attempt", "בדיקת שלב מסגרת");
-}
-
-*/
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
     
@@ -2103,8 +2125,14 @@ function clearCurrentConsole1(btn) {
 }
 
 async function runDiagonalCode() {
-    const logElement = document.getElementById('console-log2');
-    const code = document.getElementById("code2").value;
+	const logElement = document.getElementById('console-log2');
+    
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['code2']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['code2'].getValue(); 
     
     // איפוס הלוג לפני הרצה חדשה
     if (logElement) {
@@ -2135,11 +2163,13 @@ async function runDiagonalCode() {
             if (data.image) {
                 challenge2.draw(data.image);
             }
+			
+			
             
             // הצגת פלטים של הקונסול (System.out.println)
             if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px; background: #1e293b; padding: 10px; border-radius: 5px; text-align: left; direction: ltr;">${data.consoleOutput}</pre>`;
+                logElement.innerHTML = `<div style="color: #fff: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה</div>` + 
+                       `<div style="color: #fff"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
@@ -2169,7 +2199,8 @@ async function runDiagonalCode() {
             // הצגת השגיאה בפורמט LTR נקי
             logElement.innerHTML = `❌ שגיאה:<br><pre style="color: #ff4444; direction: ltr; text-align: left; background: #2a1a1a; padding: 10px; margin-top: 5px; white-space: pre-wrap; font-family: 'Fira Code', monospace; border: 1px solid #451a1a;">${cleanMessage}</pre>`;
         }
-    }       
+    }
+	logElement.scrollTop = logElement.scrollHeight;		
     recordAction("Level 2 Attempt", "בדיקת שלב האלכסונים");
 }
 
@@ -2181,9 +2212,16 @@ function clearCurrentConsole2(btn) {
 
 // עבור משימה 3 (מקסימום)
 async function runMaxCode() {
-    const logElement = document.getElementById('console-log3');
-    const code = document.getElementById("code3").value;
-    const display = document.getElementById("max-result-display");
+	const logElement = document.getElementById('console-log3');
+    
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['code3']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['code3'].getValue(); 
+	
+	const display = document.getElementById("max-result-display");
     
     // איפוס הלוג לפני הרצה חדשה
     if (logElement) {
@@ -2219,8 +2257,8 @@ async function runMaxCode() {
             
             // הצגת פלטים של ה-Console
             if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px; background: #1e293b; padding: 10px; border-radius: 5px; text-align: left; direction: ltr;">${data.consoleOutput}</pre>`;
+                logElement.innerHTML = `<div style="color: #fff: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה</div>` + 
+                       `<div style="color: #fff"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
@@ -2250,7 +2288,8 @@ async function runMaxCode() {
             // הצגת השגיאה בפורמט קריא (LTR)
             logElement.innerHTML = `❌ שגיאה:<br><pre style="color: #ff4444; direction: ltr; text-align: left; background: #2a1a1a; padding: 10px; margin-top: 5px; white-space: pre-wrap; font-family: 'Fira Code', monospace; border: 1px solid #451a1a;">${cleanMessage}</pre>`;
         }
-    }       
+    }
+	logElement.scrollTop = logElement.scrollHeight;		
     recordAction("Level 3 Attempt", "בדיקת שלב המקסימום על אלכסון ראשי");
 }
 
@@ -2263,8 +2302,14 @@ function clearCurrentConsole3(btn) {
 
 // הרצת הקוד למשימה 4
 async function runMinCode() {
-    const logElement = document.getElementById('console-log4');
-    const code = document.getElementById("code4").value;
+	const logElement = document.getElementById('console-log4');
+    
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['code4']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['code4'].getValue(); 
     const display = document.getElementById("min-result-display");
     
     // איפוס הלוג לפני הרצה חדשה
@@ -2301,8 +2346,8 @@ async function runMinCode() {
             
             // הצגת פלטים של ה-Console (System.out.println)
             if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px; background: #1e293b; padding: 10px; border-radius: 5px; text-align: left; direction: ltr;">${data.consoleOutput}</pre>`;
+                logElement.innerHTML = `<div style="color: #fff: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה</div>` + 
+                       `<div style="color: #fff"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
@@ -2332,7 +2377,8 @@ async function runMinCode() {
             // הצגת השגיאה בפורמט קריא ויישור לשמאל (LTR)
             logElement.innerHTML = `❌ שגיאה:<br><pre style="color: #ff4444; direction: ltr; text-align: left; background: #2a1a1a; padding: 10px; margin-top: 5px; white-space: pre-wrap; font-family: 'Fira Code', monospace; border: 1px solid #451a1a;">${cleanMessage}</pre>`;
         }
-    }       
+    }
+	logElement.scrollTop = logElement.scrollHeight;		
     recordAction("Level 4 Attempt", "בדיקת שלב המינמום על אלכסון משני");
 }
 
@@ -2382,7 +2428,13 @@ let currentCount5 = 8;
 // עדכון פונקציית הריצה כדי שתשלח את המספר שהוגרל לשרת
 async function runReplicateCode() {
     const logElement = document.getElementById('console-log5');
-    const code = document.getElementById("code5").value;
+    
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['code5']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['code5'].getValue(); 
     
     // איפוס הלוג לפני הרצה חדשה
     if (logElement) {
@@ -2422,8 +2474,8 @@ async function runReplicateCode() {
             
             // הצגת הפלטים של ה-System.out.println אם קיימים
             if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px; background: #1e293b; padding: 10px; border-radius: 5px; text-align: left; direction: ltr;">${data.consoleOutput}</pre>`;
+                logElement.innerHTML = `<div style="color: #fff: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה</div>` + 
+                       `<div style="color: #fff"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
@@ -2453,7 +2505,8 @@ async function runReplicateCode() {
             // הצגת השגיאה בפורמט קריא ויישור לשמאל (LTR)
             logElement.innerHTML = `❌ שגיאה:<br><pre style="color: #ff4444; direction: ltr; text-align: left; background: #2a1a1a; padding: 10px; margin-top: 5px; white-space: pre-wrap; font-family: 'Fira Code', monospace; border: 1px solid #451a1a;">${cleanMessage}</pre>`;
         }
-    }       
+    }
+	logElement.scrollTop = logElement.scrollHeight;		
     recordAction("Level 5 Attempt", "בדיקת שלב מילוי שורה");
 }
 
@@ -2502,7 +2555,13 @@ let challenge6 = setupCanvas('canvas6', (x, y) => (x === 2 && y === 2) ? 8 : 1, 
 
 async function runRectCode() {
     const logElement = document.getElementById('console-log6');
-    const code = document.getElementById("code6").value;
+    
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['code6']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['code6'].getValue(); 
     
     // איפוס הלוג לפני הרצה חדשה
     if (logElement) {
@@ -2542,8 +2601,8 @@ async function runRectCode() {
             
             // הצגת הפלטים של ה-System.out.println אם קיימים
             if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px; background: #1e293b; padding: 10px; border-radius: 5px; text-align: left; direction: ltr;">${data.consoleOutput}</pre>`;
+                logElement.innerHTML = `<div style="color: #fff: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה</div>` + 
+                       `<div style="color: #fff"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
@@ -2574,7 +2633,8 @@ async function runRectCode() {
             // הצגת השגיאה בפורמט קריא ויישור לשמאל (LTR) - קריטי לשגיאות Java
             logElement.innerHTML = `❌ שגיאה:<br><pre style="color: #ff4444; direction: ltr; text-align: left; background: #2a1a1a; padding: 10px; margin-top: 5px; white-space: pre-wrap; font-family: 'Fira Code', monospace; border: 1px solid #451a1a;">${cleanMessage}</pre>`;
         }
-    }       
+    }
+	logElement.scrollTop = logElement.scrollHeight;		
     recordAction("Level 6 Attempt", "בדיקת שלב מילוי מלבן");
 }
 // פונקציה לניקוי הקונסולה
@@ -2603,7 +2663,19 @@ function refreshRectReplicator() {
 
 async function runCreativeCode() {
     const logElement = document.getElementById('console-log-creative');
-    const code = document.getElementById("creative-code").value;
+	   
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['creative-code']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['creative-code'].getValue(); 
+	
+	    // איפוס הלוג לפני הרצה חדשה
+    if (logElement) {
+        logElement.style.color = "#22d3ee";
+        logElement.innerHTML = "⏳ מריץ קוד...";
+    }
     
     try {
         const res = await fetch("/run-creative", { 
@@ -2623,8 +2695,8 @@ async function runCreativeCode() {
             creativeChallenge.draw(data.image);
             
             if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px;">${data.consoleOutput}</pre>`;
+                logElement.innerHTML = `<div style="color: #fff: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה</div>` + 
+                       `<div style="color: #fff"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
@@ -2643,7 +2715,7 @@ async function runCreativeCode() {
             logElement.innerText = "❌ שגיאה:\n" + error.message;
         }
     }
-        
+    logElement.scrollTop = logElement.scrollHeight;	    
     creativeRecordAction("Run Creative Code", "אורך הקוד: " + code.length + " תווים");
 }
 // פונקציה לניקוי הקונסולה
@@ -2982,7 +3054,7 @@ function setupJavaEditors() {
     console.log("Setting up editors...");
     
     // רשימת כל ה-IDs שקיימים באתר שלך
-    const codeIds = ['code1']; // אם תוסיף בעתיד עוד משימות, פשוט תוסיף כאן: 'code2', 'code3'
+    const codeIds = ['code1''code2', 'code3', 'code4', 'code5', 'code6', 'creative-code']; // אם תוסיף בעתיד עוד משימות, פשוט תוסיף כאן: 'code2', 'code3'
 
     codeIds.forEach(id => {
         const textArea = document.getElementById(id);
