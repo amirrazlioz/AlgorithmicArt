@@ -308,6 +308,10 @@ input[type=range]::-webkit-slider-thumb {
     
     /* הסתרת הכפתור עצמו מההדפסה */
     button { display: none !important; }
+	
+	.CodeMirror {
+        font-size: 12px; /* יקטין את הפונט רק בזמן שמירה ל-PDF/הדפסה */
+    }
 }
 
 /* עיצוב השדה באתר */
@@ -711,7 +715,7 @@ textarea.code-hidden {
     text-align: left !important;
     direction: ltr !important;
     font-family: 'Fira Code', monospace !important;
-	font-size: 12px;
+	font-size: 16px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
     height: 400px !important; /* גובה קבוע לעורך */
@@ -801,7 +805,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #5# " + height );
+    System.out.println("height is #6# " + height );
     System.out.println("width is " + width );
     return image;
 }
