@@ -1999,7 +1999,7 @@ async function runFrameCode() {
 			            
             if (data.consoleOutput) {
                 logElement.innerHTML = `<div style="color: #4ade80">✅ הקוד בוצע בהצלחה:</div>` + 
-                       `<div style="color: #fff; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
+                       `<div style="color: #4ade80"; white-space: pre-wrap; text-align: left; direction: ltr;">${data.consoleOutput}</div>`;
             } else {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
