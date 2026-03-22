@@ -802,7 +802,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #9# " + height );
+    System.out.println("height is #0# " + height );
     System.out.println("width is " + width );
     return image;
 }
@@ -1873,14 +1873,15 @@ const challenge4 = setupCanvas('canvas4', (x, y) => {
 // אתחול הקנבס - שים לב שהוספנו let כדי שנוכל לעדכן את img בקלות
 let challenge5 = setupCanvas('canvas5', (x, y) => (x === 2 && y === 4) ? 5 : 1, true);
 
-/*
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
     
-    // --- העדכון המרכזי כאן ---
-    // במקום: const code = document.getElementById("code1").value;
-    // אנחנו מושכים את הקוד מהאובייקט של CodeMirror ששמרנו במערך ה-editors
-    const code = editors['code1'] ? editors['code1'].getValue() : document.getElementById("code1").value;
+    // שליפת הקוד מהעורך המקצועי
+    if (!javaEditors['code1']) {
+        alert("העורך עדיין לא נטען");
+        return;
+    }
+    const code = javaEditors['code1'].getValue(); 
     
     if (logElement) {
         logElement.style.color = "#22d3ee";
@@ -1891,55 +1892,30 @@ async function runFrameCode() {
         const res = await fetch("/run1", { 
             method: "POST", 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code, image: challenge1.img }) 
+            body: JSON.stringify({ code: code, image: challenge1.img }) 
         });
 
-        let data;
-        const contentType = res.headers.get("content-type");
-        
-        if (contentType && contentType.includes("application/json")) {
-            data = await res.json();
-        } else {
-            const textError = await res.text();
-            throw new Error(textError || "השרת החזיר תגובה לא תקינה");
-        }
+        const data = await res.json();
         
         if (res.ok) {
-            if (data.image) {
-                challenge1.draw(data.image);
-            }
-            
-            if (data.consoleOutput) {
-                logElement.innerHTML = `<div style="color: #4ade80">✅ הקוד בוצע בהצלחה:</div>` + 
-                                       `<pre style="color: #fff; margin-top: 5px; background: #1e293b; padding: 10px; border-radius: 5px; text-align: left; direction: ltr;">${data.consoleOutput}</pre>`;
-            } else {
+            if (data.image) challenge1.draw(data.image);
+            if (logElement) {
                 logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
                 logElement.style.color = "#4ade80";
             }
+        } else {
+            throw new Error(data.error || "שגיאה בשרת");
         }
-        else {
-            let errorMsg = data.error || "שגיאה לא ידועה בהרצה";
-            
-            if (typeof errorMsg === 'string' && errorMsg.trim().startsWith('{')) {
-                try {
-                    const nested = JSON.parse(errorMsg);
-                    errorMsg = nested.error || errorMsg;
-                } catch(e) {}
-            }
-            throw new Error(errorMsg);
-        }
-    }
-    catch (error) {
-        console.error("Run Error:", error);
+    } catch (error) {
         if (logElement) {
             logElement.style.color = "#ff4444";
-            let cleanMessage = error.message.replace(/^"|"$/g, '');
-            logElement.innerHTML = `❌ שגיאה:<br><pre style="color: #ff4444; direction: ltr; text-align: left; background: #2a1a1a; padding: 10px; margin-top: 5px; white-space: pre-wrap; font-family: 'Fira Code', monospace; border: 1px solid #451a1a;">${cleanMessage}</pre>`;
+            logElement.innerHTML = "❌ שגיאה: " + error.message;
         }
-    }        
-    recordAction("Level 1 Attempt", "בדיקת שלב מסגרת");
+    }
+	
+	recordAction("Level 1 Attempt", "בדיקת שלב מסגרת");
 }
-*/
+
 /*
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
@@ -2880,85 +2856,51 @@ document.addEventListener('DOMContentLoaded', () => {
     enableTabOnAllTextareas();
 });
 
+/*
 window.onload = () => {
     refreshReplicator();
 	refreshRectReplicator();
 };
-
+*/
 </script>
 
 <script>
-// 1. הגדרת משתנה גלובלי
-var javaEditors = {};
+    // 1. הגדרת אובייקט העורכים ברמה הגלובלית
+    var javaEditors = {};
 
-// 2. פונקציית האתחול
-function initEditors() {
-    const id = 'code1';
-    const textArea = document.getElementById(id);
-    const container = document.getElementById('editor-' + id);
-    
-    if (textArea && container) {
-        javaEditors[id] = CodeMirror(container, {
-            value: textArea.value,
-            mode: "text/x-java",
-            theme: "dracula",
-            lineNumbers: true,
-            lineWrapping: true,
-            matchBrackets: true,
-            tabSize: 4
-        });
-        console.log("Editor initialized for " + id);
-    } else {
-        console.error("Could not find textarea or container for " + id);
-    }
-}
+    // 2. פונקציה מרכזית לאתחול כל מה שצריך בטעינת הדף
+    window.addEventListener('load', function() {
+        console.log("Page loaded, initializing editors...");
 
-// 3. הרצה בטעינת הדף
-window.addEventListener('load', initEditors);
+        const codeIds = ['code1']; // הוסף כאן 'code2', 'code3' בהמשך
 
-// 4. פונקציית ה-RUN המעודכנת
-async function runFrameCode() {
-    const logElement = document.getElementById('console-log1');
-    
-    // שליפת הקוד מהעורך המקצועי
-    if (!javaEditors['code1']) {
-        alert("העורך עדיין לא נטען");
-        return;
-    }
-    const code = javaEditors['code1'].getValue(); 
-    
-    if (logElement) {
-        logElement.style.color = "#22d3ee";
-        logElement.innerHTML = "⏳ מריץ קוד...";
-    }
-
-    try {
-        const res = await fetch("/run1", { 
-            method: "POST", 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code: code, image: challenge1.img }) 
-        });
-
-        const data = await res.json();
-        
-        if (res.ok) {
-            if (data.image) challenge1.draw(data.image);
-            if (logElement) {
-                logElement.innerHTML = "✅ הקוד בוצע בהצלחה";
-                logElement.style.color = "#4ade80";
+        codeIds.forEach(id => {
+            const textArea = document.getElementById(id);
+            const container = document.getElementById('editor-' + id);
+            
+            if (textArea && container) {
+                javaEditors[id] = CodeMirror(container, {
+                    value: textArea.value,
+                    mode: "text/x-java",
+                    theme: "dracula",
+                    lineNumbers: true,
+                    tabSize: 4,
+                    indentUnit: 4,
+                    lineWrapping: true,
+                    matchBrackets: true,
+                    autoCloseBrackets: true
+                });
+                console.log("Editor " + id + " initialized successfully");
+            } else {
+                console.error("Missing element for " + id, {textArea, container});
             }
-        } else {
-            throw new Error(data.error || "שגיאה בשרת");
-        }
-    } catch (error) {
-        if (logElement) {
-            logElement.style.color = "#ff4444";
-            logElement.innerHTML = "❌ שגיאה: " + error.message;
-        }
-    }
-	
-	recordAction("Level 1 Attempt", "בדיקת שלב מסגרת");
-}
+        });
+
+        // קריאה לפונקציות המקוריות שלך שצריכות לרוץ בטעינה
+        if (typeof refreshReplicator === "function") refreshReplicator();
+        if (typeof refreshRectReplicator === "function") refreshRectReplicator();
+        if (typeof enableTabOnAllTextareas === "function") enableTabOnAllTextareas();
+    });
 </script>
 
 </body>
