@@ -1402,7 +1402,7 @@ public static int[][] replicateRectangle( int[][]image, int row, int col,int row
 				</div>
 			</div>
 		</div>
-	
+	</div>
 	<section class="challenge-card printable">
 	
 		<div style="text-align: center; padding: 15px 25px; background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color);">
@@ -1455,8 +1455,7 @@ public static int[][] replicateRectangle( int[][]image, int row, int col,int row
 		<div class="workspace" style="flex-direction: column; align-items: center;">
 			<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
 				<div id="editor-creative-code" class="editor-container"></div>
-					<textarea id="creative-code" spellcheck="false" style="display:none;">			
-				
+					<textarea id="creative-code" spellcheck="false" style="display:none;">							
 public static int[][] createImage(int[][] image) {
     int height = image.length;
     int width = image[0].length;
@@ -1530,13 +1529,14 @@ private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, in
 }
 				</textarea>
 								
-				<button class="btn-run" onclick="runCreativeCode() ; gtag('event', 'run_creative_code', {'level': '01'});" 
-					style="padding: 10px 15px; font-size: 13px; min-width: 90px; flex: 1; 
-					background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; 
-					box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-					🚀 RUN ART
-				</button>
-		
+					<button class="btn-run" onclick="runCreativeCode() ; gtag('event', 'run_creative_code', {'level': '01'});" 
+						style="padding: 10px 15px; font-size: 13px; min-width: 90px; flex: 1; 
+						background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; 
+						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
+						🚀 RUN ART
+					</button>
+				</div>
+			</div>
 			<div class="console-container">
 				<div class="console-header">
 				<span>Console Output</span>
@@ -1545,10 +1545,6 @@ private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, in
 				<div id="console-log-creative" class="console-log">... ממתין להרצת קוד</div>
 			</div>
 			
-			</div>
-			
-			
-
 			<div class="preview-side" style="width: 100%; padding: 20px 0;">
 				<canvas id="creativeCanvas" width="480" height="480"></canvas>
 			</div>
@@ -1596,14 +1592,7 @@ private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, in
 			</button>
 			
 			</div>
-		
-		</div>
-
-		
-		
-				
-		
-    </section>
+		</section>
 	
 		<div class="challenge-card printable" style="width: 100%;">
 			<div class="ai-reflection-container printable">
