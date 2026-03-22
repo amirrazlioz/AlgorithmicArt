@@ -516,7 +516,7 @@ input[type=range]::-webkit-slider-thumb {
     text-align: left;
 }
 
-/* עיצוב פס הגלילה (אופציונלי - כדי שייראה מודרני) */
+/* עיצוב פס הגלילה (אופציונלי - כדי שייראה מודרני) 
 #console-log::-webkit-scrollbar {
     width: 8px;
 }
@@ -527,6 +527,7 @@ input[type=range]::-webkit-slider-thumb {
 #console-log::-webkit-scrollbar-thumb:hover {
     background: #64748b;
 }
+*/
 
 /* מבטיח שרק דף עם המחלקה active יוצג */
 .page-content {
@@ -712,10 +713,14 @@ textarea.code-hidden {
 
 /* הגדרת המכולה של העורך */
 .editor-container {
-    height: auto !important;          /* גובה קבוע שאתה רוצה שיוצג על המסך */
+    height: auto;               /* מאפשר לחלון להיות קטן אם יש מעט קוד */
+    max-height: 400px;          /* ברגע שהקוד עובר את הגובה הזה, תופיע גלילה */
     border: 1px solid #334155;
     border-radius: 8px;
     margin-bottom: 15px;
+    overflow: hidden;           /* שומר על הפינות המעוגלות של המכולה */
+    display: flex;
+    flex-direction: column;
 }
 
 /* הגדרת ה-CodeMirror עצמו שיהיה בגובה מלא של המכולה עם גלילה */
@@ -845,7 +850,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #0# " + height );
+    System.out.println("height is #1# " + height );
     System.out.println("width is " + width );
     return image;
 }
