@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KMVZY6SX7F"></script>
@@ -802,7 +801,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #0# " + height );
+    System.out.println("height is #1# " + height );
     System.out.println("width is " + width );
     return image;
 }
@@ -2865,42 +2864,46 @@ window.onload = () => {
 </script>
 
 <script>
-    // 1. הגדרת אובייקט העורכים ברמה הגלובלית
-    var javaEditors = {};
+// 1. הגדרת אובייקט גלובלי אחד בלבד
+var javaEditors = {};
 
-    // 2. פונקציה מרכזית לאתחול כל מה שצריך בטעינת הדף
-    window.addEventListener('load', function() {
-        console.log("Page loaded, initializing editors...");
+// 2. פונקציית האתחול
+function setupJavaEditors() {
+    console.log("Setting up editors...");
+    
+    // רשימת כל ה-IDs שקיימים באתר שלך
+    const codeIds = ['code1']; // אם תוסיף בעתיד עוד משימות, פשוט תוסיף כאן: 'code2', 'code3'
 
-        const codeIds = ['code1']; // הוסף כאן 'code2', 'code3' בהמשך
+    codeIds.forEach(id => {
+        const textArea = document.getElementById(id);
+        const container = document.getElementById('editor-' + id);
 
-        codeIds.forEach(id => {
-            const textArea = document.getElementById(id);
-            const container = document.getElementById('editor-' + id);
-            
-            if (textArea && container) {
-                javaEditors[id] = CodeMirror(container, {
-                    value: textArea.value,
-                    mode: "text/x-java",
-                    theme: "dracula",
-                    lineNumbers: true,
-                    tabSize: 4,
-                    indentUnit: 4,
-                    lineWrapping: true,
-                    matchBrackets: true,
-                    autoCloseBrackets: true
-                });
-                console.log("Editor " + id + " initialized successfully");
-            } else {
-                console.error("Missing element for " + id, {textArea, container});
-            }
-        });
-
-        // קריאה לפונקציות המקוריות שלך שצריכות לרוץ בטעינה
-        if (typeof refreshReplicator === "function") refreshReplicator();
-        if (typeof refreshRectReplicator === "function") refreshRectReplicator();
-        if (typeof enableTabOnAllTextareas === "function") enableTabOnAllTextareas();
+        if (textArea && container) {
+            // יצירת העורך
+            javaEditors[id] = CodeMirror(container, {
+                value: textArea.value,
+                mode: "text/x-java",
+                theme: "dracula",
+                lineNumbers: true,
+                tabSize: 4,
+                indentUnit: 4,
+                lineWrapping: true,
+                matchBrackets: true,
+                autoCloseBrackets: true
+            });
+            console.log("Editor '" + id + "' loaded successfully!");
+        } else {
+            console.error("Missing element for " + id, {textArea, container});
+        }
     });
+
+    // 3. הרצת פונקציות העזר המקוריות של האתר שלך
+    if (typeof refreshReplicator === "function") refreshReplicator();
+    if (typeof refreshRectReplicator === "function") refreshRectReplicator();
+}
+
+// הפעלה ברגע שה-HTML מוכן
+document.addEventListener('DOMContentLoaded', setupJavaEditors);
 </script>
 
 </body>
