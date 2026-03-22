@@ -3038,11 +3038,23 @@ window.onload = () => {
 var javaEditors = {};
 
 // 2. פונקציית האתחול
+
+
 function setupJavaEditors() {
-    console.log("Setting up editors...");
-    
     const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
     
+    // יצירת ה"צופה" (Observer) שיזהה מתי רואים את העורך
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.dataset.editorId;
+                if (javaEditors[id]) {
+                    javaEditors[id].refresh(); // רענון ברגע שרואים את האלמנט
+                }
+            }
+        });
+    }, { threshold: 0.1 });
+
     codeIds.forEach(id => {
         const textArea = document.getElementById(id);
         const container = document.getElementById('editor-' + id);
@@ -3053,32 +3065,22 @@ function setupJavaEditors() {
                 mode: "text/x-java",
                 theme: "dracula",
                 lineNumbers: true,
-                tabSize: 4,
-                indentUnit: 4,
                 lineWrapping: true,
-                matchBrackets: true,
-                autoCloseBrackets: true
+                tabSize: 4
             });
 
-            // הפתרון: רענון כפול כדי להבטיח נראות
-            setTimeout(() => {
-                javaEditors[id].refresh();
-            }, 100);
-            
-            console.log("Editor '" + id + "' loaded successfully!");
+            // מחברים את הצופה לקונטיינר של העורך
+            container.dataset.editorId = id;
+            observer.observe(container);
+
+            // רענון ראשוני
+            setTimeout(() => javaEditors[id].refresh(), 200);
         }
     });
-
-    // רענון נוסף לכל המערכת אחרי חצי שנייה לביטחון
-    setTimeout(() => {
-        for (let id in javaEditors) {
-            javaEditors[id].refresh();
-        }
-    }, 500);
 	
-	    // 3. הרצת פונקציות העזר המקוריות של האתר שלך
-    if (typeof refreshReplicator === "function") refreshReplicator();
+	if (typeof refreshReplicator === "function") refreshReplicator();
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();
+	
 }
 
 // הפעלה ברגע שה-HTML מוכן
