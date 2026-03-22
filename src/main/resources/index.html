@@ -517,6 +517,17 @@ input[type=range]::-webkit-slider-thumb {
     text-align: left;
 }
 
+#console-log1 {
+    max-height: 250px;    /* הגובה המקסימלי של התיבה */
+    overflow-y: auto;     /* הוספת גלילה אנכית ברגע שהטקסט חורג מהגובה */
+    background: #1e293b;  /* צבע הרקע האפור-כהה */
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    white-space: pre-wrap; /* שומר על ירידות שורה ושבירת מילים */
+    text-align: left;
+    direction: ltr;
+}
 
 /* מבטיח שרק דף עם המחלקה active יוצג */
 .page-content {
@@ -2031,7 +2042,8 @@ async function runFrameCode() {
             
             logElement.innerHTML = `❌ שגיאה:<br><pre style="color: #ff4444; direction: ltr; text-align: left; background: #2a1a1a; padding: 10px; margin-top: 5px; white-space: pre-wrap; font-family: 'Fira Code', monospace; border: 1px solid #451a1a;">${cleanMessage}</pre>`;
         }
-    }       
+    }
+	logElement.scrollTop = logElement.scrollHeight;	
     recordAction("Level 1 Attempt", "בדיקת שלב מסגרת");
 }
 
