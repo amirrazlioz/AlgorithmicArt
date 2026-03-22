@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KMVZY6SX7F"></script>
 <script>
@@ -74,15 +75,7 @@ body {
     width: 100%;
 }
 
-/* עמודת הקוד - 60% מהרוחב */
-.editor-side {
-    flex: 1.5; 
-    min-width: 0;
-    padding: 30px;
-    background: #020617;
-    display: flex;
-    flex-direction: column;
-}
+
 
 /* עמודת התמונה - מורחבת ל-40% מהרוחב */
 .preview-side {
@@ -685,7 +678,23 @@ input[type=range]::-webkit-slider-thumb {
     box-shadow: 0 0 15px var(--accent-secondary);
 }
 
+/* עמודת הקוד - 60% מהרוחב */
+.editor-side {
+    flex: 1.5; 
+    min-width: 0;
+    padding: 30px;
+    background: #020617;
+    display: flex;
+    flex-direction: column;
+}
 
+textarea.code-hidden {
+    display: none;
+}
+.editor-container {
+    height: 400px;
+    border-radius: 8px;
+}
 
 </style>
 </head>
@@ -748,8 +757,9 @@ input[type=range]::-webkit-slider-thumb {
 					<div class="preview-side">
 						<canvas id="canvas" width="280" height="280"></canvas>
 					</div>
-					<div class="editor-side">
-						<textarea id="code1" spellcheck="false" data-clarity-unmask="true" >
+					<div class="editor-container" id="editor-code1"></div>
+						<textarea id="code1" class="code-hidden"></textarea>	
+						
 public static int[][] addFrame(int[][] image){
  int height = image.length;
  int width = image[0].length;
@@ -2464,7 +2474,8 @@ function clearCurrentConsoleCreative(btn) {
 // 1. פונקציה להדפסת דף האתגר (Challenge Page)
 function saveWorkAsPDF() {
     // 1. נדאג שתיבות הטקסט (textarea) ייראו בהדפסה
-    const textareas = document.querySelectorAll('textarea');
+    //const textareas = document.querySelectorAll('textarea');
+	const textareas = document.querySelectorAll('textarea:not(.code-hidden)');
     textareas.forEach(ta => {
         ta.setAttribute('data-value', ta.value);
         // אנחנו יוצרים אלמנט זמני שייראה רק בהדפסה
@@ -2722,7 +2733,8 @@ function goToFeedback() {
 
 // פונקציה שמאפשרת TAB בתוך כל תיבות הטקסט באתר
 function enableTabOnAllTextareas() {
-    const textareas = document.querySelectorAll('textarea');
+   // const textareas = document.querySelectorAll('textarea');
+	const textareas = document.querySelectorAll('textarea:not(.code-hidden)');
     
     textareas.forEach(textarea => {
         textarea.addEventListener('keydown', function(e) {
@@ -2779,5 +2791,45 @@ window.onload = () => {
 };
 
 </script>
+
+<script>
+require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+
+const editors = {};
+
+require(['vs/editor/editor.main'], function () {
+
+    function createEditor(textareaId) {
+        const textarea = document.getElementById(textareaId);
+        const container = document.getElementById("editor-" + textareaId);
+
+        const editor = monaco.editor.create(container, {
+            value: textarea.value,
+            language: 'java',
+            theme: 'vs-dark',
+            fontSize: 16,
+            automaticLayout: true,
+            minimap: { enabled: false },
+            bracketPairColorization: { enabled: true }
+        });
+
+        // סנכרון → editor → textarea
+        editor.onDidChangeModelContent(() => {
+            textarea.value = editor.getValue();
+        });
+
+        editors[textareaId] = editor;
+    }
+
+    // 🔥 יצירת כל העורכים
+    createEditor("code1");
+  //  createEditor("code2");
+  //  createEditor("code3");
+  //  createEditor("code4");
+  //  createEditor("code5");
+
+});
+</script>
+
 </body>
 </html>
