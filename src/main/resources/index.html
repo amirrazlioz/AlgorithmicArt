@@ -272,7 +272,7 @@ input[type=range]::-webkit-slider-thumb {
         display: block !important; 
         visibility: visible !important;
         background: #f0f0f0 !important;
-        padding: 10px;
+        padding: 8px;
         border: 1px solid #ccc;
         direction: ltr;
         text-align: left;
@@ -516,6 +516,18 @@ input[type=range]::-webkit-slider-thumb {
     text-align: left;
 }
 
+/* עיצוב פס הגלילה (אופציונלי - כדי שייראה מודרני) */
+#console-log::-webkit-scrollbar {
+    width: 8px;
+}
+#console-log::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+}
+#console-log::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
 /* מבטיח שרק דף עם המחלקה active יוצג */
 .page-content {
     display: none;
@@ -698,24 +710,47 @@ textarea.code-hidden {
     display: none;
 }
 
+/* הגדרת המכולה של העורך */
 .editor-container {
-    height: 400px;
-    width: 100%;
+    height: 450px;           /* גובה קבוע שאתה רוצה שיוצג על המסך */
     border: 1px solid #334155;
     border-radius: 8px;
     margin-bottom: 15px;
-    text-align: left !important;
-    direction: ltr !important;
+}
+
+/* הגדרת ה-CodeMirror עצמו שיהיה בגובה מלא של המכולה עם גלילה */
+.CodeMirror {
+    height: 100% !important; /* ימלא את כל ה-450px של ההורה */
+    font-family: 'Fira Code', monospace;
+    font-size: 16px;
+    direction: ltr;
+    text-align: left;
+}
+
+/* הבטחת גלילה בתוך ה-CodeMirror */
+.CodeMirror-scroll {
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 .CodeMirror {
-    text-align: left !important;
-    direction: ltr !important;
-    font-family: 'Fira Code', monospace !important;
-	font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    height: 400px !important; /* גובה קבוע לעורך */
+    height: auto !important;   /* גובה גמיש לפי התוכן */
+    max-height: 500px;         /* גובה מקסימלי לפני שתתחיל גלילה */
+    min-height: 200px;         /* גובה מינימלי שלא יהיה קטן מדי */
+}
+
+.CodeMirror-vscrollbar, .CodeMirror-hscrollbar {
+    background: #282a36; /* צבע הרקע של דראקולה */
+}
+
+.CodeMirror-vscrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
+    background: #6272a4; /* צבע הסמן של הגלילה */
+    border-radius: 10px;
 }
 
 #editor-code1 {
@@ -810,7 +845,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #8# " + height );
+    System.out.println("height is #9# " + height );
     System.out.println("width is " + width );
     return image;
 }
