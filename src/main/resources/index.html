@@ -97,7 +97,7 @@ body {
 
 textarea {
     width: 100%;
-    height: 300px;
+    height: 400px;
     background: transparent;
     color: #38bdf8;
     caret-color: white;
@@ -738,8 +738,8 @@ textarea.code-hidden {
 }
 
 
-#editor-code {
-    height: auto !important; /* גובה העורך */
+#editor-code1 {
+    height: 400px; 			 /* גובה העורך */
     width: 100%;             /* רוחב מלא */
     text-align: left;        /* יישור קוד לשמאל */
     direction: ltr;          /* כתיבה משמאל לימין */
@@ -818,7 +818,7 @@ textarea.code-hidden {
         <canvas id="canvas" width="280" height="280"></canvas>
     </div>
     <div class="editor-side">
-        <div id="editor-code" class="editor-container"></div>
+        <div id="editor-code1" class="editor-container"></div>
 
         <textarea id="code1" spellcheck="false" style="display:none;">				
 public static int[][] addFrame(int[][] image){
@@ -830,7 +830,7 @@ public static int[][] addFrame(int[][] image){
                 image[i][j] = 1;  
         }
     }
-    System.out.println("height is #5# " + height );
+    System.out.println("height is #3# " + height );
     System.out.println("width is " + width );
     return image;
 }
