@@ -487,13 +487,16 @@ input[type=range]::-webkit-slider-thumb {
 
 
 .console-container {
-	height: 100px;;
+    height: auto !important;      /* שינוי מ-100px ל-auto */
+	min-height: 120px;
     background: #000;
     border: 1px solid var(--border-color);
-    border-top: none; /* מצמיד את הקונסולה לתיבת הקוד */
+    border-top: none;
     border-radius: 0 0 8px 8px;
-    margin-bottom: 20px;
+    margin-bottom: 30px;          /* הוספת רווח משמעותי מהבלוק הבא */
     font-family: 'Fira Code', monospace;
+    display: flex;
+    flex-direction: column;
 }
 
 .console-header {
