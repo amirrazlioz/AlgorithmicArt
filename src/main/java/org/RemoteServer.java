@@ -901,7 +901,6 @@ public class RemoteServer {
 			}
 			
 			String ip = getClientIp(t);
-			// incrementUserStat(ip, "register");
 			lastSeenMap.put(ip, System.currentTimeMillis());
 
 			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
@@ -912,7 +911,7 @@ public class RemoteServer {
 					String name = json.get("studentName").getAsString();
 
 					// תיקון זיהוי IP אמיתי (עבור Railway)
-					String ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
+					ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
 					if (ip == null || ip.isEmpty()) {
 						ip = t.getRemoteAddress().getAddress().getHostAddress();
 					} else {
