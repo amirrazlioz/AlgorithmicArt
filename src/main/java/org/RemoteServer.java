@@ -842,40 +842,64 @@ static class AdminStatsHandler implements HttpHandler {
 	
 	
 	
-	static class RegisterHandler implements HttpHandler {
-		@Override
-		public void handle(HttpExchange t) throws IOException {
-			// הגדרות CORS הכרחיות
-			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+static class RegisterHandler implements HttpHandler {
+    @Override
+    public void handle(HttpExchange t) throws IOException {
+        // 1. הגדרות CORS - תמיד ראשון
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+        t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 
-			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-				t.sendResponseHeaders(204, -1);
-				return;
-			}
+        if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+            t.sendResponseHeaders(204, -1);
+            return;
+        }
 
-			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-				try (InputStream is = t.getRequestBody()) {
-					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-					com.google.gson.JsonObject json = new com.google.gson.Gson().fromJson(body, com.google.gson.JsonObject.class);
-					
-					String name = json.get("studentName").getAsString();
-					String ip = t.getRemoteAddress().getAddress().getHostAddress();
-					
-					studentNames.put(ip, name); // שמירת השם במפה
-					if (!onlineUsers.contains(ip)) onlineUsers.add(ip);
-					
-					String resp = "{\"status\":\"registered\"}";
-					t.sendResponseHeaders(200, resp.length());
-					t.getResponseBody().write(resp.getBytes());
-				} catch (Exception e) {
-					t.sendResponseHeaders(400, 0);
-				}
-			}
-			t.close();
-		}
-	}
+        if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+            try (InputStream is = t.getRequestBody()) {
+                String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject json = new com.google.gson.Gson().fromJson(body, com.google.gson.JsonObject.class);
+                
+                String name = json.get("studentName").getAsString();
+
+                // תיקון זיהוי IP אמיתי (עבור Railway)
+                String ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
+                if (ip == null || ip.isEmpty()) {
+                    ip = t.getRemoteAddress().getAddress().getHostAddress();
+                } else {
+                    // X-Forwarded-For יכול להכיל רשימה, אנחנו רוצים את הראשון
+                    ip = ip.split(",")[0].trim();
+                }
+                
+                // עדכון המערכת
+                studentNames.put(ip, name); 
+                if (!onlineUsers.contains(ip)) {
+                    onlineUsers.add(ip);
+                }
+                
+                // הוספת המונה הכללי שרצינו
+                totalRequestsCounter.incrementAndGet();
+
+                // שליחת תשובה מסודרת
+                String resp = "{\"status\":\"registered\",\"name\":\"" + name + "\"}";
+                t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+                t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
+                try (OutputStream os = t.getResponseBody()) {
+                    os.write(resp.getBytes(StandardCharsets.UTF_8));
+                }
+                
+                System.out.println("New student registered: " + name + " (IP: " + ip + ")");
+                
+            } catch (Exception e) {
+                e.printStackTrace(); // עוזר לראות שגיאות ב-Logs של Railway
+                t.sendResponseHeaders(400, 0);
+            }
+        } else {
+            t.sendResponseHeaders(405, -1); // Method Not Allowed
+        }
+        t.close();
+    }
+}
 	
 	// מחלקה פשוטה שיודעת לקרוא קובץ ולהחזיר אותו לדפדפן
 	/*
