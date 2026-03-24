@@ -897,7 +897,7 @@ public class RemoteServer {
 					String name = json.get("studentName").getAsString();
 
 					// תיקון זיהוי IP אמיתי (עבור Railway)
-					ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
+					String ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
 					if (ip == null || ip.isEmpty()) {
 						ip = t.getRemoteAddress().getAddress().getHostAddress();
 					} else {
