@@ -926,7 +926,7 @@ public class RemoteServer {
 					}
 					
 					// הוספת המונה הכללי שרצינו
-					totalRequestsCounter.incrementAndGet();
+					// totalRequestsCounter.incrementAndGet();
 
 					// שליחת תשובה מסודרת
 					String resp = "{\"status\":\"registered\",\"name\":\"" + name + "\"}";
