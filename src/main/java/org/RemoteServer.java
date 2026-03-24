@@ -121,6 +121,15 @@ public class RemoteServer {
                          .merge(action, 1, Integer::sum);
     }
 	
+	// פונקציית עזר לשליחת תגובת טקסט פשוטה (שמונעת את שגיאת ה-Symbol)
+    private static void sendTextResponse(HttpExchange t, int code, String text) throws IOException {
+        byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+        t.sendResponseHeaders(code, bytes.length);
+        try (OutputStream os = t.getResponseBody()) {
+            os.write(bytes);
+        }
+    }
+	
 	private static JsonObject executeStudentCodeImage(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
 		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
 		String className = "DynamicClass_" + uniqueId;
