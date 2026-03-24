@@ -31,96 +31,63 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RemoteServer {
 	
-    private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
-	private static final java.util.concurrent.atomic.AtomicInteger totalRequestsCounter = new java.util.concurrent.atomic.AtomicInteger(0);
-	
-	// מפה ששומרת לכל IP את מספר ההרצות שלו לפי סוג הפעולה
-	private static final java.util.Map<String, java.util.Map<String, Integer>> userActivityStats = new java.util.concurrent.ConcurrentHashMap<>();
-	
-	// הוסף את זה: מפה שמקשרת IP לשם התלמיד
-    private static final java.util.Map<String, String> studentNames = new java.util.concurrent.ConcurrentHashMap<>();
-	
-	public static void main(String[] args) throws IOException {
+	private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
+    private static final AtomicInteger totalRequestsCounter = new AtomicInteger(0);
+    private static final Map<String, String> studentNames = new ConcurrentHashMap<>();
     
-		// 2. יצירת השרת בפורט 8080
-		int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
-		HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+    // מפה לספירת הרצות לכל IP
+    private static final Map<String, AtomicInteger> userRunCounts = new ConcurrentHashMap<>();
+
+    public static void main(String[] args) throws IOException {
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+
+        // שימוש ב-Thread Pool לביצועים
+        server.setExecutor(Executors.newFixedThreadPool(20));
+
+        // --- נתיב 1: דף הבית (index.html) ---
+        server.createContext("/", exchange -> {
+            String ip = getClientIp(exchange); // שימוש בפונקציה המתוקנת
+            if (!onlineUsers.contains(ip)) onlineUsers.add(ip);
+            
+            try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("index.html")) {
+                if (is == null) {
+                    sendTextResponse(exchange, 404, "File not found");
+                } else {
+                    byte[] bytes = is.readAllBytes();
+                    exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
+                    exchange.sendResponseHeaders(200, bytes.length);
+                    exchange.getResponseBody().write(bytes);
+                }
+            } finally {
+                exchange.close();
+            }
+        });
+
+        // --- נתיב 2: דף ניהול (admin.html) ---
+        server.createContext("/admin", exchange -> {
+            try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("admin.html")) {
+                if (is == null) {
+                    sendTextResponse(exchange, 404, "Admin page not found");
+                } else {
+                    byte[] bytes = is.readAllBytes();
+                    exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
+                    exchange.sendResponseHeaders(200, bytes.length);
+                    exchange.getResponseBody().write(bytes);
+                }
+            } finally {
+                exchange.close();
+            }
+        });
+
 		
-		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
-		server.setExecutor(threadPool);
-
-		// --- נתיב 1: דף הבית ---
-		server.createContext("/", exchange -> {
-			String userIp = exchange.getRemoteAddress().getAddress().getHostAddress();
-			if (!onlineUsers.contains(userIp)) {
-				onlineUsers.add(userIp);
-			}
-
-			try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("index.html")) {
-				if (is == null) {
-					String notFound = "<h1>404 Not Found</h1>";
-					exchange.sendResponseHeaders(404, notFound.getBytes().length);
-					exchange.getResponseBody().write(notFound.getBytes());
-				} else {
-					byte[] bytes = is.readAllBytes();
-					exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
-					exchange.sendResponseHeaders(200, bytes.length);
-					exchange.getResponseBody().write(bytes);
-				}
-			} finally {
-				exchange.close();
-			}
-		});
-		
-		server.createContext("/admin", exchange -> {
-			try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("admin.html")) {
-				if (is == null) {
-					String notFound = "<h1>Admin page not found</h1>";
-					exchange.sendResponseHeaders(404, notFound.getBytes().length);
-					exchange.getResponseBody().write(notFound.getBytes());
-				} else {
-					byte[] bytes = is.readAllBytes();
-					exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
-					exchange.sendResponseHeaders(200, bytes.length);
-					exchange.getResponseBody().write(bytes);
-				}
-			} finally {
-				exchange.close();
-			}
-		});
-
-		// --- נתיב חדש: רישום שם תלמיד ---
-		server.createContext("/api/register", new RegisterHandler());
-		//server.createContext("/admin", new StaticFileHandler("admin.html"));
 
 		// --- נתיב חדש: נתונים ל-Dashboard הגרפי ---
 		server.createContext("/api/admin-stats", new AdminStatsHandler());
 		
-		// --- נתיב ניהול טקסטואלי (מעודכן עם שמות) ---
-		server.createContext("/admin123", exchange -> {
-			int activeThreads = threadPool.getActiveCount(); 
-			long completedTasks = threadPool.getCompletedTaskCount(); 
-			int queueSize = threadPool.getQueue().size(); 
-
-			StringBuilder studentList = new StringBuilder();
-			for (String ip : onlineUsers) {
-				String name = studentNames.getOrDefault(ip, "אנונימי");
-				studentList.append(ip).append(" - ").append(name).append("\n");
-			}
-
-			String response = "--- Algorithmic Art Server Status ---\n" +
-							  "Active Students Running: " + activeThreads + " / 20\n" +
-							  "Total Executions Today: " + completedTasks + "\n" +
-							  "Students in Queue: " + queueSize + "\n\n" +
-							  "Current Students Online:\n" + studentList.toString();
-
-			exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
-			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-			exchange.sendResponseHeaders(200, bytes.length);
-			exchange.getResponseBody().write(bytes);
-			exchange.close();
-		});
-
+		// --- נתיב חדש: רישום שם תלמיד ---
+		server.createContext("/api/register", new RegisterHandler());
+		
 		// נתיבי ההרצה הקיימים שלך
 		server.createContext("/run1", new RunHandler1());
 		server.createContext("/run2", new RunHandler2());
@@ -132,8 +99,8 @@ public class RemoteServer {
 
 		// 4. הפעלת השרת
 		server.start();
-		System.out.println("Server is running on http://localhost:" + port);
-		System.out.println("Admin panel (Text): http://localhost:" + port + "/admin123");
+		// System.out.println("Server is running on http://localhost:" + port);
+		System.out.println("Server started on port " + port);
 	}
 	
 	
@@ -836,150 +803,110 @@ public class RemoteServer {
 	}
 	
 
-static class AdminStatsHandler implements HttpHandler {
-    @Override
-    public void handle(HttpExchange t) throws IOException {
-        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+	static class AdminStatsHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 
-		// בניית רשימת הסטודנטים המעודכנת
-		java.util.List<java.util.Map<String, String>> studentsList = new java.util.ArrayList<>();
-		for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
-			String ip = entry.getKey();
-			java.util.Map<String, String> s = new java.util.HashMap<>();
-			s.put("ip", ip);
-			s.put("name", entry.getValue());
-			
-			// שליפת מספר ההרצות האישי
-			int runs = 0;
-			if (userRunCounts.containsKey(ip)) {
-				runs = userRunCounts.get(ip).get();
+			// בניית רשימת הסטודנטים המעודכנת
+			java.util.List<java.util.Map<String, String>> studentsList = new java.util.ArrayList<>();
+			for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
+				String ip = entry.getKey();
+				java.util.Map<String, String> s = new java.util.HashMap<>();
+				s.put("ip", ip);
+				s.put("name", entry.getValue());
+				
+				// שליפת מספר ההרצות האישי
+				int runs = 0;
+				if (userRunCounts.containsKey(ip)) {
+					runs = userRunCounts.get(ip).get();
+				}
+				s.put("runCount", String.valueOf(runs));
+				
+				s.put("status", "פעיל");
+				studentsList.add(s);
 			}
-			s.put("runCount", String.valueOf(runs));
-			
-			s.put("status", "פעיל");
-			studentsList.add(s);
+
+			JsonObject resp = new JsonObject();
+			// התיקון כאן: השם חייב להיות activeStudents
+			resp.add("activeStudents", new com.google.gson.Gson().toJsonTree(studentsList));
+			resp.addProperty("totalRequests", totalRequestsCounter.get());
+			resp.add("levelStats", new JsonObject()); 
+
+			String response = new com.google.gson.Gson().toJson(resp);
+			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+			t.sendResponseHeaders(200, bytes.length);
+			try (OutputStream os = t.getResponseBody()) {
+				os.write(bytes);
+			}
+			t.close();
 		}
-
-        JsonObject resp = new JsonObject();
-        // התיקון כאן: השם חייב להיות activeStudents
-        resp.add("activeStudents", new com.google.gson.Gson().toJsonTree(studentsList));
-        resp.addProperty("totalRequests", totalRequestsCounter.get());
-        resp.add("levelStats", new JsonObject()); 
-
-        String response = new com.google.gson.Gson().toJson(resp);
-        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-        t.sendResponseHeaders(200, bytes.length);
-        try (OutputStream os = t.getResponseBody()) {
-            os.write(bytes);
-        }
-        t.close();
-    }
-}
+	}
 	
 	
 	
-static class RegisterHandler implements HttpHandler {
-    @Override
-    public void handle(HttpExchange t) throws IOException {
-        // 1. הגדרות CORS - תמיד ראשון
-        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-        t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+	static class RegisterHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			// 1. הגדרות CORS - תמיד ראשון
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 
-        if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-            t.sendResponseHeaders(204, -1);
-            return;
-        }
-		
-		String ip = getClientIp(t);
-		incrementUserStat(ip, "register");
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				return;
+			}
+			
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "register");
 
-        if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-            try (InputStream is = t.getRequestBody()) {
-                String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                com.google.gson.JsonObject json = new com.google.gson.Gson().fromJson(body, com.google.gson.JsonObject.class);
-                
-                String name = json.get("studentName").getAsString();
+			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+				try (InputStream is = t.getRequestBody()) {
+					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+					com.google.gson.JsonObject json = new com.google.gson.Gson().fromJson(body, com.google.gson.JsonObject.class);
+					
+					String name = json.get("studentName").getAsString();
 
-                // תיקון זיהוי IP אמיתי (עבור Railway)
-                ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
-                if (ip == null || ip.isEmpty()) {
-                    ip = t.getRemoteAddress().getAddress().getHostAddress();
-                } else {
-                    // X-Forwarded-For יכול להכיל רשימה, אנחנו רוצים את הראשון
-                    ip = ip.split(",")[0].trim();
-                }
-                
-                // עדכון המערכת
-                studentNames.put(ip, name); 
-                if (!onlineUsers.contains(ip)) {
-                    onlineUsers.add(ip);
-                }
-                
-                // הוספת המונה הכללי שרצינו
-                totalRequestsCounter.incrementAndGet();
+					// תיקון זיהוי IP אמיתי (עבור Railway)
+					ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
+					if (ip == null || ip.isEmpty()) {
+						ip = t.getRemoteAddress().getAddress().getHostAddress();
+					} else {
+						// X-Forwarded-For יכול להכיל רשימה, אנחנו רוצים את הראשון
+						ip = ip.split(",")[0].trim();
+					}
+					
+					// עדכון המערכת
+					studentNames.put(ip, name); 
+					if (!onlineUsers.contains(ip)) {
+						onlineUsers.add(ip);
+					}
+					
+					// הוספת המונה הכללי שרצינו
+					totalRequestsCounter.incrementAndGet();
 
-                // שליחת תשובה מסודרת
-                String resp = "{\"status\":\"registered\",\"name\":\"" + name + "\"}";
-                t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-                t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
-                try (OutputStream os = t.getResponseBody()) {
-                    os.write(resp.getBytes(StandardCharsets.UTF_8));
-                }
-                
-                System.out.println("New student registered: " + name + " (IP: " + ip + ")");
-                
-            } catch (Exception e) {
-                e.printStackTrace(); // עוזר לראות שגיאות ב-Logs של Railway
-                t.sendResponseHeaders(400, 0);
-            }
-        } else {
-            t.sendResponseHeaders(405, -1); // Method Not Allowed
-        }
-        t.close();
-    }
-}
-	
-	// מחלקה פשוטה שיודעת לקרוא קובץ ולהחזיר אותו לדפדפן
-	/*
-    static class StaticFileHandler implements HttpHandler {
-        private final String fileName;
-
-        public StaticFileHandler(String fileName) {
-            this.fileName = fileName;
-        }
-
-        @Override
-        public void handle(HttpExchange t) throws IOException {
-            File file = new File(fileName);
-            if (!file.exists()) {
-                String response = "File not found: " + fileName;
-                t.sendResponseHeaders(404, response.length());
-                try (OutputStream os = t.getResponseBody()) {
-                    os.write(response.getBytes());
-                }
-                return;
-            }
-
-            // זיהוי סוג הקובץ
-            String contentType = "text/html";
-            if (fileName.endsWith(".css")) contentType = "text/css";
-            else if (fileName.endsWith(".js")) contentType = "application/javascript";
-
-            byte[] bytes = Files.readAllBytes(file.toPath());
-            t.getResponseHeaders().set("Content-Type", contentType + "; charset=UTF-8");
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.sendResponseHeaders(200, bytes.length);
-            
-            try (OutputStream os = t.getResponseBody()) {
-                os.write(bytes);
-            }
-            t.close();
-        }
-    }
-	*/
-	
+					// שליחת תשובה מסודרת
+					String resp = "{\"status\":\"registered\",\"name\":\"" + name + "\"}";
+					t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+					t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
+					try (OutputStream os = t.getResponseBody()) {
+						os.write(resp.getBytes(StandardCharsets.UTF_8));
+					}
+					
+					System.out.println("New student registered: " + name + " (IP: " + ip + ")");
+					
+				} catch (Exception e) {
+					e.printStackTrace(); // עוזר לראות שגיאות ב-Logs של Railway
+					t.sendResponseHeaders(400, 0);
+				}
+			} else {
+				t.sendResponseHeaders(405, -1); // Method Not Allowed
+			}
+			t.close();
+		}
+	}	
 }	
 
 	
