@@ -169,7 +169,7 @@
     async function fetchData() {
         try {
             // החליפי את ה-URL לכתובת השרת שלך במידת הצורך
-            const response = await fetch('/api/admin-stats');
+            const response = await fetch("/api/admin-stats");
             const data = await response.json();
 
             updateUI(data);
