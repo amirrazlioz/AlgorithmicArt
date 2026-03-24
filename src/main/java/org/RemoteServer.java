@@ -38,6 +38,9 @@ public class RemoteServer {
 
 	// מפה שמחזיקה לכל IP מפה פנימית של מונים (לפי שם ה-Handler)
 	private static final Map<String, Map<String, Integer>> userActivityStats = new ConcurrentHashMap<>();
+	
+	// במקום או בנוסף ל-onlineUsers, נשתמש בזה כדי לעקוב אחרי זמן:
+	private static final Map<String, Long> lastSeenMap = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
@@ -480,6 +483,7 @@ public class RemoteServer {
 			String ip = getClientIp(t);
 			incrementUserStat(ip, "run1"); 
 			totalRequestsCounter.incrementAndGet();
+			lastSeenMap.put(ip, System.currentTimeMillis());
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -525,6 +529,7 @@ public class RemoteServer {
 			String ip = getClientIp(t);
 			incrementUserStat(ip, "run2"); 
 			totalRequestsCounter.incrementAndGet();
+			lastSeenMap.put(ip, System.currentTimeMillis());
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -571,6 +576,7 @@ public class RemoteServer {
 			String ip = getClientIp(t);
 			incrementUserStat(ip, "run3"); 
 			totalRequestsCounter.incrementAndGet();
+			lastSeenMap.put(ip, System.currentTimeMillis());
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -617,6 +623,7 @@ public class RemoteServer {
 			String ip = getClientIp(t);
 			incrementUserStat(ip, "run4"); 
 			totalRequestsCounter.incrementAndGet();
+			lastSeenMap.put(ip, System.currentTimeMillis());
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -663,6 +670,7 @@ public class RemoteServer {
 			String ip = getClientIp(t);
 			incrementUserStat(ip, "run5"); 
 			totalRequestsCounter.incrementAndGet();
+			lastSeenMap.put(ip, System.currentTimeMillis());
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -723,6 +731,7 @@ public class RemoteServer {
 			String ip = getClientIp(t);
 			incrementUserStat(ip, "run6"); 
 			totalRequestsCounter.incrementAndGet();
+			lastSeenMap.put(ip, System.currentTimeMillis());
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -784,6 +793,7 @@ public class RemoteServer {
 			String ip = getClientIp(t);
 			incrementUserStat(ip, "run-creative"); 
 			totalRequestsCounter.incrementAndGet();
+			lastSeenMap.put(ip, System.currentTimeMillis());
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -850,6 +860,10 @@ public class RemoteServer {
 				int totalRuns = stats.values().stream().mapToInt(Integer::intValue).sum();
 				s.put("runCount", String.valueOf(totalRuns));
 				
+				// שליחת חותמת הזמן האחרונה
+				long lastSeen = lastSeenMap.getOrDefault(ip, 0L);
+				s.put("lastSeen", String.valueOf(lastSeen));
+				
 				s.put("status", "פעיל");
 				studentsList.add(s);
 			}
@@ -886,8 +900,9 @@ public class RemoteServer {
 				return;
 			}
 			
-			// String ip = getClientIp(t);
+			String ip = getClientIp(t);
 			// incrementUserStat(ip, "register");
+			lastSeenMap.put(ip, System.currentTimeMillis());
 
 			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
 				try (InputStream is = t.getRequestBody()) {

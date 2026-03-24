@@ -127,11 +127,11 @@
     <div class="stats-grid">
         <div class="card">
             <div class="stat-label">תלמידים פעילים (10 דק' אחרונות)</div>
-            <div id="active-count" class="stat-value">0</div>
+            <div id="active-students-count" class="stat-value">0</div>
         </div>
         <div class="card">
             <div class="stat-label">סך הרצות קוד היום</div>
-            <div id="total-runs" class="stat-value">0</div>
+            <div id="total-requests" class="stat-value">0</div>
         </div>
         <div class="card">
             <div class="stat-label">אחוז הצלחה ממוצע</div>
@@ -182,36 +182,68 @@
 
 	function updateUI(data) {
 		const tableBody = document.getElementById('students-table-body');
+		if (!tableBody) return;
+
 		tableBody.innerHTML = '';
+
+		const now = Date.now();
+		const tenMinutes = 10 * 60 * 1000; // 600,000 מילישניות
+		let activeInLast10 = 0;
 
 		if (data.activeStudents) {
 			data.activeStudents.forEach(student => {
-				// פענוח הפירוט של 7 המונים
+				// 1. חישוב פעילות ב-10 דקות אחרונות
+				const lastSeen = parseInt(student.lastSeen) || 0;
+				const isActiveNow = (now - lastSeen) < tenMinutes;
+				
+				if (isActiveNow) {
+					activeInLast10++;
+				}
+
+				// 2. פענוח הפירוט של 7 המונים (run1, run2 וכו')
 				const details = student.details ? JSON.parse(student.details) : {};
 				
-				// יצירת תצוגה ידידותית למונים
+				// יצירת תצוגה נקייה למונים (מסודרת לפי סדר השלבים)
 				const countersHtml = Object.entries(details)
-					.map(([key, val]) => `<span style="font-size:0.8em; background:#eee; padding:2px 5px; border-radius:4px; margin-left:3px;">${key}: ${val}</span>`)
-					.join(' ');
+					.sort() // מסדר לפי run1, run2...
+					.map(([key, val]) => `
+						<span style="display:inline-block; font-size:0.75em; background:#f1f5f9; color:#475569; 
+									 padding:2px 6px; border-radius:4px; margin:2px; border:1px solid #e2e8f0;">
+							${key}: <strong>${val}</strong>
+						</span>`)
+					.join('');
 
+				// 3. יצירת השורה בטבלה
 				const row = document.createElement('tr');
 				row.innerHTML = `
-					<td><strong>${student.name}</strong></td>
-					<td>${student.ip}</td>
+					<td><strong>${student.name || 'אנונימי'}</strong></td>
+					<td><code style="font-size:0.85em; color:#64748b;">${student.ip}</code></td>
 					<td>
-						<div style="font-weight:bold; font-size:1.1em;">${student.runCount}</div>
-						<div style="margin-top:5px;">${countersHtml || '<small>אין הרצות עדיין</small>'}</div>
+						<div style="font-weight:bold; font-size:1.1em; color:var(--primary);">${student.runCount || 0}</div>
+						<div style="margin-top:5px; display:flex; flex-wrap:wrap;">${countersHtml || '<small style="color:#cbd5e1;">אין הרצות עדיין</small>'}</div>
 					</td>
-					<td><span class="status-pill">פעיל</span></td>
+					<td>
+						<span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
+							${isActiveNow ? '● פעיל' : 'לא פעיל'}
+						</span>
+					</td>
 					<td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
 				`;
 				tableBody.appendChild(row);
 			});
 		}
 
-		// עדכון המונה הכללי בראש הדף
-		document.getElementById('total-requests').textContent = data.totalRequests || 0;
+		// 4. עדכון המונים בתיבות הסטטיסטיקה למעלה
+		const activeDisplay = document.getElementById('active-students-count'); // מונה ה-10 דקות
+		const totalRequestsDisplay = document.getElementById('total-requests'); // מונה כללי
+
+		if (activeDisplay) activeDisplay.textContent = activeInLast10;
+		if (totalRequestsDisplay) totalRequestsDisplay.textContent = data.totalRequests || 0;
 	}
+
+		// עדכון המונה הכללי בראש הדף
+		// document.getElementById('total-requests').textContent = data.total-runs || 0;
+	//}
 	
 	
     function updateChart(stats) {
