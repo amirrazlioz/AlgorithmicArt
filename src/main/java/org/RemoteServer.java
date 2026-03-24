@@ -122,7 +122,7 @@ public class RemoteServer {
 
     // 2. פונקציית עזר לעדכון המונים של המשתמש
 	private static void incrementUserStat(String ip, String action) {
-		// action יהיה "run1", "run2", "run_creative" וכו'
+		// action יהיה "run1", "run2", "run-creative" וכו'
 		userActivityStats.computeIfAbsent(ip, k -> new ConcurrentHashMap<>())
 						 .merge(action, 1, Integer::sum);
 	}

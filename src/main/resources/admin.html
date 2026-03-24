@@ -203,7 +203,7 @@
 				const stats = student.details ? JSON.parse(student.details) : {};
 				
 				// רשימת המפתחות שאנחנו מצפים להם מהשרת
-				const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run_creative'];
+				const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
 				
 				// יצירת תאי ה-HTML עבור המונים (אם לא קיים, נציג 0)
 				const statsCells = keys.map(key => 
@@ -225,7 +225,7 @@
 							${isActiveNow ? '● פעיל' : 'לא פעיל'}
 						</span>
 					</td>
-					<td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה</button></td>
+					
 				`;
 				tableBody.appendChild(row);
 			});
