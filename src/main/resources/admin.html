@@ -286,25 +286,42 @@
     }
 	
 	async function resetAllData() {
-		if (!confirm("האם אתה בטוח שברצונך למחוק את כל נתוני התלמידים וההרצות? פעולה זו אינה ניתנת לביטול.")) {
-			return;
-		}
+		if (!confirm("האם אתה בטוח?")) return;
 
 		try {
-			const response = await fetch('/api/reset-all', {
-				method: 'POST'
-			});
+			const response = await fetch('/api/reset-all', { method: 'POST' });
 
 			if (response.ok) {
 				alert("הנתונים אופסו בהצלחה!");
-				// רענון מידי של הנתונים בדף
-				fetchStats(); 
+				
+				// הוספת השהיה של חצי שנייה לפני הטעינה מחדש
+				setTimeout(() => {
+					fetchStats(); 
+				}, 500);
+				
 			} else {
-				alert("שגיאה באיפוס הנתונים.");
+				alert("השרת החזיר שגיאה בניסיון האיפוס.");
 			}
 		} catch (error) {
-			console.error("Error resetting data:", error);
-			alert("תקלת תקשורת עם השרת.");
+			alert("תקלת תקשורת בביצוע האיפוס.");
+		}
+	}
+
+	async function fetchStats() {
+		try {
+			const response = await fetch('/api/admin-stats');
+			const data = await response.json();
+			
+			// בדיקה קריטית: אם אין תלמידים (אחרי איפוס), שלח מערך ריק כדי שהקוד לא יקרוס
+			if (!data.activeStudents) {
+				data.activeStudents = [];
+			}
+			
+			updateUI(data);
+		} catch (error) {
+			console.error("Fetch error:", error);
+			// אל תקפיץ alert כאן אם זה קורה מיד אחרי איפוס, כדי לא להציק למשתמש
+			console.log("נתקבלו נתונים ריקים או שגיאת רענון");
 		}
 	}
 
