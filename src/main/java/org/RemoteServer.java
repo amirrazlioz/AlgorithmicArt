@@ -903,7 +903,7 @@ static class RegisterHandler implements HttpHandler {
                 String name = json.get("studentName").getAsString();
 
                 // תיקון זיהוי IP אמיתי (עבור Railway)
-                String ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
+                ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
                 if (ip == null || ip.isEmpty()) {
                     ip = t.getRemoteAddress().getAddress().getHostAddress();
                 } else {
