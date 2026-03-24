@@ -27,6 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class RemoteServer {
 	
     private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
+	private static final java.util.concurrent.atomic.AtomicInteger totalRequestsCounter = new java.util.concurrent.atomic.AtomicInteger(0);
 	
 	// הוסף את זה: מפה שמקשרת IP לשם התלמיד
     private static final java.util.Map<String, String> studentNames = new java.util.concurrent.ConcurrentHashMap<>();
@@ -65,6 +66,7 @@ public class RemoteServer {
 
     // --- נתיב חדש: רישום שם תלמיד ---
     server.createContext("/api/register", new RegisterHandler());
+	server.createContext("/admin", new StaticFileHandler("admin.html"));
 
     // --- נתיב חדש: נתונים ל-Dashboard הגרפי ---
     server.createContext("/api/admin-stats", new AdminStatsHandler());
@@ -455,6 +457,8 @@ public class RemoteServer {
 
 	static class RunHandler1 implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
+			totalRequestsCounter.incrementAndGet();
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -496,6 +500,8 @@ public class RemoteServer {
 
 	static class RunHandler2 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			totalRequestsCounter.incrementAndGet();
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -538,6 +544,8 @@ public class RemoteServer {
 
 	static class RunHandler3 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			totalRequestsCounter.incrementAndGet();
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -580,6 +588,8 @@ public class RemoteServer {
 
 	static class RunHandler4 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			totalRequestsCounter.incrementAndGet();
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -622,6 +632,8 @@ public class RemoteServer {
 
 	static class RunHandler5 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			totalRequestsCounter.incrementAndGet();
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -678,6 +690,8 @@ public class RemoteServer {
 
 	static class RunHandler6 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			totalRequestsCounter.incrementAndGet();
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -735,6 +749,8 @@ public class RemoteServer {
 
 	static class RunCreative implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
+			totalRequestsCounter.incrementAndGet();
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -775,20 +791,37 @@ public class RemoteServer {
 	}
 	
 	static class AdminStatsHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange t) throws IOException {
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-            
-            // Basic JSON response with current stats
-            String response = "{\"studentsOnline\": " + onlineUsers.size() + "}";
-            
-            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-            t.sendResponseHeaders(200, bytes.length);
-            t.getResponseBody().write(bytes);
-            t.close();
+    @Override
+    public void handle(HttpExchange t) throws IOException {
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+
+        // יצירת רשימת הסטודנטים
+        java.util.List<java.util.Map<String, String>> students = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
+            java.util.Map<String, String> s = new java.util.HashMap<>();
+            s.put("ip", entry.getKey());
+            s.put("name", entry.getValue());
+            s.put("status", "מחובר");
+            students.add(s);
         }
+
+        JsonObject resp = new JsonObject();
+        resp.addProperty("activeThreads", onlineUsers.size());
+        
+        // כאן אנחנו מכניסים את המונה האמיתי!
+        resp.addProperty("totalRequests", totalRequestsCounter.get()); 
+        
+        resp.add("students", new com.google.gson.Gson().toJsonTree(students));
+        
+        // שליחת התגובה
+        String response = new com.google.gson.Gson().toJson(resp);
+        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+        t.sendResponseHeaders(200, bytes.length);
+        t.getResponseBody().write(bytes);
+        t.close();
     }
+}
 
 	static class RegisterHandler implements HttpHandler {
 		@Override
