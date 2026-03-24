@@ -133,10 +133,6 @@
             <div class="stat-label">סך הרצות קוד היום</div>
             <div id="total-requests" class="stat-value">0</div>
         </div>
-        <div class="card">
-            <div class="stat-label">אחוז הצלחה ממוצע</div>
-            <div id="success-rate" class="stat-value">0%</div>
-        </div>
     </div>
 
     <div class="main-grid">
@@ -148,17 +144,11 @@
 					<th>שם תלמיד</th>
 					<th>IP</th>
 					<th>הרצות</th> <th>סטטוס</th>
-					<th>פעולות</th>
 				</tr>
 			</thead>
 			<tbody id="students-table-body">
 				</tbody>
 		</table>
-        </div>
-
-        <div class="card">
-            <h3>ניתוח הצלחה לפי שלב</h3>
-            <canvas id="levelsChart"></canvas>
         </div>
     </div>
 	
@@ -169,7 +159,6 @@
 </div>
 
 <script>
-    let levelsChart;
 
     async function fetchData() {
         try {
@@ -245,45 +234,6 @@
 		if (activeDisplay) activeDisplay.textContent = activeInLast10;
 		if (totalRequestsDisplay) totalRequestsDisplay.textContent = data.totalRequests || 0;
 	}
-
-		// עדכון המונה הכללי בראש הדף
-		// document.getElementById('total-requests').textContent = data.total-runs || 0;
-	//}
-	
-	
-    function updateChart(stats) {
-        const labels = [...new Set(Object.keys(stats).map(k => k.split('_')[0]))].sort();
-        const successData = labels.map(l => stats[l + '_success'] || 0);
-        const failData = labels.map(l => stats[l + '_fail'] || 0);
-
-        const ctx = document.getElementById('levelsChart').getContext('2d');
-        
-        if (levelsChart) {
-            levelsChart.destroy();
-        }
-
-        levelsChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'הצלחה', data: successData, backgroundColor: '#10b981' },
-                    { label: 'שגיאה', data: failData, backgroundColor: '#ef4444' }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true, stacked: true },
-                    x: { stacked: true }
-                }
-            }
-        });
-    }
-
-    function viewCode(ip) {
-        alert("תכונה זו דורשת חיבור WebSocket לקבלת הקוד בשידור חי מכתובת: " + ip);
-    }
 	
 	async function resetAllData() {
 		if (!confirm("האם אתה בטוח?")) return;
