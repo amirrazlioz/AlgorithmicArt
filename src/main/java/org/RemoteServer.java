@@ -25,75 +25,91 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 
 public class RemoteServer {
-
+	
     private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
 	
-    public static void main(String[] args) throws IOException {
-        // 2. יצירת השרת בפורט 8080
-		int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-		
-		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
-		server.setExecutor(threadPool);
-
-        // --- נתיב 1: דף הבית ---
-        server.createContext("/", exchange -> {
-            String userIp = exchange.getRemoteAddress().getAddress().getHostAddress();
-            if (!onlineUsers.contains(userIp)) {
-                onlineUsers.add(userIp);
-            }
-
-            try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("index.html")) {
-                if (is == null) {
-                    String notFound = "<h1>404 Not Found</h1>";
-                    exchange.sendResponseHeaders(404, notFound.getBytes().length);
-                    exchange.getResponseBody().write(notFound.getBytes());
-                } else {
-                    byte[] bytes = is.readAllBytes();
-                    exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
-                    exchange.sendResponseHeaders(200, bytes.length);
-                    exchange.getResponseBody().write(bytes);
-                }
-            } finally {
-                exchange.close();
-            }
-        });
-		
-		server.createContext("/admin123", exchange -> {
-			// אנחנו משתמשים ב-threadPool שהגדרנו למעלה ב-main
-			int activeThreads = threadPool.getActiveCount(); 
-			long completedTasks = threadPool.getCompletedTaskCount(); 
-			int queueSize = threadPool.getQueue().size(); 
-
-			String response = "--- Algorithmic Art Server Status ---\n" +
-							  "Active Students Running: " + activeThreads + " / 20\n" +
-							  "Total Executions Today: " + completedTasks + "\n" +
-							  "Students in Queue: " + queueSize + "\n\n" +
-							  "Current IPs Online:\n" + String.join("\n", onlineUsers);
-
-			exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
-			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-			exchange.sendResponseHeaders(200, bytes.length);
-			exchange.getResponseBody().write(bytes);
-			exchange.close();
-		});
-
-		server.createContext("/run1", new RunHandler1());
-        server.createContext("/run2", new RunHandler2());
-        server.createContext("/run3", new RunHandler3());
-        server.createContext("/run4", new RunHandler4());
-		server.createContext("/run5", new RunHandler5());
-        server.createContext("/run6", new RunHandler6());
-        server.createContext("/run-creative", new RunCreative());
-
-        
-
-        // 4. הפעלת השרת
-        server.start();
-        System.out.println("Server is running on http://localhost:" + port);
-        System.out.println("Admin panel: http://localhost:" + port + "/admin123"  );
-    }
+	// הוסף את זה: מפה שמקשרת IP לשם התלמיד
+    private static final java.util.Map<String, String> studentNames = new java.util.concurrent.ConcurrentHashMap<>();
 	
+	public static void main(String[] args) throws IOException {
+    
+    // 2. יצירת השרת בפורט 8080
+    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+    HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+    
+    ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
+    server.setExecutor(threadPool);
+
+    // --- נתיב 1: דף הבית ---
+    server.createContext("/", exchange -> {
+        String userIp = exchange.getRemoteAddress().getAddress().getHostAddress();
+        if (!onlineUsers.contains(userIp)) {
+            onlineUsers.add(userIp);
+        }
+
+        try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("index.html")) {
+            if (is == null) {
+                String notFound = "<h1>404 Not Found</h1>";
+                exchange.sendResponseHeaders(404, notFound.getBytes().length);
+                exchange.getResponseBody().write(notFound.getBytes());
+            } else {
+                byte[] bytes = is.readAllBytes();
+                exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
+                exchange.sendResponseHeaders(200, bytes.length);
+                exchange.getResponseBody().write(bytes);
+            }
+        } finally {
+            exchange.close();
+        }
+    });
+
+    // --- נתיב חדש: רישום שם תלמיד ---
+    server.createContext("/api/register", new RegisterHandler());
+
+    // --- נתיב חדש: נתונים ל-Dashboard הגרפי ---
+    server.createContext("/api/admin-stats", new AdminStatsHandler());
+    
+    // --- נתיב ניהול טקסטואלי (מעודכן עם שמות) ---
+    server.createContext("/admin123", exchange -> {
+        int activeThreads = threadPool.getActiveCount(); 
+        long completedTasks = threadPool.getCompletedTaskCount(); 
+        int queueSize = threadPool.getQueue().size(); 
+
+        StringBuilder studentList = new StringBuilder();
+        for (String ip : onlineUsers) {
+            String name = studentNames.getOrDefault(ip, "אנונימי");
+            studentList.append(ip).append(" - ").append(name).append("\n");
+        }
+
+        String response = "--- Algorithmic Art Server Status ---\n" +
+                          "Active Students Running: " + activeThreads + " / 20\n" +
+                          "Total Executions Today: " + completedTasks + "\n" +
+                          "Students in Queue: " + queueSize + "\n\n" +
+                          "Current Students Online:\n" + studentList.toString();
+
+        exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+        exchange.sendResponseHeaders(200, bytes.length);
+        exchange.getResponseBody().write(bytes);
+        exchange.close();
+    });
+
+    // נתיבי ההרצה הקיימים שלך
+    server.createContext("/run1", new RunHandler1());
+    server.createContext("/run2", new RunHandler2());
+    server.createContext("/run3", new RunHandler3());
+    server.createContext("/run4", new RunHandler4());
+    server.createContext("/run5", new RunHandler5());
+    server.createContext("/run6", new RunHandler6());
+    server.createContext("/run-creative", new RunCreative());
+
+    // 4. הפעלת השרת
+    server.start();
+    System.out.println("Server is running on http://localhost:" + port);
+    System.out.println("Admin panel (Text): http://localhost:" + port + "/admin123");
+}
+	
+		
 	private static JsonObject executeStudentCodeImage(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
 		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
 		String className = "DynamicClass_" + uniqueId;
@@ -756,7 +772,43 @@ public class RemoteServer {
 				t.close();
 			}
 		}
-	}		
+	}
+
+	static class RegisterHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			// הגדרות CORS הכרחיות
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				return;
+			}
+
+			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+				try (InputStream is = t.getRequestBody()) {
+					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+					com.google.gson.JsonObject json = new com.google.gson.Gson().fromJson(body, com.google.gson.JsonObject.class);
+					
+					String name = json.get("studentName").getAsString();
+					String ip = t.getRemoteAddress().getAddress().getHostAddress();
+					
+					studentNames.put(ip, name); // שמירת השם במפה
+					if (!onlineUsers.contains(ip)) onlineUsers.add(ip);
+					
+					String resp = "{\"status\":\"registered\"}";
+					t.sendResponseHeaders(200, resp.length());
+					t.getResponseBody().write(resp.getBytes());
+				} catch (Exception e) {
+					t.sendResponseHeaders(400, 0);
+				}
+			}
+			t.close();
+		}
+	}
+	
 }	
 
 	

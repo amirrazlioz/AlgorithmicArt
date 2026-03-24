@@ -900,13 +900,14 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     <button class="tab-btn" onclick="showPage('debugger-page', this)">🧭 RGB Color Explorer</button>
 </nav>
 
+
 <header class="main-header printable">
     <h1>🎨 ALGORITHMIC ART STUDIO</h1>
     <p>חוקרים את העולם הגרפי בעזרת מערכים דו מימדיים</p>
-	<div class="student-name-container">
-    <label for="studentName">שם התלמיד/ה:</label>
-    <input type="text" id="studentName" placeholder="הכנס שם כאן..." oninput="updatePrintName()">
-	</div>
+    <div class="student-name-container">
+        <label for="studentName">שם התלמיד/ה:</label>
+        <input type="text" id="studentName" placeholder="הכנס שם כאן..." oninput="updatePrintName()" onchange="registerStudentOnServer(this.value)">
+    </div>
 </header>
 
 
@@ -3067,9 +3068,45 @@ function setupJavaEditors() {
     });
 	
 	if (typeof refreshReplicator === "function") refreshReplicator();
-    if (typeof refreshRectReplicator === "function") refreshRectReplicator();
-	
+    if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
+
+async function registerStudentOnServer(name) {
+    if (!name || name.trim().length < 2) return;
+
+    // שמירה מקומית כדי שהשם לא ייעלם בריענון
+    sessionStorage.setItem('studentName', name);
+
+    try {
+        console.log("Registering student:", name);
+        const response = await fetch('http://localhost:8080/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ studentName: name })
+        });
+
+        if (response.ok) {
+            console.log("Student registered successfully");
+        }
+    } catch (error) {
+        console.error("Could not register student on server:", error);
+    }
+}
+
+// קוד שישחזר את השם מהזיכרון אם התלמיד מרענן את הדף
+window.addEventListener('load', () => {
+    const savedName = sessionStorage.getItem('studentName');
+    if (savedName) {
+        const nameInput = document.getElementById('studentName');
+        if (nameInput) {
+            nameInput.value = savedName;
+            // שליחה לשרת גם בטעינה כדי לסמן שהתלמיד עדיין פעיל
+            registerStudentOnServer(savedName);
+        }
+    }
+});
 
 // הפעלה ברגע שה-HTML מוכן
 document.addEventListener('DOMContentLoaded', setupJavaEditors);

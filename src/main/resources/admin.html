@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול מערכת | Algorithmic Art Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: right;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .status-pill {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .btn-view {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-view:hover { opacity: 0.9; }
+
+        canvas {
+            max-width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Algorithmic Art - Dashboard ניהול</h1>
+        <div id="last-update" style="color: #94a3b8;">מעדכן נתונים...</div>
+    </header>
+
+    <div class="stats-grid">
+        <div class="card">
+            <div class="stat-label">תלמידים פעילים (10 דק' אחרונות)</div>
+            <div id="active-count" class="stat-value">0</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">סך הרצות קוד היום</div>
+            <div id="total-runs" class="stat-value">0</div>
+        </div>
+        <div class="card">
+            <div class="stat-label">אחוז הצלחה ממוצע</div>
+            <div id="success-rate" class="stat-value">0%</div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="card">
+            <h3>רשימת תלמידים מחוברים</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>שם תלמיד</th>
+                        <th>IP</th>
+                        <th>סטטוס</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>ניתוח הצלחה לפי שלב</h3>
+            <canvas id="levelsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    let levelsChart;
+
+    async function fetchData() {
+        try {
+            // החליפי את ה-URL לכתובת השרת שלך במידת הצורך
+            const response = await fetch('/api/admin-stats');
+            const data = await response.json();
+
+            updateUI(data);
+            document.getElementById('last-update').innerText = "עודכן לאחרונה: " + new Date().toLocaleTimeString();
+        } catch (error) {
+            console.error("שגיאה במשיכת נתונים:", error);
+            document.getElementById('last-update').innerText = "שגיאת חיבור לשרת";
+        }
+    }
+
+    function updateUI(data) {
+        // עדכון מונים
+        document.getElementById('active-count').innerText = data.activeStudents.length;
+        
+        // חישוב הצלחה כללי (לדוגמה)
+        let totalSuccess = 0, totalFail = 0;
+        Object.keys(data.levelStats).forEach(key => {
+            if (key.includes('_success')) totalSuccess += data.levelStats[key];
+            if (key.includes('_fail')) totalFail += data.levelStats[key];
+        });
+        const rate = (totalSuccess + totalFail > 0) ? Math.round((totalSuccess / (totalSuccess + totalFail)) * 100) : 0;
+        document.getElementById('success-rate').innerText = rate + "%";
+        document.getElementById('total-runs').innerText = totalSuccess + totalFail;
+
+        // עדכון טבלת תלמידים
+        const tableBody = document.getElementById('students-table-body');
+        tableBody.innerHTML = '';
+        data.activeStudents.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${student.name}</strong></td>
+                <td>${student.ip}</td>
+                <td><span class="status-pill">פעיל</span></td>
+                <td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        // עדכון גרף
+        updateChart(data.levelStats);
+    }
+
+    function updateChart(stats) {
+        const labels = [...new Set(Object.keys(stats).map(k => k.split('_')[0]))].sort();
+        const successData = labels.map(l => stats[l + '_success'] || 0);
+        const failData = labels.map(l => stats[l + '_fail'] || 0);
+
+        const ctx = document.getElementById('levelsChart').getContext('2d');
+        
+        if (levelsChart) {
+            levelsChart.destroy();
+        }
+
+        levelsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'הצלחה', data: successData, backgroundColor: '#10b981' },
+                    { label: 'שגיאה', data: failData, backgroundColor: '#ef4444' }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, stacked: true },
+                    x: { stacked: true }
+                }
+            }
+        });
+    }
+
+    function viewCode(ip) {
+        alert("תכונה זו דורשת חיבור WebSocket לקבלת הקוד בשידור חי מכתובת: " + ip);
+    }
+
+    // הפעלה ראשונית ורענון כל 5 שניות
+    fetchData();
+    setInterval(fetchData, 5000);
+</script>
+
+</body>
+</html>
