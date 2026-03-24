@@ -29,6 +29,9 @@ public class RemoteServer {
     private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
 	private static final java.util.concurrent.atomic.AtomicInteger totalRequestsCounter = new java.util.concurrent.atomic.AtomicInteger(0);
 	
+	// מפה ששומרת לכל IP את מספר ההרצות שלו לפי סוג הפעולה
+	private static final java.util.Map<String, java.util.Map<String, Integer>> userActivityStats = new java.util.concurrent.ConcurrentHashMap<>();
+	
 	// הוסף את זה: מפה שמקשרת IP לשם התלמיד
     private static final java.util.Map<String, String> studentNames = new java.util.concurrent.ConcurrentHashMap<>();
 	
@@ -128,7 +131,11 @@ public class RemoteServer {
     System.out.println("Admin panel (Text): http://localhost:" + port + "/admin123");
 }
 	
-		
+	private static void incrementUserStat(String ip, String action) {
+    userActivityStats.computeIfAbsent(ip, k -> new java.util.concurrent.ConcurrentHashMap<>())
+                     .merge(action, 1, Integer::sum);
+	}
+	
 	private static JsonObject executeStudentCodeImage(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
 		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
 		String className = "DynamicClass_" + uniqueId;
@@ -476,6 +483,9 @@ public class RemoteServer {
 		public void handle(HttpExchange t) throws IOException {
 			totalRequestsCounter.incrementAndGet();
 			
+			String ip = getClientIp(t); // וודא שהשתמשת בפונקציית ה-getClientIp שיצרנו קודם
+			incrementUserStat(ip, "run"); 
+			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
@@ -814,15 +824,24 @@ static class AdminStatsHandler implements HttpHandler {
         t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 
-        // בניית רשימת הסטודנטים
-        java.util.List<java.util.Map<String, String>> studentsList = new java.util.ArrayList<>();
-        for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
-            java.util.Map<String, String> s = new java.util.HashMap<>();
-            s.put("ip", entry.getKey());
-            s.put("name", entry.getValue());
-            s.put("status", "פעיל");
-            studentsList.add(s);
-        }
+		// בניית רשימת הסטודנטים המעודכנת
+		java.util.List<java.util.Map<String, String>> studentsList = new java.util.ArrayList<>();
+		for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
+			String ip = entry.getKey();
+			java.util.Map<String, String> s = new java.util.HashMap<>();
+			s.put("ip", ip);
+			s.put("name", entry.getValue());
+			
+			// שליפת מספר ההרצות האישי
+			int runs = 0;
+			if (userRunCounts.containsKey(ip)) {
+				runs = userRunCounts.get(ip).get();
+			}
+			s.put("runCount", String.valueOf(runs));
+			
+			s.put("status", "פעיל");
+			studentsList.add(s);
+		}
 
         JsonObject resp = new JsonObject();
         // התיקון כאן: השם חייב להיות activeStudents
@@ -854,6 +873,9 @@ static class RegisterHandler implements HttpHandler {
             t.sendResponseHeaders(204, -1);
             return;
         }
+		
+		String ip = getClientIp(t);
+		incrementUserStat(ip, "register");
 
         if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
             try (InputStream is = t.getRequestBody()) {

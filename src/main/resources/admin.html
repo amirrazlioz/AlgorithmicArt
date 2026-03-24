@@ -142,18 +142,18 @@
     <div class="main-grid">
         <div class="card">
             <h3>רשימת תלמידים מחוברים</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>שם תלמיד</th>
-                        <th>IP</th>
-                        <th>סטטוס</th>
-                        <th>פעולות</th>
-                    </tr>
-                </thead>
-                <tbody id="students-table-body">
-                    </tbody>
-            </table>
+		<table>
+			<thead>
+				<tr>
+					<th>שם תלמיד</th>
+					<th>IP</th>
+					<th>הרצות</th> <th>סטטוס</th>
+					<th>פעולות</th>
+				</tr>
+			</thead>
+			<tbody id="students-table-body">
+				</tbody>
+		</table>
         </div>
 
         <div class="card">
@@ -181,58 +181,50 @@
     }
 
 	function updateUI(data) {
-		// 1. הגנה על הנתונים
-		const students = data.activeStudents || [];
-		const stats = data.levelStats || {};
+        // 1. עדכון מונים כלליים
+        const activeStudents = data.activeStudents || [];
+        document.getElementById('active-count').innerText = activeStudents.length;
+        
+        // עדכון סך הרצות כללי (מה שהוספנו בשרת כ-totalRequests)
+        if (document.getElementById('total-runs')) {
+            document.getElementById('total-runs').innerText = data.totalRequests || 0;
+        }
+        
+        // 2. חישוב אחוזי הצלחה מה-levelStats
+        const stats = data.levelStats || {};
+        let totalSuccess = 0, totalFail = 0;
+        Object.keys(stats).forEach(key => {
+            if (key.includes('_success')) totalSuccess += stats[key];
+            if (key.includes('_fail')) totalFail += stats[key];
+        });
+        const rate = (totalSuccess + totalFail > 0) ? Math.round((totalSuccess / (totalSuccess + totalFail)) * 100) : 0;
+        document.getElementById('success-rate').innerText = rate + "%";
 
-		// 2. עדכון המונה למעלה
-		const activeCountElem = document.getElementById('active-count');
-		if (activeCountElem) activeCountElem.innerText = students.length;
-		
-		// 2. עדכון סך הרצות קוד (התיקון שביקשת)
-		const totalRunsElem = document.getElementById('total-runs');
-		if (totalRunsElem) {
-			// השרת שולח totalRequests, אנחנו מציגים אותו ב-total-runs
-			totalRunsElem.innerText = data.totalRequests || 0;
-		}
+        // 3. עדכון טבלת תלמידים
+        const tableBody = document.getElementById('students-table-body');
+        tableBody.innerHTML = '';
+        
+        activeStudents.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${student.name || 'אנונימי'}</strong></td>
+                <td>${student.ip}</td>
+                <td style="text-align:center; font-weight:bold; color:var(--primary);">
+                    ${student.runCount || 0}
+                </td>
+                <td><span class="status-pill">פעיל</span></td>
+                <td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
+            `;
+            tableBody.appendChild(row);
+        });
 
-		// 3. חישוב אחוזי הצלחה מה-levelStats
-		const levelStats = data.levelStats || {};
-		let totalSuccess = 0, totalFail = 0;
-		Object.keys(levelStats).forEach(key => {
-			if (key.includes('_success')) totalSuccess += levelStats[key];
-			if (key.includes('_fail')) totalFail += levelStats[key];
-		});
-
-		const totalFromStats = totalSuccess + totalFail;
-		const rate = (totalFromStats > 0) ? Math.round((totalSuccess / totalFromStats) * 100) : 0;
-		
-		if (document.getElementById('success-rate')) {
-			document.getElementById('success-rate').innerText = rate + "%";
-		}
-
-		// 3. עדכון טבלת השמות - וודא שה-ID של ה-tbody הוא 'students-table-body'
-		const tableBody = document.getElementById('students-table-body');
-		if (tableBody) {
-			tableBody.innerHTML = ''; // ניקוי הטבלה לפני עדכון
-			students.forEach(student => {
-				const row = document.createElement('tr');
-				row.innerHTML = `
-					<td><strong>${student.name || 'ללא שם'}</strong></td>
-					<td>${student.ip || 'Unknown'}</td>
-					<td><span class="status-pill">פעיל</span></td>
-					<td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
-				`;
-				tableBody.appendChild(row);
-			});
-		}
-
-		// 4. עדכון הגרף
-		if (typeof updateChart === "function") {
-			updateChart(stats);
-		}
-	}
-
+        // 4. עדכון גרף
+        if (typeof updateChart === "function") {
+            updateChart(stats);
+        }
+    }
+	
+	
     function updateChart(stats) {
         const labels = [...new Set(Object.keys(stats).map(k => k.split('_')[0]))].sort();
         const successData = labels.map(l => stats[l + '_success'] || 0);
