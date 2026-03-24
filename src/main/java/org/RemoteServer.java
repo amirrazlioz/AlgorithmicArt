@@ -37,6 +37,9 @@ public class RemoteServer {
     
     // מפה לספירת הרצות לכל IP
     private static final Map<String, AtomicInteger> userRunCounts = new ConcurrentHashMap<>();
+	
+	// הוסף או תקן לשורה הזו:
+	private static final java.util.Map<String, java.util.Map<String, Integer>> userActivityStats = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
