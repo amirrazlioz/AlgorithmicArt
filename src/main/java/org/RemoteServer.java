@@ -822,23 +822,25 @@ public class RemoteServer {
 				return;
 			}
 
-			// 3. בניית הנתונים (רק אם זו בקשת GET/POST אמיתית)
+			// 3. בניית רשימת הסטודנטים בפורמט שה-JS מצפה לו (activeStudents)
 			java.util.List<java.util.Map<String, String>> students = new java.util.ArrayList<>();
 			for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
 				java.util.Map<String, String> s = new java.util.HashMap<>();
 				s.put("ip", entry.getKey());
 				s.put("name", entry.getValue());
-				s.put("status", "מחובר");
+				s.put("status", "פעיל");
 				students.add(s);
 			}
 
 			JsonObject resp = new JsonObject();
-			resp.addProperty("activeThreads", onlineUsers.size());
+			// התאמה לשמות המשתנים ב-admin.html
+			resp.add("activeStudents", new com.google.gson.Gson().toJsonTree(students)); // שונה מ-students ל-activeStudents
 			resp.addProperty("totalRequests", totalRequestsCounter.get()); 
-			resp.add("students", new com.google.gson.Gson().toJsonTree(students));
 			
-			// הוספת אובייקט levelStats ריק כדי שדף ה-Admin לא יקרוס בציור הגרף
-			resp.add("levelStats", new JsonObject());
+			// יצירת אובייקט סטטיסטיקות ריק כדי שהגרף לא יקרוס
+			JsonObject levelStats = new JsonObject();
+			// לדוגמה: levelStats.addProperty("1_success", 5);
+			resp.add("levelStats", levelStats); //
 
 			// 4. שליחת התשובה
 			String response = new com.google.gson.Gson().toJson(resp);
@@ -853,7 +855,6 @@ public class RemoteServer {
 			t.close();
 		}
 	}
-
 	static class RegisterHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {

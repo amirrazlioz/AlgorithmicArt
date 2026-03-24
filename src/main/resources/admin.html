@@ -180,36 +180,53 @@
         }
     }
 
-    function updateUI(data) {
-        // עדכון מונים
-        document.getElementById('active-count').innerText = data.activeStudents.length;
+	function updateUI(data) {
+        // הגנה: וודא שכל השדות קיימים כדי למנוע שגיאות TypeErrors
+        const activeStudents = data.activeStudents || [];
+        const levelStats = data.levelStats || {};
+
+        // 1. עדכון מונים (מספר תלמידים פעילים)
+        const activeCountElem = document.getElementById('active-count');
+        if (activeCountElem) {
+            activeCountElem.innerText = activeStudents.length;
+        }
         
-        // חישוב הצלחה כללי (לדוגמה)
+        // 2. חישוב הצלחה כללי מה-levelStats
         let totalSuccess = 0, totalFail = 0;
-        Object.keys(data.levelStats).forEach(key => {
-            if (key.includes('_success')) totalSuccess += data.levelStats[key];
-            if (key.includes('_fail')) totalFail += data.levelStats[key];
+        Object.keys(levelStats).forEach(key => {
+            if (key.includes('_success')) totalSuccess += levelStats[key];
+            if (key.includes('_fail')) totalFail += levelStats[key];
         });
-        const rate = (totalSuccess + totalFail > 0) ? Math.round((totalSuccess / (totalSuccess + totalFail)) * 100) : 0;
-        document.getElementById('success-rate').innerText = rate + "%";
-        document.getElementById('total-runs').innerText = totalSuccess + totalFail;
 
-        // עדכון טבלת תלמידים
+        const totalRuns = totalSuccess + totalFail;
+        const rate = (totalRuns > 0) ? Math.round((totalSuccess / totalRuns) * 100) : 0;
+
+        // עדכון אלמנטים של סטטיסטיקה
+        if (document.getElementById('success-rate')) 
+            document.getElementById('success-rate').innerText = rate + "%";
+        if (document.getElementById('total-runs')) 
+            document.getElementById('total-runs').innerText = totalRuns;
+
+        // 3. עדכון טבלת תלמידים
         const tableBody = document.getElementById('students-table-body');
-        tableBody.innerHTML = '';
-        data.activeStudents.forEach(student => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><strong>${student.name}</strong></td>
-                <td>${student.ip}</td>
-                <td><span class="status-pill">פעיל</span></td>
-                <td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
-            `;
-            tableBody.appendChild(row);
-        });
+        if (tableBody) {
+            tableBody.innerHTML = '';
+            activeStudents.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${student.name || 'ללא שם'}</strong></td>
+                    <td>${student.ip || '0.0.0.0'}</td>
+                    <td><span class="status-pill">פעיל</span></td>
+                    <td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
 
-        // עדכון גרף
-        updateChart(data.levelStats);
+        // 4. עדכון גרף (שולח אובייקט מוגן)
+        if (typeof updateChart === "function") {
+            updateChart(levelStats);
+        }
     }
 
     function updateChart(stats) {
