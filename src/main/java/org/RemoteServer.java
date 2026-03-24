@@ -841,7 +841,7 @@ public class RemoteServer {
 				s.put("name", entry.getValue());
 				
 				// 1. שליפת מפת הפעילויות המפורטת של התלמיד (7 המונים)
-				Map<String, Integer> stats = userActivityStats.getOrDefault(ip, new jConcurrentHashMap<>());
+				Map<String, Integer> stats = userActivityStats.getOrDefault(ip, new ConcurrentHashMap<>());
 				
 				// 2. נהפוך את המפה ל-JSON קטן כדי שה-JS יוכל לקרוא את הפירוט
 				s.put("details", new com.google.gson.Gson().toJson(stats));
