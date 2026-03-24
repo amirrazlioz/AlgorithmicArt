@@ -184,67 +184,60 @@
         }
     }
 
-function updateUI(data) {
-    const tableBody = document.getElementById('students-table-body');
-    if (!tableBody) return;
-    tableBody.innerHTML = '';
+	function updateUI(data) {
+		const tableBody = document.getElementById('students-table-body');
+		if (!tableBody) return;
+		tableBody.innerHTML = '';
 
-    const now = Date.now();
-    const tenMinutes = 10 * 60 * 1000;
-    let activeInLast10 = 0;
+		const now = Date.now();
+		const tenMinutes = 10 * 60 * 1000;
+		let activeInLast10 = 0;
 
-    if (data.activeStudents) {
-        data.activeStudents.forEach(student => {
-            const lastSeen = parseInt(student.lastSeen) || 0;
-            const isActiveNow = (now - lastSeen) < tenMinutes;
-            if (isActiveNow) activeInLast10++;
+		if (data.activeStudents) {
+			data.activeStudents.forEach(student => {
+				const lastSeen = parseInt(student.lastSeen) || 0;
+				const isActiveNow = (now - lastSeen) < tenMinutes;
+				if (isActiveNow) activeInLast10++;
 
-            // פענוח המונים מתוך ה-details
-            const stats = student.details ? JSON.parse(student.details) : {};
-            
-            // רשימת המפתחות שאנחנו מצפים להם מהשרת
-            const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run_creative'];
-            
-            // יצירת תאי ה-HTML עבור המונים (אם לא קיים, נציג 0)
-            const statsCells = keys.map(key => 
-                `<td style="text-align:center; color: ${stats[key] ? '#1e293b' : '#cbd5e1'}">
-                    ${stats[key] || 0}
-                </td>`
-            ).join('');
+				// פענוח המונים מתוך ה-details
+				const stats = student.details ? JSON.parse(student.details) : {};
+				
+				// רשימת המפתחות שאנחנו מצפים להם מהשרת
+				const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run_creative'];
+				
+				// יצירת תאי ה-HTML עבור המונים (אם לא קיים, נציג 0)
+				const statsCells = keys.map(key => 
+					`<td style="text-align:center; color: ${stats[key] ? '#1e293b' : '#cbd5e1'}">
+						${stats[key] || 0}
+					</td>`
+				).join('');
 
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><strong>${student.name || 'אנונימי'}</strong></td>
-                <td><code style="font-size:0.8em;">${student.ip}</code></td>
-                ${statsCells}
-                <td style="text-align:center; font-weight:bold; background-color: #f8fafc;">
-                    ${student.runCount || 0}
-                </td>
-                <td>
-                    <span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
-                        ${isActiveNow ? '● פעיל' : 'לא פעיל'}
-                    </span>
-                </td>
-                <td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה</button></td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
+				const row = document.createElement('tr');
+				row.innerHTML = `
+					<td><strong>${student.name || 'אנונימי'}</strong></td>
+					<td><code style="font-size:0.8em;">${student.ip}</code></td>
+					${statsCells}
+					<td style="text-align:center; font-weight:bold; background-color: #f8fafc;">
+						${student.runCount || 0}
+					</td>
+					<td>
+						<span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
+							${isActiveNow ? '● פעיל' : 'לא פעיל'}
+						</span>
+					</td>
+					<td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה</button></td>
+				`;
+				tableBody.appendChild(row);
+			});
+		}
 
-    // עדכון המונים בראש הדף
-    if (document.getElementById('active-students-count')) 
-        document.getElementById('active-students-count').textContent = activeInLast10;
-    if (document.getElementById('total-requests')) 
-        document.getElementById('total-requests').textContent = data.totalRequests || 0;
-}
-
-		// 4. עדכון המונים בתיבות הסטטיסטיקה למעלה
-		const activeDisplay = document.getElementById('active-students-count'); // מונה ה-10 דקות
-		const totalRequestsDisplay = document.getElementById('total-requests'); // מונה כללי
-
-		if (activeDisplay) activeDisplay.textContent = activeInLast10;
-		if (totalRequestsDisplay) totalRequestsDisplay.textContent = data.totalRequests || 0;
+		// עדכון המונים בראש הדף
+		if (document.getElementById('active-students-count')) 
+			document.getElementById('active-students-count').textContent = activeInLast10;
+		if (document.getElementById('total-requests')) 
+			document.getElementById('total-requests').textContent = data.totalRequests || 0;
 	}
+
 	
 	async function resetAllData() {
 		if (!confirm("האם אתה בטוח?")) return;
