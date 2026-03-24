@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניהול מערכת | Algorithmic Art Studio</title>
+    <title>Algorithmic Art Studio</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap" rel="stylesheet">
     
@@ -181,53 +181,35 @@
     }
 
 	function updateUI(data) {
-        // הגנה: וודא שכל השדות קיימים כדי למנוע שגיאות TypeErrors
-        const activeStudents = data.activeStudents || [];
-        const levelStats = data.levelStats || {};
+		// 1. הגנה על הנתונים
+		const students = data.activeStudents || [];
+		const stats = data.levelStats || {};
 
-        // 1. עדכון מונים (מספר תלמידים פעילים)
-        const activeCountElem = document.getElementById('active-count');
-        if (activeCountElem) {
-            activeCountElem.innerText = activeStudents.length;
-        }
-        
-        // 2. חישוב הצלחה כללי מה-levelStats
-        let totalSuccess = 0, totalFail = 0;
-        Object.keys(levelStats).forEach(key => {
-            if (key.includes('_success')) totalSuccess += levelStats[key];
-            if (key.includes('_fail')) totalFail += levelStats[key];
-        });
+		// 2. עדכון המונה למעלה
+		const activeCountElem = document.getElementById('active-count');
+		if (activeCountElem) activeCountElem.innerText = students.length;
 
-        const totalRuns = totalSuccess + totalFail;
-        const rate = (totalRuns > 0) ? Math.round((totalSuccess / totalRuns) * 100) : 0;
+		// 3. עדכון טבלת השמות - וודא שה-ID של ה-tbody הוא 'students-table-body'
+		const tableBody = document.getElementById('students-table-body');
+		if (tableBody) {
+			tableBody.innerHTML = ''; // ניקוי הטבלה לפני עדכון
+			students.forEach(student => {
+				const row = document.createElement('tr');
+				row.innerHTML = `
+					<td><strong>${student.name || 'ללא שם'}</strong></td>
+					<td>${student.ip || 'Unknown'}</td>
+					<td><span class="status-pill">פעיל</span></td>
+					<td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
+				`;
+				tableBody.appendChild(row);
+			});
+		}
 
-        // עדכון אלמנטים של סטטיסטיקה
-        if (document.getElementById('success-rate')) 
-            document.getElementById('success-rate').innerText = rate + "%";
-        if (document.getElementById('total-runs')) 
-            document.getElementById('total-runs').innerText = totalRuns;
-
-        // 3. עדכון טבלת תלמידים
-        const tableBody = document.getElementById('students-table-body');
-        if (tableBody) {
-            tableBody.innerHTML = '';
-            activeStudents.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${student.name || 'ללא שם'}</strong></td>
-                    <td>${student.ip || '0.0.0.0'}</td>
-                    <td><span class="status-pill">פעיל</span></td>
-                    <td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        // 4. עדכון גרף (שולח אובייקט מוגן)
-        if (typeof updateChart === "function") {
-            updateChart(levelStats);
-        }
-    }
+		// 4. עדכון הגרף
+		if (typeof updateChart === "function") {
+			updateChart(stats);
+		}
+	}
 
     function updateChart(stats) {
         const labels = [...new Set(Object.keys(stats).map(k => k.split('_')[0]))].sort();

@@ -808,53 +808,40 @@ public class RemoteServer {
 	}
 	
 
-	static class AdminStatsHandler implements HttpHandler {
-		@Override
-		public void handle(HttpExchange t) throws IOException {
-			// 1. הגדרות CORS - חייב להיות ראשון
-			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-			t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+static class AdminStatsHandler implements HttpHandler {
+    @Override
+    public void handle(HttpExchange t) throws IOException {
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 
-			// 2. טיפול בבקשת Preflight של הדפדפן
-			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-				t.sendResponseHeaders(204, -1);
-				return;
-			}
+        // בניית רשימת הסטודנטים
+        java.util.List<java.util.Map<String, String>> studentsList = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
+            java.util.Map<String, String> s = new java.util.HashMap<>();
+            s.put("ip", entry.getKey());
+            s.put("name", entry.getValue());
+            s.put("status", "פעיל");
+            studentsList.add(s);
+        }
 
-			// 3. בניית רשימת הסטודנטים בפורמט שה-JS מצפה לו (activeStudents)
-			java.util.List<java.util.Map<String, String>> students = new java.util.ArrayList<>();
-			for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
-				java.util.Map<String, String> s = new java.util.HashMap<>();
-				s.put("ip", entry.getKey());
-				s.put("name", entry.getValue());
-				s.put("status", "פעיל");
-				students.add(s);
-			}
+        JsonObject resp = new JsonObject();
+        // התיקון כאן: השם חייב להיות activeStudents
+        resp.add("activeStudents", new com.google.gson.Gson().toJsonTree(studentsList));
+        resp.addProperty("totalRequests", totalRequestsCounter.get());
+        resp.add("levelStats", new JsonObject()); 
 
-			JsonObject resp = new JsonObject();
-			// התאמה לשמות המשתנים ב-admin.html
-			resp.add("activeStudents", new com.google.gson.Gson().toJsonTree(students)); // שונה מ-students ל-activeStudents
-			resp.addProperty("totalRequests", totalRequestsCounter.get()); 
-			
-			// יצירת אובייקט סטטיסטיקות ריק כדי שהגרף לא יקרוס
-			JsonObject levelStats = new JsonObject();
-			// לדוגמה: levelStats.addProperty("1_success", 5);
-			resp.add("levelStats", levelStats); //
-
-			// 4. שליחת התשובה
-			String response = new com.google.gson.Gson().toJson(resp);
-			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-			
-			t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-			t.sendResponseHeaders(200, bytes.length);
-			
-			try (OutputStream os = t.getResponseBody()) {
-				os.write(bytes);
-			}
-			t.close();
-		}
-	}
+        String response = new com.google.gson.Gson().toJson(resp);
+        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+        t.sendResponseHeaders(200, bytes.length);
+        try (OutputStream os = t.getResponseBody()) {
+            os.write(bytes);
+        }
+        t.close();
+    }
+}
+	
+	
+	
 	static class RegisterHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
