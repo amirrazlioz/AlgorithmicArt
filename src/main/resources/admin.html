@@ -188,6 +188,28 @@
 		// 2. עדכון המונה למעלה
 		const activeCountElem = document.getElementById('active-count');
 		if (activeCountElem) activeCountElem.innerText = students.length;
+		
+		// 2. עדכון סך הרצות קוד (התיקון שביקשת)
+		const totalRunsElem = document.getElementById('total-runs');
+		if (totalRunsElem) {
+			// השרת שולח totalRequests, אנחנו מציגים אותו ב-total-runs
+			totalRunsElem.innerText = data.totalRequests || 0;
+		}
+
+		// 3. חישוב אחוזי הצלחה מה-levelStats
+		const levelStats = data.levelStats || {};
+		let totalSuccess = 0, totalFail = 0;
+		Object.keys(levelStats).forEach(key => {
+			if (key.includes('_success')) totalSuccess += levelStats[key];
+			if (key.includes('_fail')) totalFail += levelStats[key];
+		});
+
+		const totalFromStats = totalSuccess + totalFail;
+		const rate = (totalFromStats > 0) ? Math.round((totalSuccess / totalFromStats) * 100) : 0;
+		
+		if (document.getElementById('success-rate')) {
+			document.getElementById('success-rate').innerText = rate + "%";
+		}
 
 		// 3. עדכון טבלת השמות - וודא שה-ID של ה-tbody הוא 'students-table-body'
 		const tableBody = document.getElementById('students-table-body');
