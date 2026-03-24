@@ -91,6 +91,7 @@ public class RemoteServer {
 		
 		// --- נתיב חדש: רישום שם תלמיד ---
 		server.createContext("/api/register", new RegisterHandler());
+		server.createContext("/api/reset-all", new ResetAllHandler());
 		
 		// נתיבי ההרצה הקיימים שלך
 		server.createContext("/run1", new RunHandler1());
@@ -947,7 +948,33 @@ public class RemoteServer {
 			}
 			t.close();
 		}
-	}	
+	}
+
+	static class ResetAllHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			
+			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+				// איפוס כל המשתנים הסטטיים
+				onlineUsers.clear();
+				studentNames.clear();
+				userActivityStats.clear();
+				lastSeenMap.clear();
+				totalRequestsCounter.set(0);
+
+				String resp = "{\"status\":\"reset_success\"}";
+				t.sendResponseHeaders(200, resp.length());
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(resp.getBytes());
+				}
+			} else {
+				t.sendResponseHeaders(405, -1); // Method Not Allowed
+			}
+			t.close();
+		}
+	}
+	
 }	
 
 	

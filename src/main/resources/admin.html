@@ -161,6 +161,11 @@
             <canvas id="levelsChart"></canvas>
         </div>
     </div>
+	
+	<button onclick="resetAllData()" style="background-color: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 20px;">
+    🗑️ איפוס כל הנתונים
+	</button>
+
 </div>
 
 <script>
@@ -279,6 +284,29 @@
     function viewCode(ip) {
         alert("תכונה זו דורשת חיבור WebSocket לקבלת הקוד בשידור חי מכתובת: " + ip);
     }
+	
+	async function resetAllData() {
+		if (!confirm("האם אתה בטוח שברצונך למחוק את כל נתוני התלמידים וההרצות? פעולה זו אינה ניתנת לביטול.")) {
+			return;
+		}
+
+		try {
+			const response = await fetch('/api/reset-all', {
+				method: 'POST'
+			});
+
+			if (response.ok) {
+				alert("הנתונים אופסו בהצלחה!");
+				// רענון מידי של הנתונים בדף
+				fetchStats(); 
+			} else {
+				alert("שגיאה באיפוס הנתונים.");
+			}
+		} catch (error) {
+			console.error("Error resetting data:", error);
+			alert("תקלת תקשורת עם השרת.");
+		}
+	}
 
     // הפעלה ראשונית ורענון כל 5 שניות
     fetchData();
