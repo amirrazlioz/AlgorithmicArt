@@ -773,6 +773,22 @@ public class RemoteServer {
 			}
 		}
 	}
+	
+	static class AdminStatsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            
+            // Basic JSON response with current stats
+            String response = "{\"studentsOnline\": " + onlineUsers.size() + "}";
+            
+            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            t.sendResponseHeaders(200, bytes.length);
+            t.getResponseBody().write(bytes);
+            t.close();
+        }
+    }
 
 	static class RegisterHandler implements HttpHandler {
 		@Override
