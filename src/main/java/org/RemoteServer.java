@@ -886,8 +886,8 @@ public class RemoteServer {
 				return;
 			}
 			
-			String ip = getClientIp(t);
-			incrementUserStat(ip, "register");
+			// String ip = getClientIp(t);
+			// incrementUserStat(ip, "register");
 
 			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
 				try (InputStream is = t.getRequestBody()) {
