@@ -181,48 +181,37 @@
     }
 
 	function updateUI(data) {
-        // 1. עדכון מונים כלליים
-        const activeStudents = data.activeStudents || [];
-        document.getElementById('active-count').innerText = activeStudents.length;
-        
-        // עדכון סך הרצות כללי (מה שהוספנו בשרת כ-totalRequests)
-        if (document.getElementById('total-runs')) {
-            document.getElementById('total-runs').innerText = data.totalRequests || 0;
-        }
-        
-        // 2. חישוב אחוזי הצלחה מה-levelStats
-        const stats = data.levelStats || {};
-        let totalSuccess = 0, totalFail = 0;
-        Object.keys(stats).forEach(key => {
-            if (key.includes('_success')) totalSuccess += stats[key];
-            if (key.includes('_fail')) totalFail += stats[key];
-        });
-        const rate = (totalSuccess + totalFail > 0) ? Math.round((totalSuccess / (totalSuccess + totalFail)) * 100) : 0;
-        document.getElementById('success-rate').innerText = rate + "%";
+		const tableBody = document.getElementById('students-table-body');
+		tableBody.innerHTML = '';
 
-        // 3. עדכון טבלת תלמידים
-        const tableBody = document.getElementById('students-table-body');
-        tableBody.innerHTML = '';
-        
-        activeStudents.forEach(student => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><strong>${student.name || 'אנונימי'}</strong></td>
-                <td>${student.ip}</td>
-                <td style="text-align:center; font-weight:bold; color:var(--primary);">
-                    ${student.runCount || 0}
-                </td>
-                <td><span class="status-pill">פעיל</span></td>
-                <td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
-            `;
-            tableBody.appendChild(row);
-        });
+		if (data.activeStudents) {
+			data.activeStudents.forEach(student => {
+				// פענוח הפירוט של 7 המונים
+				const details = student.details ? JSON.parse(student.details) : {};
+				
+				// יצירת תצוגה ידידותית למונים
+				const countersHtml = Object.entries(details)
+					.map(([key, val]) => `<span style="font-size:0.8em; background:#eee; padding:2px 5px; border-radius:4px; margin-left:3px;">${key}: ${val}</span>`)
+					.join(' ');
 
-        // 4. עדכון גרף
-        if (typeof updateChart === "function") {
-            updateChart(stats);
-        }
-    }
+				const row = document.createElement('tr');
+				row.innerHTML = `
+					<td><strong>${student.name}</strong></td>
+					<td>${student.ip}</td>
+					<td>
+						<div style="font-weight:bold; font-size:1.1em;">${student.runCount}</div>
+						<div style="margin-top:5px;">${countersHtml || '<small>אין הרצות עדיין</small>'}</div>
+					</td>
+					<td><span class="status-pill">פעיל</span></td>
+					<td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה בקוד</button></td>
+				`;
+				tableBody.appendChild(row);
+			});
+		}
+
+		// עדכון המונה הכללי בראש הדף
+		document.getElementById('total-requests').textContent = data.totalRequests || 0;
+	}
 	
 	
     function updateChart(stats) {

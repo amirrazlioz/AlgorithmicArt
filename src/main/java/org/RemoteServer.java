@@ -34,12 +34,10 @@ public class RemoteServer {
 	private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
     private static final AtomicInteger totalRequestsCounter = new AtomicInteger(0);
     private static final Map<String, String> studentNames = new ConcurrentHashMap<>();
-    
-    // מפה לספירת הרצות לכל IP
-    private static final Map<String, AtomicInteger> userRunCounts = new ConcurrentHashMap<>();
-	
-	// הוסף או תקן לשורה הזו:
-	private static final java.util.Map<String, java.util.Map<String, Integer>> userActivityStats = new java.util.concurrent.ConcurrentHashMap<>();
+    // private static final Map<String, AtomicInteger> userRunCounts = new ConcurrentHashMap<>();
+
+	// מפה שמחזיקה לכל IP מפה פנימית של מונים (לפי שם ה-Handler)
+	private static final Map<String, Map<String, Integer>> userActivityStats = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
@@ -119,10 +117,11 @@ public class RemoteServer {
     }
 
     // 2. פונקציית עזר לעדכון המונים של המשתמש
-    private static void incrementUserStat(String ip, String action) {
-        userActivityStats.computeIfAbsent(ip, k -> new java.util.concurrent.ConcurrentHashMap<>())
-                         .merge(action, 1, Integer::sum);
-    }
+	private static void incrementUserStat(String ip, String action) {
+		// action יהיה "run1", "run2", "run_creative" וכו'
+		userActivityStats.computeIfAbsent(ip, k -> new ConcurrentHashMap<>())
+						 .merge(action, 1, Integer::sum);
+	}
 	
 	// פונקציית עזר לשליחת תגובת טקסט פשוטה (שמונעת את שגיאת ה-Symbol)
     private static void sendTextResponse(HttpExchange t, int code, String text) throws IOException {
@@ -477,11 +476,10 @@ public class RemoteServer {
 	}
 
 	static class RunHandler1 implements HttpHandler {
-		public void handle(HttpExchange t) throws IOException {
+		public void handle(HttpExchange t) throws IOException {		
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "run1"); 
 			totalRequestsCounter.incrementAndGet();
-			
-			String ip = getClientIp(t); // וודא שהשתמשת בפונקציית ה-getClientIp שיצרנו קודם
-			incrementUserStat(ip, "run"); 
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -524,6 +522,8 @@ public class RemoteServer {
 
 	static class RunHandler2 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "run2"); 
 			totalRequestsCounter.incrementAndGet();
 			
 			// הגדרות Header רגילות (CORS)
@@ -568,6 +568,8 @@ public class RemoteServer {
 
 	static class RunHandler3 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "run3"); 
 			totalRequestsCounter.incrementAndGet();
 			
 			// הגדרות Header רגילות (CORS)
@@ -612,6 +614,8 @@ public class RemoteServer {
 
 	static class RunHandler4 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "run4"); 
 			totalRequestsCounter.incrementAndGet();
 			
 			// הגדרות Header רגילות (CORS)
@@ -656,6 +660,8 @@ public class RemoteServer {
 
 	static class RunHandler5 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "run5"); 
 			totalRequestsCounter.incrementAndGet();
 			
 			// הגדרות Header רגילות (CORS)
@@ -714,6 +720,8 @@ public class RemoteServer {
 
 	static class RunHandler6 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "run6"); 
 			totalRequestsCounter.incrementAndGet();
 			
 			// הגדרות Header רגילות (CORS)
@@ -773,6 +781,8 @@ public class RemoteServer {
 
 	static class RunCreative implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
+			String ip = getClientIp(t);
+			incrementUserStat(ip, "run-creative"); 
 			totalRequestsCounter.incrementAndGet();
 			
 			// הגדרות Header רגילות (CORS)
@@ -822,23 +832,28 @@ public class RemoteServer {
 			t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 
 			// בניית רשימת הסטודנטים המעודכנת
-			java.util.List<java.util.Map<String, String>> studentsList = new java.util.ArrayList<>();
-			for (java.util.Map.Entry<String, String> entry : studentNames.entrySet()) {
+			List<Map<String, String>> studentsList = new ArrayList<>();
+				
+			for (Map.Entry<String, String> entry : studentNames.entrySet()) {
 				String ip = entry.getKey();
-				java.util.Map<String, String> s = new java.util.HashMap<>();
+				Map<String, String> s = new HashMap<>();
 				s.put("ip", ip);
 				s.put("name", entry.getValue());
 				
-				// שליפת מספר ההרצות האישי
-				int runs = 0;
-				if (userRunCounts.containsKey(ip)) {
-					runs = userRunCounts.get(ip).get();
-				}
-				s.put("runCount", String.valueOf(runs));
+				// 1. שליפת מפת הפעילויות המפורטת של התלמיד (7 המונים)
+				Map<String, Integer> stats = userActivityStats.getOrDefault(ip, new jConcurrentHashMap<>());
+				
+				// 2. נהפוך את המפה ל-JSON קטן כדי שה-JS יוכל לקרוא את הפירוט
+				s.put("details", new com.google.gson.Gson().toJson(stats));
+				
+				// 3. לטובת התצוגה הראשית בטבלה - נחשב את סך כל ההרצות מכל ה-Handlers
+				int totalRuns = stats.values().stream().mapToInt(Integer::intValue).sum();
+				s.put("runCount", String.valueOf(totalRuns));
 				
 				s.put("status", "פעיל");
 				studentsList.add(s);
 			}
+			
 
 			JsonObject resp = new JsonObject();
 			// התיקון כאן: השם חייב להיות activeStudents
