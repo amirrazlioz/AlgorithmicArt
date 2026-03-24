@@ -63,10 +63,27 @@ public class RemoteServer {
             exchange.close();
         }
     });
+	
+	server.createContext("/admin", exchange -> {
+		try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("admin.html")) {
+			if (is == null) {
+				String notFound = "<h1>Admin page not found</h1>";
+				exchange.sendResponseHeaders(404, notFound.getBytes().length);
+				exchange.getResponseBody().write(notFound.getBytes());
+			} else {
+				byte[] bytes = is.readAllBytes();
+				exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
+				exchange.sendResponseHeaders(200, bytes.length);
+				exchange.getResponseBody().write(bytes);
+			}
+		} finally {
+			exchange.close();
+		}
+	});
 
     // --- נתיב חדש: רישום שם תלמיד ---
     server.createContext("/api/register", new RegisterHandler());
-	server.createContext("/admin", new StaticFileHandler("admin.html"));
+	//server.createContext("/admin", new StaticFileHandler("admin.html"));
 
     // --- נתיב חדש: נתונים ל-Dashboard הגרפי ---
     server.createContext("/api/admin-stats", new AdminStatsHandler());
@@ -857,6 +874,45 @@ public class RemoteServer {
 			t.close();
 		}
 	}
+	
+	// מחלקה פשוטה שיודעת לקרוא קובץ ולהחזיר אותו לדפדפן
+	/*
+    static class StaticFileHandler implements HttpHandler {
+        private final String fileName;
+
+        public StaticFileHandler(String fileName) {
+            this.fileName = fileName;
+        }
+
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            File file = new File(fileName);
+            if (!file.exists()) {
+                String response = "File not found: " + fileName;
+                t.sendResponseHeaders(404, response.length());
+                try (OutputStream os = t.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
+                return;
+            }
+
+            // זיהוי סוג הקובץ
+            String contentType = "text/html";
+            if (fileName.endsWith(".css")) contentType = "text/css";
+            else if (fileName.endsWith(".js")) contentType = "application/javascript";
+
+            byte[] bytes = Files.readAllBytes(file.toPath());
+            t.getResponseHeaders().set("Content-Type", contentType + "; charset=UTF-8");
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.sendResponseHeaders(200, bytes.length);
+            
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(bytes);
+            }
+            t.close();
+        }
+    }
+	*/
 	
 }	
 
