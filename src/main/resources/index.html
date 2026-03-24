@@ -3080,7 +3080,7 @@ async function registerStudentOnServer(name) {
 
     try {
         const response = await fetch("/api/register", {  
-            method: 'POST'
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
