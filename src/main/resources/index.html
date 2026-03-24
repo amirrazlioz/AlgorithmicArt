@@ -3071,27 +3071,31 @@ function setupJavaEditors() {
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
 
-async function registerStudentOnServer(name) {
-    if (!name || name.trim().length < 2) return;
 
-    // שמירה מקומית כדי שהשם לא ייעלם בריענון
+async function registerStudentOnServer(name) {
+    if (!name || name.trim() === "") return;
+	
+	    // שמירה מקומית כדי שהשם לא ייעלם בריענון
     sessionStorage.setItem('studentName', name);
 
     try {
-        console.log("Registering student:", name);
-        const response = await fetch('http://localhost:8080/api/register', {
-            method: 'POST',
+        const response = await fetch("/api/register", {  
+            method: 'POST'
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
+            // שים לב: השרת מצפה למפתח "studentName" כפי שהגדרת ב-RegisterHandler
             body: JSON.stringify({ studentName: name })
         });
 
         if (response.ok) {
-            console.log("Student registered successfully");
+            console.log("Registered successfully: " + name);
+            // אופציונלי: הוספת סימן וי ירוק ליד השם
+        } else {
+            console.error("Registration failed");
         }
     } catch (error) {
-        console.error("Could not register student on server:", error);
+        console.error("Error connecting to server:", error);
     }
 }
 
