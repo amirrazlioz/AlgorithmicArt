@@ -22,6 +22,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class RemoteServer {
@@ -37,104 +42,117 @@ public class RemoteServer {
 	
 	public static void main(String[] args) throws IOException {
     
-    // 2. יצירת השרת בפורט 8080
-    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
-    HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-    
-    ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
-    server.setExecutor(threadPool);
+		// 2. יצירת השרת בפורט 8080
+		int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+		HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+		
+		ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
+		server.setExecutor(threadPool);
 
-    // --- נתיב 1: דף הבית ---
-    server.createContext("/", exchange -> {
-        String userIp = exchange.getRemoteAddress().getAddress().getHostAddress();
-        if (!onlineUsers.contains(userIp)) {
-            onlineUsers.add(userIp);
-        }
-
-        try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("index.html")) {
-            if (is == null) {
-                String notFound = "<h1>404 Not Found</h1>";
-                exchange.sendResponseHeaders(404, notFound.getBytes().length);
-                exchange.getResponseBody().write(notFound.getBytes());
-            } else {
-                byte[] bytes = is.readAllBytes();
-                exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
-                exchange.sendResponseHeaders(200, bytes.length);
-                exchange.getResponseBody().write(bytes);
-            }
-        } finally {
-            exchange.close();
-        }
-    });
-	
-	server.createContext("/admin", exchange -> {
-		try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("admin.html")) {
-			if (is == null) {
-				String notFound = "<h1>Admin page not found</h1>";
-				exchange.sendResponseHeaders(404, notFound.getBytes().length);
-				exchange.getResponseBody().write(notFound.getBytes());
-			} else {
-				byte[] bytes = is.readAllBytes();
-				exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
-				exchange.sendResponseHeaders(200, bytes.length);
-				exchange.getResponseBody().write(bytes);
+		// --- נתיב 1: דף הבית ---
+		server.createContext("/", exchange -> {
+			String userIp = exchange.getRemoteAddress().getAddress().getHostAddress();
+			if (!onlineUsers.contains(userIp)) {
+				onlineUsers.add(userIp);
 			}
-		} finally {
+
+			try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("index.html")) {
+				if (is == null) {
+					String notFound = "<h1>404 Not Found</h1>";
+					exchange.sendResponseHeaders(404, notFound.getBytes().length);
+					exchange.getResponseBody().write(notFound.getBytes());
+				} else {
+					byte[] bytes = is.readAllBytes();
+					exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
+					exchange.sendResponseHeaders(200, bytes.length);
+					exchange.getResponseBody().write(bytes);
+				}
+			} finally {
+				exchange.close();
+			}
+		});
+		
+		server.createContext("/admin", exchange -> {
+			try (InputStream is = RemoteServer.class.getClassLoader().getResourceAsStream("admin.html")) {
+				if (is == null) {
+					String notFound = "<h1>Admin page not found</h1>";
+					exchange.sendResponseHeaders(404, notFound.getBytes().length);
+					exchange.getResponseBody().write(notFound.getBytes());
+				} else {
+					byte[] bytes = is.readAllBytes();
+					exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
+					exchange.sendResponseHeaders(200, bytes.length);
+					exchange.getResponseBody().write(bytes);
+				}
+			} finally {
+				exchange.close();
+			}
+		});
+
+		// --- נתיב חדש: רישום שם תלמיד ---
+		server.createContext("/api/register", new RegisterHandler());
+		//server.createContext("/admin", new StaticFileHandler("admin.html"));
+
+		// --- נתיב חדש: נתונים ל-Dashboard הגרפי ---
+		server.createContext("/api/admin-stats", new AdminStatsHandler());
+		
+		// --- נתיב ניהול טקסטואלי (מעודכן עם שמות) ---
+		server.createContext("/admin123", exchange -> {
+			int activeThreads = threadPool.getActiveCount(); 
+			long completedTasks = threadPool.getCompletedTaskCount(); 
+			int queueSize = threadPool.getQueue().size(); 
+
+			StringBuilder studentList = new StringBuilder();
+			for (String ip : onlineUsers) {
+				String name = studentNames.getOrDefault(ip, "אנונימי");
+				studentList.append(ip).append(" - ").append(name).append("\n");
+			}
+
+			String response = "--- Algorithmic Art Server Status ---\n" +
+							  "Active Students Running: " + activeThreads + " / 20\n" +
+							  "Total Executions Today: " + completedTasks + "\n" +
+							  "Students in Queue: " + queueSize + "\n\n" +
+							  "Current Students Online:\n" + studentList.toString();
+
+			exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+			exchange.sendResponseHeaders(200, bytes.length);
+			exchange.getResponseBody().write(bytes);
 			exchange.close();
-		}
-	});
+		});
 
-    // --- נתיב חדש: רישום שם תלמיד ---
-    server.createContext("/api/register", new RegisterHandler());
-	//server.createContext("/admin", new StaticFileHandler("admin.html"));
+		// נתיבי ההרצה הקיימים שלך
+		server.createContext("/run1", new RunHandler1());
+		server.createContext("/run2", new RunHandler2());
+		server.createContext("/run3", new RunHandler3());
+		server.createContext("/run4", new RunHandler4());
+		server.createContext("/run5", new RunHandler5());
+		server.createContext("/run6", new RunHandler6());
+		server.createContext("/run-creative", new RunCreative());
 
-    // --- נתיב חדש: נתונים ל-Dashboard הגרפי ---
-    server.createContext("/api/admin-stats", new AdminStatsHandler());
-    
-    // --- נתיב ניהול טקסטואלי (מעודכן עם שמות) ---
-    server.createContext("/admin123", exchange -> {
-        int activeThreads = threadPool.getActiveCount(); 
-        long completedTasks = threadPool.getCompletedTaskCount(); 
-        int queueSize = threadPool.getQueue().size(); 
-
-        StringBuilder studentList = new StringBuilder();
-        for (String ip : onlineUsers) {
-            String name = studentNames.getOrDefault(ip, "אנונימי");
-            studentList.append(ip).append(" - ").append(name).append("\n");
-        }
-
-        String response = "--- Algorithmic Art Server Status ---\n" +
-                          "Active Students Running: " + activeThreads + " / 20\n" +
-                          "Total Executions Today: " + completedTasks + "\n" +
-                          "Students in Queue: " + queueSize + "\n\n" +
-                          "Current Students Online:\n" + studentList.toString();
-
-        exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
-        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-        exchange.sendResponseHeaders(200, bytes.length);
-        exchange.getResponseBody().write(bytes);
-        exchange.close();
-    });
-
-    // נתיבי ההרצה הקיימים שלך
-    server.createContext("/run1", new RunHandler1());
-    server.createContext("/run2", new RunHandler2());
-    server.createContext("/run3", new RunHandler3());
-    server.createContext("/run4", new RunHandler4());
-    server.createContext("/run5", new RunHandler5());
-    server.createContext("/run6", new RunHandler6());
-    server.createContext("/run-creative", new RunCreative());
-
-    // 4. הפעלת השרת
-    server.start();
-    System.out.println("Server is running on http://localhost:" + port);
-    System.out.println("Admin panel (Text): http://localhost:" + port + "/admin123");
-}
-	
-	private static void incrementUserStat(String ip, String action) {
-    userActivityStats.computeIfAbsent(ip, k -> new java.util.concurrent.ConcurrentHashMap<>())
-                     .merge(action, 1, Integer::sum);
+		// 4. הפעלת השרת
+		server.start();
+		System.out.println("Server is running on http://localhost:" + port);
+		System.out.println("Admin panel (Text): http://localhost:" + port + "/admin123");
 	}
+	
+	
+	// 1. פונקציית עזר לזיהוי IP - קריטי ל-Railway!
+    private static String getClientIp(HttpExchange t) {
+        // בדיקת Header של Proxy (נפוץ ב-Railway)
+        String ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            return t.getRemoteAddress().getAddress().getHostAddress();
+        }
+        // X-Forwarded-For יכול להכיל רשימה, אנחנו לוקחים את ה-IP הראשון
+        return ip.split(",")[0].trim();
+    }
+
+    // 2. פונקציית עזר לעדכון המונים של המשתמש
+    private static void incrementUserStat(String ip, String action) {
+        userActivityStats.computeIfAbsent(ip, k -> new java.util.concurrent.ConcurrentHashMap<>())
+                         .merge(action, 1, Integer::sum);
+    }
 	
 	private static JsonObject executeStudentCodeImage(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
 		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
