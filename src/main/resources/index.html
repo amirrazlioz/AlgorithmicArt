@@ -3120,7 +3120,44 @@ function setupJavaEditors() {
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
 
+async function registerStudentOnServer(name) {
+    if (!name || name.trim() === "") return;
+    
+    // בדיקה: האם השם החדש שונה מהשם ששמור בזיכרון?
+    const oldName = sessionStorage.getItem('studentName');
+    
+    // אם השם השתנה (או שאין שם בכלל), אנחנו מבצעים איפוס בשרת
+    if (oldName !== name) {
+        try {
+            await fetch('/api/reset-all', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            console.log("נתוני השרת אופסו עקב שינוי שם תלמיד");
+        } catch (e) {
+            console.error("שגיאה באיפוס:", e);
+        }
+    }
 
+    // שמירת השם החדש בזיכרון
+    sessionStorage.setItem('studentName', name);
+
+    try {
+        const response = await fetch("/api/register", {  
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentName: name })
+        });
+
+        if (response.ok) {
+            console.log("Registered successfully: " + name);
+        }
+    } catch (error) {
+        console.error("Error connecting to server:", error);
+    }
+}
+
+/*
 async function registerStudentOnServer(name) {
     if (!name || name.trim() === "") return;
 	
@@ -3147,6 +3184,7 @@ async function registerStudentOnServer(name) {
         console.error("Error connecting to server:", error);
     }
 }
+*/
 
 // קוד שישחזר את השם מהזיכרון אם התלמיד מרענן את הדף
 window.addEventListener('load', () => {
