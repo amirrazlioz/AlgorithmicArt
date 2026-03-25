@@ -3166,13 +3166,18 @@ window.addEventListener('load', () => {
 const creativeChallenge = new Challenge('creativeCanvas', 256, 256);
 
 window.onload = () => {
-    // האיפוס שביקשת - שולח פקודה לשרת למחוק הכל ברגע שהדף נטען
-    fetch('/api/reset-all', { method: 'POST' })
-        .then(() => console.log("Data reset on index refresh"))
-        .catch(err => console.error("Reset error:", err));
+    // 1. שליחת פקודת איפוס לשרת ב-POST
+    fetch('/api/reset-all', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(() => console.log("שרת אופס בהצלחה ברענון אינדקס"))
+    .catch(err => console.error("שגיאה באיפוס:", err));
 
-    // הקוד הקיים שלך
-    if(creativeChallenge.canvas) creativeChallenge.init();
+    // 2. הפעלת הקוד הקיים של הקנבס
+    if (typeof creativeChallenge !== 'undefined' && creativeChallenge.canvas) {
+        creativeChallenge.init();
+    }
 };
 
 // הפעלה ברגע שה-HTML מוכן
