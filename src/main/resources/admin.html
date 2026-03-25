@@ -164,7 +164,7 @@
 					</tbody>
 				<tfoot>
 					<tr>
-						<td colspan="3" style="text-align: left; padding-left: 15px;">ממוצע כיתתי (Rating):</td> 
+						<td colspan="3" style="text-align: left; padding-left: 15px;">ממוצע כיתתי (Rating ⭐):</td> 
 						<td id="avg-run1" style="text-align:center;">-</td>
 						<td id="avg-run2" style="text-align:center;">-</td>
 						<td id="avg-run3" style="text-align:center;">-</td>
@@ -266,7 +266,7 @@ function updateUI(data) {
             `;
             tableBody.appendChild(row1);
 
-            // --- שורה 2: Rating* + ממוצע (ללא כוכביות במספרים) ---
+            // --- שורה 2: Rating ⭐ + ממוצע (מספר נקי) ---
             const row2 = document.createElement('tr');
             const ratingCells = keys.map(k => {
                 const r = parseInt(ratings[k]) || 0;
@@ -274,7 +274,7 @@ function updateUI(data) {
             }).join('');
             
             row2.innerHTML = `
-                <td style="background:#f0f9ff; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Rating *</td>
+                <td style="background:#f0f9ff; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Rating ⭐</td>
                 ${ratingCells}
                 <td style="text-align:center; font-weight:bold; background:#f0f9ff; color:#0369a1;">
                     ${studentAvg}
@@ -285,7 +285,7 @@ function updateUI(data) {
         });
     }
 
-    // עדכון ממוצעים כיתתיים ב-tfoot (ללא כוכביות)
+    // עדכון ממוצעים כיתתיים ב-tfoot (מספרים נקיים)
     keys.forEach(k => {
         const el = document.getElementById(`avg-${k}`);
         if (el) {
@@ -295,7 +295,7 @@ function updateUI(data) {
         }
     });
 
-    // עדכון המונים למעלה (ללא כוכביות)
+    // עדכון המונים למעלה
     if (document.getElementById('active-students-count')) document.getElementById('active-students-count').textContent = activeInLast10;
     if (document.getElementById('total-requests')) document.getElementById('total-requests').textContent = data.totalRequests || 0;
     
