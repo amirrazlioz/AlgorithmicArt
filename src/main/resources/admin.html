@@ -227,7 +227,7 @@ function updateUI(data) {
             try {
                 if (student.details) stats = JSON.parse(student.details);
                 if (student.ratingsJson) ratings = JSON.parse(student.ratingsJson);
-            } catch (e) { console.error("JSON Error:", e); }
+            } catch (e) { console.error(e); }
 
             let sSum = 0, sCount = 0;
             keys.forEach(k => {
@@ -240,7 +240,7 @@ function updateUI(data) {
             });
             const studentAvg = sCount > 0 ? (sSum / sCount).toFixed(1) : "-";
 
-            // --- שורה 1: Runs + סה"כ ---
+            // --- שורה 1: Runs ---
             const row1 = document.createElement('tr');
             row1.style.borderTop = "2px solid #cbd5e1";
             const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold; font-size:1rem;">${stats[k] || 0}</td>`).join('');
@@ -250,46 +250,35 @@ function updateUI(data) {
                 <td rowspan="2" style="vertical-align:middle; background:#fff;"><code>${student.ip}</code></td>
                 <td style="background:#f8fafc; font-weight:bold; font-size:0.9rem; border-left:1px solid #e2e8f0;">Runs</td>
                 ${runCells}
-                <td style="background:#f0f9ff;"></td>
-                <td style="text-align:center; font-weight:bold; font-size:1rem; background:#f1f5f9;">${student.runCount || 0}</td>
+                <td style="background:#f0f9ff; text-align:center;">-</td> <td style="text-align:center; font-weight:bold; font-size:1rem; background:#f1f5f9;">${student.runCount || 0}</td>
                 <td rowspan="2" style="vertical-align:middle; text-align:center; background:#fff;">
-                    <span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
-                        ${isActiveNow ? '● פעיל' : 'לא פעיל'}
-                    </span>
+                    ${isActiveNow ? 'פעיל' : 'לא פעיל'}
                 </td>
             `;
             tableBody.appendChild(row1);
 
-            // --- שורה 2: Rating ⭐ + ממוצע ---
+            // --- שורה 2: Rating ⭐ ---
             const row2 = document.createElement('tr');
             const ratingCells = keys.map(k => {
                 const r = parseInt(ratings[k]) || 0;
-                return `<td style="text-align:center; font-weight:bold; font-size:1rem; color:#0ea5e9; background:#fcfcfc;">${r > 0 ? r : "-"}</td>`;
+                return `<td style="text-align:center; font-weight:bold; font-size:1rem; color:#0ea5e9;">${r > 0 ? r : "-"}</td>`;
             }).join('');
             
+            // שינוי קריטי: הוספת תאים ריקים בסוף כדי לאזן את ה-rowspan
             row2.innerHTML = `
                 <td style="background:#f0f9ff; font-weight:bold; font-size:0.9rem; border-left:1px solid #e2e8f0;">Rating ⭐</td>
                 ${ratingCells}
                 <td style="text-align:center; font-weight:bold; font-size:1rem; background:#f0f9ff; color:#0369a1;">${studentAvg}</td>
-                <td style="background:#f1f5f9;"></td>
-            `;
+                <td style="background:#f1f5f9; text-align:center;">-</td> `;
             tableBody.appendChild(row2);
         });
     }
-
-    // עדכון ממוצעים כיתתיים
+    
+    // עדכון ממוצעים כיתתיים בתחתית
     keys.forEach(k => {
         const el = document.getElementById(`avg-${k}`);
-        if (el) {
-            el.style.fontWeight = "bold";
-            el.style.fontSize = "1rem";
-            el.innerText = colCounts[k] > 0 ? (colTotals[k] / colCounts[k]).toFixed(1) : "-";
-        }
+        if (el) el.innerText = colCounts[k] > 0 ? (colTotals[k] / colCounts[k]).toFixed(1) : "-";
     });
-
-    document.getElementById('active-students-count').textContent = activeInLast10;
-    document.getElementById('total-requests').textContent = data.totalRequests || 0;
-    document.getElementById('avg-rating').textContent = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
 }
 	
 	
@@ -336,32 +325,44 @@ function updateUI(data) {
 	}
 	
 function exportToCSV() {
-    const table = document.querySelector("table");
-    let csvContent = "\uFEFF"; // תמיכה בעברית
+    const tableBody = document.getElementById('students-table-body');
+    const rows = tableBody.querySelectorAll("tr");
+    let csvContent = "\uFEFF"; // BOM לעברית
 
-    // מעבר על כל השורות בטבלה (כולל thead ו-tbody)
-    const rows = table.querySelectorAll("tr");
-    
-    rows.forEach((row) => {
-        const rowData = [];
-        const cols = row.querySelectorAll("th, td");
-        
-        cols.forEach((col) => {
-            // ניקוי הטקסט מרווחים מיותרים וירידות שורה
-            let text = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
-            // עטיפה בגרשיים כדי שהפסיקים לא ישברו את ה-Excel
-            rowData.push(`"${text}"`);
-        });
+    // כותרות (ידני כדי להבטיח סדר)
+    csvContent += "שם,IP,סוג נתון,Lvl 1,Lvl 2,Lvl 3,Lvl 4,Lvl 5,Lvl 6,Creative,ממוצע,סה\"כ,סטטוס\n";
 
-        if (rowData.length > 0) {
-            csvContent += rowData.join(",") + "\n";
-        }
-    });
+    for (let i = 0; i < rows.length; i += 2) {
+        const rowRuns = rows[i];
+        const rowRatings = rows[i + 1];
+
+        if (!rowRuns || !rowRatings) continue;
+
+        // שליפת נתונים משורת ה-Runs
+        const name = rowRuns.cells[0].innerText.trim();
+        const ip = rowRuns.cells[1].innerText.trim();
+        const type1 = rowRuns.cells[2].innerText.trim();
+        const runData = Array.from(rowRuns.cells).slice(3, 10).map(c => c.innerText.trim());
+        const avgEmpty = "-";
+        const total = rowRuns.cells[11].innerText.trim();
+        const status = rowRuns.cells[12].innerText.trim();
+
+        csvContent += `"${name}","${ip}","${type1}",${runData.join(",")},"${avgEmpty}","${total}","${status}"\n`;
+
+        // שליפת נתונים משורת ה-Ratings
+        // שים לב: בשורה השנייה בגלל ה-rowspan, ה-index של התאים שונה!
+        const type2 = rowRatings.cells[0].innerText.trim();
+        const ratingData = Array.from(rowRatings.cells).slice(1, 8).map(c => c.innerText.trim());
+        const studentAvg = rowRatings.cells[8].innerText.trim();
+        const totalEmpty = "-";
+
+        csvContent += `"${name}","${ip}","${type2}",${ratingData.join(",")},"${studentAvg}","${totalEmpty}","${status}"\n`;
+    }
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    link.setAttribute("href", URL.createObjectURL(blob));
-    link.setAttribute("download", `art_studio_report_${new Date().toLocaleDateString()}.csv`);
+    link.href = URL.createObjectURL(blob);
+    link.download = `report_${new Date().toLocaleDateString()}.csv`;
     link.click();
 }
 	
