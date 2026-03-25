@@ -146,6 +146,7 @@
 					<tr>
 						<th>שם התלמיד</th>
 						<th>IP</th>
+						<th style="background:#f8fafc;">סוג נתון</th> 
 						<th style="text-align:center;">Level 1</th>
 						<th style="text-align:center;">Level 2</th>
 						<th style="text-align:center;">Level 3</th>
@@ -158,11 +159,12 @@
 						<th>סטטוס</th>
 					</tr>
 				</thead>
+				
 				<tbody id="students-table-body">
 					</tbody>
-				<tfoot style="background: #f8fafc; font-weight: bold; border-top: 2px solid #cbd5e1;">
+				<tfoot>
 					<tr>
-						<td colspan="2" style="text-align: left; padding-left: 15px;">ממוצע כיתתי (⭐):</td>
+						<td colspan="3" style="text-align: left; padding-left: 15px;">ממוצע כיתתי (Rating):</td> 
 						<td id="avg-run1" style="text-align:center;">-</td>
 						<td id="avg-run2" style="text-align:center;">-</td>
 						<td id="avg-run3" style="text-align:center;">-</td>
@@ -200,92 +202,98 @@
     }
 	
 	
-	function updateUI(data) {
-		const tableBody = document.getElementById('students-table-body');
-		if (!tableBody) return;
-		tableBody.innerHTML = '';
+function updateUI(data) {
+    const tableBody = document.getElementById('students-table-body');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
 
-		const now = Date.now();
-		const tenMinutes = 10 * 60 * 1000;
-		const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
-		
-		let activeInLast10 = 0;
-		let globalRatingSum = 0;
-		let globalRatingCount = 0;
+    const now = Date.now();
+    const tenMinutes = 10 * 60 * 1000;
+    const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
+    
+    let activeInLast10 = 0;
+    let globalRatingSum = 0;
+    let globalRatingCount = 0;
 
-		const colTotals = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
-		const colCounts = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
+    const colTotals = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
+    const colCounts = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
 
-		if (data && data.activeStudents) {
-			data.activeStudents.forEach(student => {
-				const lastSeen = parseInt(student.lastSeen) || 0;
-				const isActiveNow = (now - lastSeen) < tenMinutes;
-				if (isActiveNow) activeInLast10++;
+    if (data && data.activeStudents) {
+        data.activeStudents.forEach(student => {
+            const lastSeen = parseInt(student.lastSeen) || 0;
+            const isActiveNow = (now - lastSeen) < tenMinutes;
+            if (isActiveNow) activeInLast10++;
 
-				let stats = {}, ratings = {};
-				try {
-					if (student.details) stats = JSON.parse(student.details);
-					if (student.ratingsJson) ratings = JSON.parse(student.ratingsJson);
-				} catch (e) { console.error("JSON Error:", e); }
+            let stats = {}, ratings = {};
+            try {
+                if (student.details) stats = JSON.parse(student.details);
+                if (student.ratingsJson) ratings = JSON.parse(student.ratingsJson);
+            } catch (e) { console.error(e); }
 
-				// חישוב ממוצע אישי
-				let sSum = 0, sCount = 0;
-				keys.forEach(k => {
-					const r = parseInt(ratings[k]) || 0;
-					if (r > 0) {
-						sSum += r; sCount++;
-						colTotals[k] += r; colCounts[k]++;
-						globalRatingSum += r; globalRatingCount++;
-					}
-				});
-				const studentAvg = sCount > 0 ? (sSum / sCount).toFixed(1) : "-";
+            let sSum = 0, sCount = 0;
+            keys.forEach(k => {
+                const r = parseInt(ratings[k]) || 0;
+                if (r > 0) {
+                    sSum += r; sCount++;
+                    colTotals[k] += r; colCounts[k]++;
+                    globalRatingSum += r; globalRatingCount++;
+                }
+            });
+            const studentAvg = sCount > 0 ? (sSum / sCount).toFixed(1) : "-";
 
-				// שורה 1: פרטים והרצות
-				const row1 = document.createElement('tr');
-				row1.style.borderTop = "2px solid #cbd5e1";
-				
-				const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold;">${stats[k] || 0}</td>`).join('');
+            // --- שורה 1: Runs ---
+            const row1 = document.createElement('tr');
+            row1.style.borderTop = "2px solid #cbd5e1";
+            const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold;">${stats[k] || 0}</td>`).join('');
 
-				row1.innerHTML = `
-					<td rowspan="2" style="vertical-align:middle; border-left:1px solid #e2e8f0;"><strong>${student.name || 'אנונימי'}</strong></td>
-					<td rowspan="2" style="vertical-align:middle; border-left:1px solid #e2e8f0;"><code style="font-size:0.8em;">${student.ip}</code></td>
-					${runCells}
-					<td rowspan="2" style="text-align:center; font-weight:bold; background:#f0f9ff; vertical-align:middle; color:#0369a1;">${studentAvg !== "-" ? "⭐" + studentAvg : "-"}</td>
-					<td rowspan="2" style="text-align:center; font-weight:bold; background:#f8fafc; vertical-align:middle;">${student.runCount || 0}</td>
-					<td rowspan="2" style="vertical-align:middle; text-align:center;">
-						<span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
-							${isActiveNow ? '● פעיל' : 'לא פעיל'}
-						</span>
-					</td>
-					`;
-				tableBody.appendChild(row1);
+            row1.innerHTML = `
+                <td rowspan="2" style="vertical-align:middle;"><strong>${student.name || 'אנונימי'}</strong></td>
+                <td rowspan="2" style="vertical-align:middle;"><code>${student.ip}</code></td>
+                <td style="background:#f8fafc; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Runs</td>
+                ${runCells}
+                <td rowspan="2" style="text-align:center; font-weight:bold; background:#f0f9ff; vertical-align:middle; color:#0369a1;">${studentAvg !== "-" ? "⭐" + studentAvg : "-"}</td>
+                <td rowspan="2" style="text-align:center; font-weight:bold; background:#f8fafc; vertical-align:middle;">${student.runCount || 0}</td>
+                <td rowspan="2" style="vertical-align:middle; text-align:center;">
+                    <span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
+                        ${isActiveNow ? '● פעיל' : 'לא פעיל'}
+                    </span>
+                </td>
+                <td rowspan="2" style="vertical-align:middle; text-align:center;">
+                    <button class="btn btn-primary" onclick="viewCode('${student.ip}')">קוד</button>
+                </td>
+            `;
+            tableBody.appendChild(row1);
 
-				// שורה 2: דירוגים
-				const row2 = document.createElement('tr');
-				row2.innerHTML = keys.map(k => {
-					const r = parseInt(ratings[k]) || 0;
-					return `<td style="text-align:center; background-color: #f8fafc; color:#0ea5e9; font-size:0.8em; font-weight:bold; border-bottom:1px solid #e2e8f0;">${r > 0 ? "⭐" + r : "-"}</td>`;
-				}).join('');
-				tableBody.appendChild(row2);
-			});
-		}
+            // --- שורה 2: Rating ---
+            const row2 = document.createElement('tr');
+            const ratingCells = keys.map(k => {
+                const r = parseInt(ratings[k]) || 0;
+                return `<td style="text-align:center; color:#0ea5e9; font-size:0.85em; font-weight:bold;">${r > 0 ? "⭐" + r : "-"}</td>`;
+            }).join('');
+            
+            row2.innerHTML = `
+                <td style="background:#f0f9ff; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Rating</td>
+                ${ratingCells}
+            `;
+            tableBody.appendChild(row2);
+        });
+    }
 
-		// עדכון ממוצעי עמודות בתחתית
-		keys.forEach(k => {
-			const el = document.getElementById(`avg-${k}`);
-			if (el) {
-				if (colCounts[k] > 0) el.innerHTML = `<span style="color:#0369a1;">⭐${(colTotals[k]/colCounts[k]).toFixed(1)}</span>`;
-				else el.innerText = "-";
-			}
-		});
+    // עדכון ממוצעים כיתתיים ב-tfoot
+    keys.forEach(k => {
+        const el = document.getElementById(`avg-${k}`);
+        if (el) {
+            if (colCounts[k] > 0) el.innerHTML = "⭐" + (colTotals[k]/colCounts[k]).toFixed(1);
+            else el.innerText = "-";
+        }
+    });
 
-		// עדכון המונים למעלה
-		if (document.getElementById('active-students-count')) document.getElementById('active-students-count').textContent = activeInLast10;
-		if (document.getElementById('total-requests')) document.getElementById('total-requests').textContent = data.totalRequests || 0;
-		
-		const finalAvg = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
-		if (document.getElementById('avg-rating')) document.getElementById('avg-rating').textContent = finalAvg;
-	}
+    // עדכון המונים למעלה
+    document.getElementById('active-students-count').textContent = activeInLast10;
+    document.getElementById('total-requests').textContent = data.totalRequests || 0;
+    const finalAvg = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
+    document.getElementById('avg-rating').textContent = finalAvg;
+}
 	
 	
 	
