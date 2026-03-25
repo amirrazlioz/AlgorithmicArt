@@ -153,23 +153,23 @@
 						<th style="text-align:center;">Level 5</th>
 						<th style="text-align:center;">Level 6</th>
 						<th style="text-align:center;">Creative</th>
-						<th style="text-align:center; background-color: #f0f9ff;">ממוצע עניין</th> 
+						<th style="text-align:center; background-color: #f0f9ff;">ממוצע תלמיד</th>
 						<th style="text-align:center; background-color: #f1f5f9;">סה"כ</th>
 						<th>סטטוס</th>
 					</tr>
 				</thead>
 				<tbody id="students-table-body"></tbody>
-				<tfoot style="background-color: #f8fafc; font-weight: bold;">
+				<tfoot style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #e2e8f0;">
 					<tr>
-						<td colspan="2" style="text-align: left; padding-left: 15px;">ממוצע עניין ⭐:</td>
-						<td id="avg-run1" style="text-align:center;">-</td>
-						<td id="avg-run2" style="text-align:center;">-</td>
-						<td id="avg-run3" style="text-align:center;">-</td>
-						<td id="avg-run4" style="text-align:center;">-</td>
-						<td id="avg-run5" style="text-align:center;">-</td>
-						<td id="avg-run6" style="text-align:center;">-</td>
-						<td id="avg-run-creative" style="text-align:center;">-</td>
-						<td style="background-color: #f0f9ff;"></td> <td colspan="2"></td>
+						<td colspan="2" style="text-align: left; padding-left: 15px;">ממוצע כיתתי (⭐):</td>
+						<td id="avg-run1" style="text-align:center; color: #0369a1;">-</td>
+						<td id="avg-run2" style="text-align:center; color: #0369a1;">-</td>
+						<td id="avg-run3" style="text-align:center; color: #0369a1;">-</td>
+						<td id="avg-run4" style="text-align:center; color: #0369a1;">-</td>
+						<td id="avg-run5" style="text-align:center; color: #0369a1;">-</td>
+						<td id="avg-run6" style="text-align:center; color: #0369a1;">-</td>
+						<td id="avg-run-creative" style="text-align:center; color: #0369a1;">-</td>
+						<td colspan="3"></td>
 					</tr>
 				</tfoot>
 			</table>
@@ -206,26 +206,31 @@
 
 		const now = Date.now();
 		const tenMinutes = 10 * 60 * 1000;
+		let activeInLast10 = 0;
 		
-		const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
-		
-		// מונים לממוצעים בתחתית הטבלה
-		const columnTotals = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
-		const columnCounts = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
+		// משתנים לממוצע כיתתי כללי (לכרטיסייה למעלה)
+		let globalRatingSum = 0;
+		let globalRatingCount = 0;
 
-		if (data.activeStudents) {
+		// משתנים לממוצע לכל עמודה (ל-tfoot)
+		const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
+		const colTotals = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
+		const colCounts = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
+
+		if (data && data.activeStudents) {
 			data.activeStudents.forEach(student => {
 				const lastSeen = parseInt(student.lastSeen) || 0;
 				const isActiveNow = (now - lastSeen) < tenMinutes;
+				if (isActiveNow) activeInLast10++;
 
+				// הגנה על פענוח ה-JSON
 				let stats = {};
 				let ratings = {};
 				try {
-					stats = student.details ? JSON.parse(student.details) : {};
-					ratings = student.ratingsJson ? JSON.parse(student.ratingsJson) : {};
-				} catch (e) { ratings = {}; stats = {}; }
+					if (student.details) stats = JSON.parse(student.details);
+					if (student.ratingsJson) ratings = JSON.parse(student.ratingsJson);
+				} catch (e) { console.error("JSON error for IP " + student.ip, e); }
 
-				// חישוב ממוצע אישי לתלמיד זה
 				let studentRatingSum = 0;
 				let studentRatingCount = 0;
 
@@ -234,10 +239,12 @@
 					const rating = parseInt(ratings[key]) || 0;
 					
 					if (rating > 0) {
+						globalRatingSum += rating;
+						globalRatingCount++;
+						colTotals[key] += rating;
+						colCounts[key]++;
 						studentRatingSum += rating;
 						studentRatingCount++;
-						columnTotals[key] += rating;
-						columnCounts[key]++;
 					}
 
 					const ratingHtml = rating > 0 
@@ -245,12 +252,11 @@
 						: '<div style="height:18px;"></div>';
 
 					return `<td style="text-align:center; border-left: 1px solid #f1f5f9;">
-								<div>${count}</div>
+								<div style="color: ${count ? '#1e293b' : '#cbd5e1'}; font-weight:${count ? 'bold' : 'normal'};">${count}</div>
 								${ratingHtml}
 							</td>`;
 				}).join('');
 
-				// חישוב תוצאת הממוצע האישי
 				const studentAvg = studentRatingCount > 0 ? (studentRatingSum / studentRatingCount).toFixed(1) : "-";
 
 				const row = document.createElement('tr');
@@ -272,16 +278,34 @@
 			});
 		}
 
-		// עדכון שורת הממוצעים בתחתית (tfoot) - אותו קוד מהשלב הקודם
+		// --- עדכון כל המונים בדף (חשוב: מחוץ ללולאת התלמידים!) ---
+
+		// 1. כרטיסיות למעלה
+		if (document.getElementById('active-students-count')) 
+			document.getElementById('active-students-count').textContent = activeInLast10;
+		
+		if (document.getElementById('total-requests')) 
+			document.getElementById('total-requests').textContent = data.totalRequests || 0;
+		
+		const avgScore = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
+		if (document.getElementById('avg-rating')) 
+			document.getElementById('avg-rating').textContent = avgScore;
+
+		// 2. ממוצעים בתחתית הטבלה
 		keys.forEach(key => {
-			const avgElement = document.getElementById(`avg-${key}`);
-			if (avgElement) {
-				if (columnCounts[key] > 0) {
-					const avg = (columnTotals[key] / columnCounts[key]).toFixed(1);
-					avgElement.innerHTML = `<span style="color: #0369a1;">⭐ ${avg}</span><br><small style="font-size:0.7em;">(${columnCounts[key]})</small>`;
-				} else { avgElement.innerText = "-"; }
+			const el = document.getElementById(`avg-${key}`);
+			if (el) {
+				if (colCounts[key] > 0) {
+					const avg = (colTotals[key] / colCounts[key]).toFixed(1);
+					el.innerHTML = `<span style="color: #0369a1;">⭐ ${avg}</span>`;
+				} else {
+					el.innerText = "-";
+				}
 			}
 		});
+
+		if (document.getElementById('last-update')) 
+			document.getElementById('last-update').textContent = "עודכן לאחרונה: " + new Date().toLocaleTimeString();
 	}
 	
 	async function resetAllData() {
