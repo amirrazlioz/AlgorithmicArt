@@ -377,43 +377,63 @@ function updateUI(data) {
 	
 function exportToCSV() {
     const table = document.querySelector("table");
-    if (!table) return;
+    let csvContent = "\uFEFF"; // תמיכה בעברית באקסל
 
-    let csvContent = "\uFEFF"; // תמיכה בעברית (BOM)
-    const rows = table.querySelectorAll("tr");
+    const rows = Array.from(table.querySelectorAll("tr"));
+    
+    // מערך עזר למעקב אחרי rowspan - כדי לדעת מתי להוסיף תאים ריקים בשורות הבאות
+    let skipCells = {}; 
 
-    rows.forEach((row) => {
+    rows.forEach((row, rowIndex) => {
         const rowData = [];
-        const cols = row.querySelectorAll("th, td");
-        
-        // בדיקה כמה תאים יש בשורה כדי לדעת אם זו שורת סיכום או שורת נתונים
-        cols.forEach((col) => {
-            // ניקוי טקסט: הסרת ירידות שורה, רווחים כפולים ופסיקים שעלולים לשבור את ה-CSV
-            let text = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").replace(/,/g, ";").trim();
-            
-            // טיפול ב-colspan (עבור שורת הממוצע הכיתתי)
-            // אם לתא יש colspan, נוסיף תאים ריקים באקסל כדי לשמור על העמודות במקום
-            const colspan = col.getAttribute("colspan");
+        const cells = Array.from(row.querySelectorAll("th, td"));
+        let cellIndex = 0;
+
+        // בדיקה אם השורה הנוכחית צריכה "לדלג" על תאים בגלל rowspan משורה קודמת
+        while (skipCells[`${rowIndex}-${cellIndex}`]) {
+            rowData.push('""');
+            cellIndex++;
+        }
+
+        cells.forEach((cell) => {
+            // דילוג על תאים שכבר "נתפסו" על ידי rowspan
+            while (skipCells[`${rowIndex}-${cellIndex}`]) {
+                rowData.push('""');
+                cellIndex++;
+            }
+
+            // ניקוי טקסט בסיסי
+            let text = cell.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
             rowData.push(`"${text}"`);
-            
-            if (colspan && parseInt(colspan) > 1) {
-                for (let i = 1; i < parseInt(colspan); i++) {
-                    rowData.push(""); // הוספת תאים ריקים לפי הצורך
+
+            // טיפול ב-rowspan: מסמנים לשורות הבאות להוסיף תא ריק במיקום הזה
+            const rowspan = parseInt(cell.getAttribute("rowspan")) || 1;
+            const colspan = parseInt(cell.getAttribute("colspan")) || 1;
+
+            if (rowspan > 1) {
+                for (let r = 1; r < rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        skipCells[`${rowIndex + r}-${cellIndex + c}`] = true;
+                    }
                 }
             }
+            
+            cellIndex += colspan;
         });
 
-        if (rowData.length > 0) {
-            csvContent += rowData.join(",") + "\n";
+        // השלמת תאים ריקים אם השורה קצרה מהכותרת (למשל בשורת הסיכום למטה)
+        const maxCols = 13; // מספר העמודות הכולל בטבלה שלך
+        while (rowData.length < maxCols) {
+            rowData.push('""');
         }
+
+        csvContent += rowData.join(",") + "\n";
     });
 
-    // יצירת הקובץ והורדה
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    const date = new Date().toLocaleDateString().replace(/\//g, '-');
     link.setAttribute("href", URL.createObjectURL(blob));
-    link.setAttribute("download", `art_studio_full_report_${date}.csv`);
+    link.setAttribute("download", `art_studio_report_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`);
     link.click();
 }
 	
