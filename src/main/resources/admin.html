@@ -171,7 +171,7 @@
 						<td id="avg-run5" style="text-align:center;">-</td>
 						<td id="avg-run6" style="text-align:center;">-</td>
 						<td id="avg-run-creative" style="text-align:center;">-</td>
-					<td colspan="3"></td> 
+						<td></td><td></td><td></td>
 					</tr>
 				</tfoot>
 			</table>
@@ -210,9 +210,9 @@ function updateUI(data) {
     const tenMinutes = 10 * 60 * 1000;
     const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
     
-    // משתנים לעדכון המונים למעלה
+    // משתני מונים לעדכון הכרטיסיות למעלה
     let activeInLast10 = 0;
-    let totalAllRuns = 0; // לחישוב סה"כ הרצות כיתתי
+    let totalAllRuns = 0; 
     let globalRatingSum = 0;
     let globalRatingCount = 0;
 
@@ -226,7 +226,7 @@ function updateUI(data) {
             const isActiveNow = (now - lastSeen) < tenMinutes;
             if (isActiveNow) activeInLast10++;
 
-            // צבירת סה"כ הרצות למונה העליון
+            // צבירת סך הרצות כיתתי
             totalAllRuns += (parseInt(student.runCount) || 0);
 
             let stats = {}, ratings = {};
@@ -235,7 +235,7 @@ function updateUI(data) {
                 if (student.ratingsJson) ratings = JSON.parse(student.ratingsJson);
             } catch (e) { console.error("JSON Error:", e); }
 
-            // חישוב ממוצע אישי וצבירת ממוצעים כיתתיים
+            // חישוב ממוצע אישי וצבירת נתונים לממוצע כיתתי
             let sSum = 0, sCount = 0;
             keys.forEach(k => {
                 const r = parseInt(ratings[k]) || 0;
@@ -286,7 +286,7 @@ function updateUI(data) {
             `;
             tableBody.appendChild(row1);
 
-            // --- שורה 2: Rating ⭐ + ממוצע ---
+            // --- שורה 2: Rating ⭐ + ממוצע אישי ---
             const row2 = document.createElement('tr');
             const ratingCells = keys.map(k => {
                 const r = parseInt(ratings[k]) || 0;
@@ -303,7 +303,7 @@ function updateUI(data) {
         });
     }
 
-    // --- עדכון הממוצעים הכיתתיים ב-tfoot ---
+    // --- עדכון ממוצעים כיתתיים ב-tfoot ---
     keys.forEach(k => {
         const el = document.getElementById(`avg-${k}`);
         if (el) {
@@ -313,14 +313,13 @@ function updateUI(data) {
         }
     });
 
-    // --- עדכון המונים העליונים (הכרטיסיות) ---
-    // וודא שה-IDs האלו קיימים ב-HTML שלך
-    const activeEl = document.getElementById('active-students-count') || document.getElementById('active-count');
-    const totalEl = document.getElementById('total-requests') || document.getElementById('total-runs-count');
+    // --- עדכון הכרטיסיות למעלה ---
+    const activeEl = document.getElementById('active-students-count');
+    const totalEl = document.getElementById('total-requests');
     const avgEl = document.getElementById('avg-rating');
 
     if (activeEl) activeEl.textContent = activeInLast10;
-    if (totalEl) totalEl.textContent = totalAllRuns; // מציג את סך כל ההרצות של כולם
+    if (totalEl) totalEl.textContent = totalAllRuns; 
     
     if (avgEl) {
         const finalAvg = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
@@ -328,7 +327,7 @@ function updateUI(data) {
     }
 
     if (document.getElementById('last-update')) {
-        document.getElementById('last-update').textContent = "עודכן: " + new Date().toLocaleTimeString();
+        document.getElementById('last-update').textContent = "עודכן לאחרונה: " + new Date().toLocaleTimeString();
     }
 }
 	
@@ -378,33 +377,37 @@ function updateUI(data) {
 function exportToCSV() {
     const table = document.querySelector("table");
     let csvContent = "\uFEFF"; 
-
     const rows = Array.from(table.querySelectorAll("tr"));
-    
-    rows.forEach((row) => {
-        const rowData = [];
-        const cells = Array.from(row.querySelectorAll("th, td"));
+    let matrix = []; // מטריצה לייצוג הטבלה באקסל
 
-        cells.forEach((cell) => {
-            let text = cell.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
-            rowData.push(`"${text}"`);
+    rows.forEach((row, rowIndex) => {
+        if (!matrix[rowIndex]) matrix[rowIndex] = [];
+        let colIndex = 0;
+        
+        Array.from(row.querySelectorAll("th, td")).forEach(cell => {
+            // דילוג על תאים שכבר תפוסים ע"י rowspan מלמעלה
+            while (matrix[rowIndex][colIndex]) colIndex++;
 
-            // אם יש colspan, נוסיף תאים ריקים ב-CSV כדי לשמור על העמודות ישרות
+            const text = `"${cell.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim()}"`;
+            const rowspan = parseInt(cell.getAttribute("rowspan")) || 1;
             const colspan = parseInt(cell.getAttribute("colspan")) || 1;
-            if (colspan > 1) {
-                for (let i = 1; i < colspan; i++) {
-                    rowData.push('""');
+
+            for (let r = 0; r < rowspan; r++) {
+                for (let c = 0; c < colspan; c++) {
+                    if (!matrix[rowIndex + r]) matrix[rowIndex + r] = [];
+                    matrix[rowIndex + r][colIndex + c] = (r === 0 && c === 0) ? text : '""';
                 }
             }
+            colIndex += colspan;
         });
-
-        csvContent += rowData.join(",") + "\n";
     });
+
+    csvContent += matrix.map(row => row.join(",")).join("\n");
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    link.setAttribute("href", URL.createObjectURL(blob));
-    link.setAttribute("download", `art_studio_report_${new Date().toLocaleDateString()}.csv`);
+    link.href = URL.createObjectURL(blob);
+    link.download = `art_studio_report_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
     link.click();
 }
 	
