@@ -377,55 +377,26 @@ function updateUI(data) {
 	
 function exportToCSV() {
     const table = document.querySelector("table");
-    let csvContent = "\uFEFF"; // תמיכה בעברית באקסל
+    let csvContent = "\uFEFF"; 
 
     const rows = Array.from(table.querySelectorAll("tr"));
     
-    // מערך עזר למעקב אחרי rowspan - כדי לדעת מתי להוסיף תאים ריקים בשורות הבאות
-    let skipCells = {}; 
-
-    rows.forEach((row, rowIndex) => {
+    rows.forEach((row) => {
         const rowData = [];
         const cells = Array.from(row.querySelectorAll("th, td"));
-        let cellIndex = 0;
-
-        // בדיקה אם השורה הנוכחית צריכה "לדלג" על תאים בגלל rowspan משורה קודמת
-        while (skipCells[`${rowIndex}-${cellIndex}`]) {
-            rowData.push('""');
-            cellIndex++;
-        }
 
         cells.forEach((cell) => {
-            // דילוג על תאים שכבר "נתפסו" על ידי rowspan
-            while (skipCells[`${rowIndex}-${cellIndex}`]) {
-                rowData.push('""');
-                cellIndex++;
-            }
-
-            // ניקוי טקסט בסיסי
             let text = cell.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
             rowData.push(`"${text}"`);
 
-            // טיפול ב-rowspan: מסמנים לשורות הבאות להוסיף תא ריק במיקום הזה
-            const rowspan = parseInt(cell.getAttribute("rowspan")) || 1;
+            // אם יש colspan, נוסיף תאים ריקים ב-CSV כדי לשמור על העמודות ישרות
             const colspan = parseInt(cell.getAttribute("colspan")) || 1;
-
-            if (rowspan > 1) {
-                for (let r = 1; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        skipCells[`${rowIndex + r}-${cellIndex + c}`] = true;
-                    }
+            if (colspan > 1) {
+                for (let i = 1; i < colspan; i++) {
+                    rowData.push('""');
                 }
             }
-            
-            cellIndex += colspan;
         });
-
-        // השלמת תאים ריקים אם השורה קצרה מהכותרת (למשל בשורת הסיכום למטה)
-        const maxCols = 13; // מספר העמודות הכולל בטבלה שלך
-        while (rowData.length < maxCols) {
-            rowData.push('""');
-        }
 
         csvContent += rowData.join(",") + "\n";
     });
@@ -433,7 +404,7 @@ function exportToCSV() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.setAttribute("href", URL.createObjectURL(blob));
-    link.setAttribute("download", `art_studio_report_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`);
+    link.setAttribute("download", `art_studio_report_${new Date().toLocaleDateString()}.csv`);
     link.click();
 }
 	
