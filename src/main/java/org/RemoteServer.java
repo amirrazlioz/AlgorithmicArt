@@ -44,6 +44,8 @@ public class RemoteServer {
 	
 	// IP -> (TaskName -> Rating)
 	private static final Map<String, Map<String, Integer>> feedbackRatings = new ConcurrentHashMap<>();
+	
+	private static boolean creativeEnabled = true; // ברירת מחדל - פתוח
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
@@ -96,6 +98,7 @@ public class RemoteServer {
 		server.createContext("/api/register", new RegisterHandler());
 		server.createContext("/api/reset-all", new ResetAllHandler());
 		server.createContext("/api/feedback", new FeedbackHandler());
+		server.createContext("/api/settings", new SettingsHandler());
 		
 		// נתיבי ההרצה הקיימים שלך
 		server.createContext("/run1", new RunHandler1());
@@ -1003,6 +1006,37 @@ public class RemoteServer {
 					lastSeenMap.put(ip, System.currentTimeMillis());
 					sendTextResponse(t, 200, "{\"status\":\"ok\"}");
 				}
+			}
+			t.close();
+		}
+	}
+	
+	static class SettingsHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				return;
+			}
+
+			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+				try (InputStream is = t.getRequestBody()) {
+					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+					JsonObject json = new Gson().fromJson(body, JsonObject.class);
+					creativeEnabled = json.get("creativeEnabled").getAsBoolean();
+				}
+				String resp = "{\"status\":\"success\"}";
+				t.sendResponseHeaders(200, resp.length());
+				try (OutputStream os = t.getResponseBody()) { os.write(resp.getBytes()); }
+			} else {
+				// GET - מחזיר את המצב הנוכחי
+				String resp = "{\"creativeEnabled\":" + creativeEnabled + "}";
+				t.sendResponseHeaders(200, resp.length());
+				try (OutputStream os = t.getResponseBody()) { os.write(resp.getBytes()); }
 			}
 			t.close();
 		}

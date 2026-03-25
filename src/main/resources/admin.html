@@ -184,6 +184,12 @@
     </div>
 </div>
 
+<div class="control-panel">
+    <button id="toggle-creative-btn" onclick="toggleCreativeMode()" class="action-btn">
+        🔒 חסום דף יצירתי
+    </button>
+</div>
+
 <script>
 
     async function fetchData() {
@@ -406,6 +412,22 @@ function exportToCSV() {
     link.href = URL.createObjectURL(blob);
     link.download = `art_studio_report_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
     link.click();
+}
+
+async function toggleCreativeMode() {
+    creativeEnabled = !creativeEnabled;
+    const btn = document.getElementById('toggle-creative-btn');
+    
+    // שליחת הסטטוס החדש לשרת
+    await fetch('/api/settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ creativeEnabled: creativeEnabled })
+    });
+
+    // עדכון מראה הכפתור ב-Admin
+    btn.textContent = creativeEnabled ? "🔒 חסום דף יצירתי" : "🔓 פתח דף יצירתי";
+    btn.style.backgroundColor = creativeEnabled ? "#ef4444" : "#10b981";
 }
 	
     // הפעלה ראשונית ורענון כל 5 שניות

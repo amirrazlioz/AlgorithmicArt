@@ -896,7 +896,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 
 <nav class="nav-tabs no-print">
     <button class="tab-btn active" onclick="showPage('studio-page', this)">🎓 אתגרי הקוד</button>
-    <button class="tab-btn" onclick="showPage('creative-page', this)">🎨 דף יצירתי (חופשי)</button>
+    <button id="creative-tab-btn" class="tab-btn" onclick="showPage('creative-page', this)">🎨 דף יצירתי (חופשי)</button>
     <button class="tab-btn" onclick="showPage('debugger-page', this)">🧭 RGB Color Explorer</button>
 </nav>
 
@@ -3181,6 +3181,26 @@ window.onload = () => {
         creativeChallenge.init();
     }
 };
+
+async function checkCreativeStatus() {
+    try {
+        const response = await fetch('/api/settings'); // נתיב חדש בשרת
+        const settings = await response.json();
+        
+        const btn = document.getElementById('creative-tab-btn');
+        if (settings.creativeEnabled) {
+            btn.style.display = 'inline-block';
+        } else {
+            btn.style.display = 'none';
+        }
+    } catch (e) {
+        console.error("Error checking status", e);
+    }
+}
+
+// הפעל את הבדיקה כל 10 שניות
+setInterval(checkCreativeStatus, 10000);
+checkCreativeStatus(); // בדיקה ראשונית בטעינה
 
 // הפעלה ברגע שה-HTML מוכן
 document.addEventListener('DOMContentLoaded', setupJavaEditors);
