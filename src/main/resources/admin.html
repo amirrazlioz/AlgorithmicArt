@@ -160,11 +160,10 @@
 					</tr>
 				</thead>
 				
-				<tbody id="students-table-body">
-					</tbody>
-				<tfoot>
+				<tbody id="students-table-body"></tbody>		
+				<tfoot style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #e2e8f0;">
 					<tr>
-						<td colspan="3" style="text-align: left; padding-left: 15px;">ממוצע כיתתי (Rating ⭐):</td> 
+						<td colspan="3" style="text-align: left; padding-left: 15px;">ממוצע כיתתי Rating ⭐</td>
 						<td id="avg-run1" style="text-align:center;">-</td>
 						<td id="avg-run2" style="text-align:center;">-</td>
 						<td id="avg-run3" style="text-align:center;">-</td>
@@ -172,7 +171,7 @@
 						<td id="avg-run5" style="text-align:center;">-</td>
 						<td id="avg-run6" style="text-align:center;">-</td>
 						<td id="avg-run-creative" style="text-align:center;">-</td>
-						<td colspan="4"></td>
+					<td colspan="3"></td> 
 					</tr>
 				</tfoot>
 			</table>
@@ -241,66 +240,64 @@ function updateUI(data) {
             });
             const studentAvg = sCount > 0 ? (sSum / sCount).toFixed(1) : "-";
 
-            // --- שורה 1: Runs + סה"כ ---
+            // --- שורה 1: Runs ---
             const row1 = document.createElement('tr');
             row1.style.borderTop = "2px solid #cbd5e1";
-            const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold;">${stats[k] || 0}</td>`).join('');
+            const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold; color: var(--text);">${stats[k] || 0}</td>`).join('');
 
             row1.innerHTML = `
                 <td rowspan="2" style="vertical-align:middle; background:#fff;"><strong>${student.name || 'אנונימי'}</strong></td>
                 <td rowspan="2" style="vertical-align:middle; background:#fff;"><code>${student.ip}</code></td>
-                <td style="background:#f8fafc; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Runs</td>
+                <td style="background:#f8fafc; font-weight:bold; font-size:0.9em; border-left:1px solid #e2e8f0;">Runs</td>
                 ${runCells}
                 <td style="background:#f0f9ff;"></td>
-                <td style="text-align:center; font-weight:bold; background:#f1f5f9; color:#1e293b;">
-                    ${student.runCount || 0}
-                </td>
+                <td style="text-align:center; font-weight:bold; background:#f1f5f9; color: var(--text);">${student.runCount || 0}</td>
                 <td rowspan="2" style="vertical-align:middle; text-align:center; background:#fff;">
                     <span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
                         ${isActiveNow ? '● פעיל' : 'לא פעיל'}
                     </span>
                 </td>
                 <td rowspan="2" style="vertical-align:middle; text-align:center; background:#fff;">
-                    <button class="btn-view" onclick="viewCode('${student.ip}')" style="background:#4f46e5; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">קוד</button>
+                    <button class="btn-view" onclick="viewCode('${student.ip}')">קוד</button>
                 </td>
             `;
             tableBody.appendChild(row1);
 
-            // --- שורה 2: Rating ⭐ + ממוצע (מספר נקי) ---
+            // --- שורה 2: Rating ⭐ ---
             const row2 = document.createElement('tr');
             const ratingCells = keys.map(k => {
                 const r = parseInt(ratings[k]) || 0;
-                return `<td style="text-align:center; color:#0ea5e9; font-size:0.85em; font-weight:bold; background:#fcfcfc;">${r > 0 ? r : "-"}</td>`;
+                // הוספת font-weight:bold כדי שיהיה זהה ל-Runs
+                return `<td style="text-align:center; font-weight:bold; color:#0ea5e9; background:#fcfcfc;">${r > 0 ? r : "-"}</td>`;
             }).join('');
             
             row2.innerHTML = `
-                <td style="background:#f0f9ff; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Rating ⭐</td>
+                <td style="background:#f0f9ff; font-weight:bold; font-size:0.9em; border-left:1px solid #e2e8f0;">Rating ⭐</td>
                 ${ratingCells}
-                <td style="text-align:center; font-weight:bold; background:#f0f9ff; color:#0369a1;">
-                    ${studentAvg}
-                </td>
+                <td style="text-align:center; font-weight:bold; background:#f0f9ff; color:#0369a1;">${studentAvg}</td>
                 <td style="background:#f1f5f9;"></td>
             `;
             tableBody.appendChild(row2);
         });
     }
 
-    // עדכון ממוצעים כיתתיים ב-tfoot (מספרים נקיים)
+    // --- עדכון ממוצעים כיתתיים ב-tfoot (פונט מודגש זהה) ---
     keys.forEach(k => {
         const el = document.getElementById(`avg-${k}`);
         if (el) {
             if (colCounts[k] > 0) {
-                el.innerText = (colTotals[k] / colCounts[k]).toFixed(1);
+                const val = (colTotals[k] / colCounts[k]).toFixed(1);
+                el.style.fontWeight = "bold"; // הדגשה
+                el.innerText = val;
             } else { el.innerText = "-"; }
         }
     });
 
-    // עדכון המונים למעלה
-    if (document.getElementById('active-students-count')) document.getElementById('active-students-count').textContent = activeInLast10;
-    if (document.getElementById('total-requests')) document.getElementById('total-requests').textContent = data.totalRequests || 0;
-    
+    // עדכון מונים עליונים
+    document.getElementById('active-students-count').textContent = activeInLast10;
+    document.getElementById('total-requests').textContent = data.totalRequests || 0;
     const finalAvg = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
-    if (document.getElementById('avg-rating')) document.getElementById('avg-rating').textContent = finalAvg;
+    document.getElementById('avg-rating').textContent = finalAvg;
 }
 	
 	
