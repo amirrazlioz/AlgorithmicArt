@@ -376,44 +376,44 @@ function updateUI(data) {
 	}
 	
 function exportToCSV() {
-    const tableBody = document.getElementById('students-table-body');
-    const rows = tableBody.querySelectorAll("tr");
-    let csvContent = "\uFEFF"; // BOM לעברית
+    const table = document.querySelector("table");
+    if (!table) return;
 
-    // כותרות (ידני כדי להבטיח סדר)
-    csvContent += "שם,IP,סוג נתון,Lvl 1,Lvl 2,Lvl 3,Lvl 4,Lvl 5,Lvl 6,Creative,ממוצע,סה\"כ,סטטוס\n";
+    let csvContent = "\uFEFF"; // תמיכה בעברית (BOM)
+    const rows = table.querySelectorAll("tr");
 
-    for (let i = 0; i < rows.length; i += 2) {
-        const rowRuns = rows[i];
-        const rowRatings = rows[i + 1];
+    rows.forEach((row) => {
+        const rowData = [];
+        const cols = row.querySelectorAll("th, td");
+        
+        // בדיקה כמה תאים יש בשורה כדי לדעת אם זו שורת סיכום או שורת נתונים
+        cols.forEach((col) => {
+            // ניקוי טקסט: הסרת ירידות שורה, רווחים כפולים ופסיקים שעלולים לשבור את ה-CSV
+            let text = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").replace(/,/g, ";").trim();
+            
+            // טיפול ב-colspan (עבור שורת הממוצע הכיתתי)
+            // אם לתא יש colspan, נוסיף תאים ריקים באקסל כדי לשמור על העמודות במקום
+            const colspan = col.getAttribute("colspan");
+            rowData.push(`"${text}"`);
+            
+            if (colspan && parseInt(colspan) > 1) {
+                for (let i = 1; i < parseInt(colspan); i++) {
+                    rowData.push(""); // הוספת תאים ריקים לפי הצורך
+                }
+            }
+        });
 
-        if (!rowRuns || !rowRatings) continue;
+        if (rowData.length > 0) {
+            csvContent += rowData.join(",") + "\n";
+        }
+    });
 
-        // שליפת נתונים משורת ה-Runs
-        const name = rowRuns.cells[0].innerText.trim();
-        const ip = rowRuns.cells[1].innerText.trim();
-        const type1 = rowRuns.cells[2].innerText.trim();
-        const runData = Array.from(rowRuns.cells).slice(3, 10).map(c => c.innerText.trim());
-        const avgEmpty = "-";
-        const total = rowRuns.cells[11].innerText.trim();
-        const status = rowRuns.cells[12].innerText.trim();
-
-        csvContent += `"${name}","${ip}","${type1}",${runData.join(",")},"${avgEmpty}","${total}","${status}"\n`;
-
-        // שליפת נתונים משורת ה-Ratings
-        // שים לב: בשורה השנייה בגלל ה-rowspan, ה-index של התאים שונה!
-        const type2 = rowRatings.cells[0].innerText.trim();
-        const ratingData = Array.from(rowRatings.cells).slice(1, 8).map(c => c.innerText.trim());
-        const studentAvg = rowRatings.cells[8].innerText.trim();
-        const totalEmpty = "-";
-
-        csvContent += `"${name}","${ip}","${type2}",${ratingData.join(",")},"${studentAvg}","${totalEmpty}","${status}"\n`;
-    }
-
+    // יצירת הקובץ והורדה
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `report_${new Date().toLocaleDateString()}.csv`;
+    const date = new Date().toLocaleDateString().replace(/\//g, '-');
+    link.setAttribute("href", URL.createObjectURL(blob));
+    link.setAttribute("download", `art_studio_full_report_${date}.csv`);
     link.click();
 }
 	
