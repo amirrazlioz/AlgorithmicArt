@@ -241,45 +241,47 @@ function updateUI(data) {
             });
             const studentAvg = sCount > 0 ? (sSum / sCount).toFixed(1) : "-";
 
-            // --- שורה 1: Runs ---
+            // --- שורה 1: Runs + סה"כ הרצות ---
             const row1 = document.createElement('tr');
             row1.style.borderTop = "2px solid #cbd5e1";
             const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold;">${stats[k] || 0}</td>`).join('');
 
             row1.innerHTML = `
-                <td rowspan="2" style="vertical-align:middle;"><strong>${student.name || 'אנונימי'}</strong></td>
-                <td rowspan="2" style="vertical-align:middle;"><code>${student.ip}</code></td>
+                <td rowspan="2" style="vertical-align:middle; background:#fff;"><strong>${student.name || 'אנונימי'}</strong></td>
+                <td rowspan="2" style="vertical-align:middle; background:#fff;"><code>${student.ip}</code></td>
                 <td style="background:#f8fafc; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Runs</td>
                 ${runCells}
-                <td rowspan="2" style="text-align:center; font-weight:bold; background:#f0f9ff; vertical-align:middle; color:#0369a1;">${studentAvg !== "-" ? "⭐" + studentAvg : "-"}</td>
-                <td rowspan="2" style="text-align:center; font-weight:bold; background:#f8fafc; vertical-align:middle;">${student.runCount || 0}</td>
-                <td rowspan="2" style="vertical-align:middle; text-align:center;">
+                <td style="text-align:center; font-weight:bold; background:#f8fafc; color:#1e293b;">
+                    ${student.runCount || 0} </td>
+                <td rowspan="2" style="vertical-align:middle; text-align:center; background:#fff;">
                     <span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
                         ${isActiveNow ? '● פעיל' : 'לא פעיל'}
                     </span>
                 </td>
-                <td rowspan="2" style="vertical-align:middle; text-align:center;">
-                    <button class="btn btn-primary" onclick="viewCode('${student.ip}')">קוד</button>
+                <td rowspan="2" style="vertical-align:middle; text-align:center; background:#fff;">
+                    <button class="btn btn-primary" onclick="viewCode('${student.ip}')" style="padding:4px 8px; font-size:0.8em;">קוד</button>
                 </td>
             `;
             tableBody.appendChild(row1);
 
-            // --- שורה 2: Rating ---
+            // --- שורה 2: Rating + ממוצע כוכבים ---
             const row2 = document.createElement('tr');
             const ratingCells = keys.map(k => {
                 const r = parseInt(ratings[k]) || 0;
-                return `<td style="text-align:center; color:#0ea5e9; font-size:0.85em; font-weight:bold;">${r > 0 ? "⭐" + r : "-"}</td>`;
+                return `<td style="text-align:center; color:#0ea5e9; font-size:0.85em; font-weight:bold; background:#fcfcfc;">${r > 0 ? "⭐" + r : "-"}</td>`;
             }).join('');
             
             row2.innerHTML = `
                 <td style="background:#f0f9ff; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Rating</td>
                 ${ratingCells}
+                <td style="text-align:center; font-weight:bold; background:#f0f9ff; color:#0369a1;">
+                    ${studentAvg !== "-" ? "⭐" + studentAvg : "-"} </td>
             `;
             tableBody.appendChild(row2);
         });
     }
 
-    // עדכון ממוצעים כיתתיים ב-tfoot
+    // עדכון ממוצעים כיתתיים ב-tfoot (ללא שינוי)
     keys.forEach(k => {
         const el = document.getElementById(`avg-${k}`);
         if (el) {
@@ -288,7 +290,7 @@ function updateUI(data) {
         }
     });
 
-    // עדכון המונים למעלה
+    // עדכון כרטיסיות עליונות (ללא שינוי)
     document.getElementById('active-students-count').textContent = activeInLast10;
     document.getElementById('total-requests').textContent = data.totalRequests || 0;
     const finalAvg = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
