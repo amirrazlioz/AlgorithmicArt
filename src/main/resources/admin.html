@@ -414,20 +414,42 @@ function exportToCSV() {
     link.click();
 }
 
-async function toggleCreativeMode() {
-    creativeEnabled = !creativeEnabled;
+// הגדרת משתנה גלובלי בתחילת הסקריפט
+let creativeEnabledStatus = true; 
+
+// משתנה גלובלי (מחוץ לפונקציה)
+let isCreativeOpen = true; 
+
+async function toggleCreative() {
+    // 1. שינוי המצב
+    isCreativeOpen = !isCreativeOpen;
+    
+    // 2. מציאת הכפתור לפי ה-ID המדויק
     const btn = document.getElementById('toggle-creative-btn');
     
-    // שליחת הסטטוס החדש לשרת
-    await fetch('/api/settings', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ creativeEnabled: creativeEnabled })
-    });
+    if (!btn) {
+        console.error("Button with id 'toggle-creative-btn' not found!");
+        return;
+    }
 
-    // עדכון מראה הכפתור ב-Admin
-    btn.textContent = creativeEnabled ? "🔒 חסום דף יצירתי" : "🔓 פתח דף יצירתי";
-    btn.style.backgroundColor = creativeEnabled ? "#ef4444" : "#10b981";
+    try {
+        // 3. עדכון השרת
+        const response = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ creativeEnabled: isCreativeOpen })
+        });
+
+        if (response.ok) {
+            // 4. עדכון ויזואלי של הכפתור
+            btn.textContent = isCreativeOpen ? "🔒 חסום דף יצירתי" : "🔓 פתח דף יצירתי";
+            btn.style.backgroundColor = isCreativeOpen ? "#ef4444" : "#10b981";
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        // החזרת המצב במידה ונכשל
+        isCreativeOpen = !isCreativeOpen;
+    }
 }
 	
     // הפעלה ראשונית ורענון כל 5 שניות
