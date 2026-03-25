@@ -349,35 +349,48 @@
 	}
 	
 	function exportToCSV() {
+		// שליפת כל השורות מהטבלה (כולל כותרת וסיכום)
 		const rows = document.querySelectorAll("table tr");
-		let csvContent = "\uFEFF"; // הוספת BOM כדי ש-Excel יזהה עברית
+		let csvContent = "\uFEFF"; // BOM לעברית תקינה באקסל
 
 		rows.forEach((row, index) => {
 			const rowData = [];
 			const cols = row.querySelectorAll("td, th");
 			
 			cols.forEach((col, colIndex) => {
-				// אנחנו מדלגים על עמודת ה"פעולות" (הכפתור של צפה בקוד)
-				if (colIndex < cols.length - 1) {
-					let text = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
-					// עוטפים בגרשיים כדי למנוע בעיות עם פסיקים בתוך הטקסט
-					rowData.push(`"${text}"`);
+				// דילוג על עמודת ה"פעולות" האחרונה אם היא קיימת
+				if (colIndex < cols.length) {
+					// בדיקה אם יש בתוך התא גם מספר הרצות וגם דירוג (div בתוך td)
+					const countDiv = col.querySelector('div');
+					const ratingDiv = col.querySelector('div[style*="background"]'); // מוצא את הבועה של ה-⭐
+					
+					let cellText = "";
+					
+					if (countDiv && ratingDiv) {
+						// אם יש גם הרצות וגם דירוג, נחבר אותם עם ירידת שורה
+						const count = countDiv.innerText.trim();
+						const rating = ratingDiv.innerText.trim();
+						cellText = `${count}\n(${rating})`; 
+					} else {
+						// אם זה תא רגיל (כמו שם או IP), פשוט ניקח את הטקסט
+						cellText = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
+					}
+
+					// עטיפה בגרשיים כפולות כדי שאקסל יבין שה-\n הוא בתוך התא
+					rowData.push(`"${cellText}"`);
 				}
 			});
 
 			csvContent += rowData.join(",") + "\n";
 		});
 
-		// יצירת קישור להורדה
+		// יצירת הקובץ והורדתו
 		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const url = URL.createObjectURL(blob);
 		const link = document.createElement("a");
-		
-		const date = new Date().toLocaleDateString().replace(/\//g, '-');
+		const url = URL.createObjectURL(blob);
 		link.setAttribute("href", url);
-		link.setAttribute("download", `דוח_תלמידים_${date}.csv`);
+		link.setAttribute("download", `algorithmic_art_stats_${new Date().toLocaleDateString()}.csv`);
 		link.style.visibility = 'hidden';
-		
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
