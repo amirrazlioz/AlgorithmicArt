@@ -241,7 +241,7 @@ function updateUI(data) {
             });
             const studentAvg = sCount > 0 ? (sSum / sCount).toFixed(1) : "-";
 
-            // --- שורה 1: Runs + סה"כ הרצות ---
+            // --- שורה 1: Runs + סה"כ ---
             const row1 = document.createElement('tr');
             row1.style.borderTop = "2px solid #cbd5e1";
             const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold;">${stats[k] || 0}</td>`).join('');
@@ -251,20 +251,21 @@ function updateUI(data) {
                 <td rowspan="2" style="vertical-align:middle; background:#fff;"><code>${student.ip}</code></td>
                 <td style="background:#f8fafc; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Runs</td>
                 ${runCells}
-                <td style="text-align:center; font-weight:bold; background:#f8fafc; color:#1e293b;">
-                    ${student.runCount || 0} </td>
+                <td style="background:#f0f9ff;"></td> <td style="text-align:center; font-weight:bold; background:#f1f5f9; color:#1e293b;">
+                    ${student.runCount || 0}
+                </td>
                 <td rowspan="2" style="vertical-align:middle; text-align:center; background:#fff;">
                     <span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
                         ${isActiveNow ? '● פעיל' : 'לא פעיל'}
                     </span>
                 </td>
                 <td rowspan="2" style="vertical-align:middle; text-align:center; background:#fff;">
-                    <button class="btn btn-primary" onclick="viewCode('${student.ip}')" style="padding:4px 8px; font-size:0.8em;">קוד</button>
+                    <button class="btn-view" onclick="viewCode('${student.ip}')" style="background:#4f46e5; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">קוד</button>
                 </td>
             `;
             tableBody.appendChild(row1);
 
-            // --- שורה 2: Rating + ממוצע כוכבים ---
+            // --- שורה 2: Rating + ממוצע ---
             const row2 = document.createElement('tr');
             const ratingCells = keys.map(k => {
                 const r = parseInt(ratings[k]) || 0;
@@ -275,13 +276,14 @@ function updateUI(data) {
                 <td style="background:#f0f9ff; font-weight:bold; font-size:0.8em; border-left:1px solid #e2e8f0;">Rating</td>
                 ${ratingCells}
                 <td style="text-align:center; font-weight:bold; background:#f0f9ff; color:#0369a1;">
-                    ${studentAvg !== "-" ? "⭐" + studentAvg : "-"} </td>
-            `;
+                    ${studentAvg !== "-" ? "⭐" + studentAvg : "-"}
+                </td>
+                <td style="background:#f1f5f9;"></td> `;
             tableBody.appendChild(row2);
         });
     }
 
-    // עדכון ממוצעים כיתתיים ב-tfoot (ללא שינוי)
+    // עדכון ממוצעים כיתתיים ב-tfoot
     keys.forEach(k => {
         const el = document.getElementById(`avg-${k}`);
         if (el) {
@@ -290,7 +292,7 @@ function updateUI(data) {
         }
     });
 
-    // עדכון כרטיסיות עליונות (ללא שינוי)
+    // עדכון מונים למעלה
     document.getElementById('active-students-count').textContent = activeInLast10;
     document.getElementById('total-requests').textContent = data.totalRequests || 0;
     const finalAvg = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
