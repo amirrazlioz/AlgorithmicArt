@@ -969,6 +969,7 @@ public class RemoteServer {
 				userActivityStats.clear();
 				lastSeenMap.clear();
 				totalRequestsCounter.set(0);
+				feedbackRatings.clear();
 
 				String resp = "{\"status\":\"reset_success\"}";
 				t.sendResponseHeaders(200, resp.length());
