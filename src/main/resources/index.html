@@ -2983,6 +2983,58 @@ function enableTabOnAllTextareas() {
     });
 }
 
+async function rateTask(btn, score) {
+    // 1. מציאת הורה האפשרויות הספציפי של המשימה הזו
+    const optionsContainer = btn.parentElement;
+    
+    // 2. הסרת מחלקת active מכל העיגולים בתוך המשימה הזו בלבד
+    const allCirclesInThisChallenge = optionsContainer.querySelectorAll('.rating-circle');
+    allCirclesInThisChallenge.forEach(circle => {
+        circle.classList.remove('active');
+    });
+    
+    // 3. הוספת active רק לעיגול שנלחץ כעת
+    btn.classList.add('active');
+    
+    // 4. שליפת מספר המשימה ותיעוד הפעולה המקומית
+    const challengeNum = optionsContainer.getAttribute('data-challenge');
+    
+    if (challengeNum === "55") {
+        creativeRecordAction(`דירוג משימה ${challengeNum}`, `ציון עניין: ${score}/5`);
+    } else {
+        recordAction(`דירוג משימה ${challengeNum}`, `ציון עניין: ${score}/5`);
+    }
+
+    // --- החלק החדש: שליחה לשרת (API) ---
+    
+    // תרגום מספר המשימה לשם המפתח שהשרת והאדמין מכירים
+    // אם challengeNum הוא "1", זה יהיה "run1". אם "55" (Creative), זה יהיה "run-creative"
+    let taskId = (challengeNum === "55") ? "run-creative" : "run" + challengeNum;
+
+    try {
+        const response = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                taskId: taskId,
+                rating: score
+            })
+        });
+
+        if (response.ok) {
+            console.log(`משימה ${taskId} דורגה בשרת כ-${score}`);
+        }
+    } catch (error) {
+        console.error("שגיאה בשליחת הדירוג לשרת:", error);
+    }
+    
+    // חיווי ב-console לדיבוג
+    console.log(`משימה ${challengeNum} דורגה מקומית כ-${score}`);
+}
+
+/*
 function rateTask(btn, score) {
     // 1. מציאת הורה האפשרויות הספציפי של המשימה הזו
     const optionsContainer = btn.parentElement;
@@ -3008,6 +3060,8 @@ function rateTask(btn, score) {
     // חיווי קטן ב-console לדיבוג
     console.log(`משימה ${challengeNum} דורגה כ-${score}`);
 }
+*/
+
 
 // הפעלה ברגע שהדף נטען
 document.addEventListener('DOMContentLoaded', () => {

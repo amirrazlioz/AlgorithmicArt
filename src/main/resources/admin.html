@@ -117,7 +117,6 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <header>
         <h1>Algorithmic Art - Dashboard</h1>
@@ -133,45 +132,41 @@
             <div class="stat-label">סך הרצות קוד היום</div>
             <div id="total-requests" class="stat-value">0</div>
         </div>
+        <div class="card">
+            <div class="stat-label">מדד עניין כיתתי (ממוצע)</div>
+            <div id="avg-rating" class="stat-value" style="color: #0ea5e9;">0.0</div>
+        </div>
     </div>
 
     <div class="main-grid">
         <div class="card">
             <h3>רשימת תלמידים מחוברים</h3>
-		<table>
-	<thead>
-		<tr>
-			<th>שם התלמיד</th>
-			<th>IP</th>
-			<th style="text-align:center;">Level 1</th>
-			<th style="text-align:center;">Level 2</th>
-			<th style="text-align:center;">Level 3</th>
-			<th style="text-align:center;">Level 4</th>
-			<th style="text-align:center;">Level 5</th>
-			<th style="text-align:center;">Level 6</th>
-			<th style="text-align:center;">Creative</th>
-			<th style="text-align:center; background-color: #f1f5f9;">סה"כ</th>
-			<th>סטטוס</th>
-			</tr>
-	</thead>
-			<tbody id="students-table-body">
-				</tbody>
-		</table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>שם התלמיד</th>
+                        <th>IP</th>
+                        <th style="text-align:center;">Level 1</th>
+                        <th style="text-align:center;">Level 2</th>
+                        <th style="text-align:center;">Level 3</th>
+                        <th style="text-align:center;">Level 4</th>
+                        <th style="text-align:center;">Level 5</th>
+                        <th style="text-align:center;">Level 6</th>
+                        <th style="text-align:center;">Creative</th>
+                        <th style="text-align:center; background-color: #f1f5f9;">סה"כ</th>
+                        <th>סטטוס</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table-body"></tbody>
+            </table>
         </div>
     </div>
-	
 
-		
-	<div style="margin-bottom: 20px; display: flex; gap: 10px;">
-    <button onclick="exportToCSV()" style="background-color: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;">
-        📥 ייצוא ל-Excel (CSV)
-    </button>
-
-    <button onclick="resetAllData()" style="background-color: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-        🗑️ איפוס נתונים
-    </button>
-	</div>
-
+    <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <button onclick="exportToCSV()" style="background-color: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">📥 ייצוא ל-Excel</button>
+        <button onclick="resetAllData()" style="background-color: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">🗑️ איפוס נתונים</button>
+    </div>
 </div>
 
 <script>
@@ -189,7 +184,8 @@
             document.getElementById('last-update').innerText = "שגיאת חיבור לשרת";
         }
     }
-
+	
+	
 	function updateUI(data) {
 		const tableBody = document.getElementById('students-table-body');
 		if (!tableBody) return;
@@ -198,6 +194,10 @@
 		const now = Date.now();
 		const tenMinutes = 10 * 60 * 1000;
 		let activeInLast10 = 0;
+		
+		// משתנים לחישוב ממוצע כיתתי
+		let totalRatingSum = 0;
+		let totalRatingCount = 0;
 
 		if (data.activeStudents) {
 			data.activeStudents.forEach(student => {
@@ -205,45 +205,55 @@
 				const isActiveNow = (now - lastSeen) < tenMinutes;
 				if (isActiveNow) activeInLast10++;
 
-				// פענוח המונים מתוך ה-details
 				const stats = student.details ? JSON.parse(student.details) : {};
+				const ratings = student.ratingsJson ? JSON.parse(student.ratingsJson) : {};
 				
-				// רשימת המפתחות שאנחנו מצפים להם מהשרת
 				const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
 				
-				// יצירת תאי ה-HTML עבור המונים (אם לא קיים, נציג 0)
-				const statsCells = keys.map(key => 
-					`<td style="text-align:center; color: ${stats[key] ? '#1e293b' : '#cbd5e1'}">
-						${stats[key] || 0}
-					</td>`
-				).join('');
+				const statsCells = keys.map(key => {
+					const count = stats[key] || 0;
+					const rating = ratings[key] || 0;
+					
+					if (rating > 0) {
+						totalRatingSum += rating;
+						totalRatingCount++;
+					}
+
+					const ratingHtml = rating > 0 
+						? `<div style="margin-top:4px; background:#e0f7fa; color:#006064; font-size:0.75em; padding:1px 6px; border-radius:10px; border:1px solid #b2ebf2; font-weight:bold; display:inline-block;">⭐${rating}</div>` 
+						: '<div style="height:18px;"></div>';
+
+					return `
+						<td style="text-align:center; border-left: 1px solid #f1f5f9;">
+							<div style="color: ${count ? '#1e293b' : '#cbd5e1'}; font-weight:${count ? 'bold' : 'normal'};">${count}</div>
+							${ratingHtml}
+						</td>`;
+				}).join('');
 
 				const row = document.createElement('tr');
 				row.innerHTML = `
 					<td><strong>${student.name || 'אנונימי'}</strong></td>
 					<td><code style="font-size:0.8em;">${student.ip}</code></td>
 					${statsCells}
-					<td style="text-align:center; font-weight:bold; background-color: #f8fafc;">
-						${student.runCount || 0}
-					</td>
+					<td style="text-align:center; font-weight:bold; background-color: #f8fafc;">${student.runCount || 0}</td>
 					<td>
 						<span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
 							${isActiveNow ? '● פעיל' : 'לא פעיל'}
 						</span>
 					</td>
-					
+					<td><button class="btn-view" onclick="viewCode('${student.ip}')">צפה</button></td>
 				`;
 				tableBody.appendChild(row);
 			});
 		}
 
-		// עדכון המונים בראש הדף
-		if (document.getElementById('active-students-count')) 
-			document.getElementById('active-students-count').textContent = activeInLast10;
-		if (document.getElementById('total-requests')) 
-			document.getElementById('total-requests').textContent = data.totalRequests || 0;
+		// עדכון המונים והממוצע
+		if (document.getElementById('active-students-count')) document.getElementById('active-students-count').textContent = activeInLast10;
+		if (document.getElementById('total-requests')) document.getElementById('total-requests').textContent = data.totalRequests || 0;
+		
+		const avg = totalRatingCount > 0 ? (totalRatingSum / totalRatingCount).toFixed(1) : "0.0";
+		if (document.getElementById('avg-rating')) document.getElementById('avg-rating').textContent = avg;
 	}
-
 	
 	async function resetAllData() {
 		if (!confirm("האם אתה בטוח?")) return;

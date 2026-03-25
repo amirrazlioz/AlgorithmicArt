@@ -41,6 +41,9 @@ public class RemoteServer {
 	
 	// במקום או בנוסף ל-onlineUsers, נשתמש בזה כדי לעקוב אחרי זמן:
 	private static final Map<String, Long> lastSeenMap = new ConcurrentHashMap<>();
+	
+	// IP -> (TaskName -> Rating)
+	private static final Map<String, Map<String, Integer>> feedbackRatings = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
@@ -92,6 +95,7 @@ public class RemoteServer {
 		// --- נתיב חדש: רישום שם תלמיד ---
 		server.createContext("/api/register", new RegisterHandler());
 		server.createContext("/api/reset-all", new ResetAllHandler());
+		server.createContext("/api/feedback", new FeedbackHandler());
 		
 		// נתיבי ההרצה הקיימים שלך
 		server.createContext("/run1", new RunHandler1());
@@ -865,6 +869,9 @@ public class RemoteServer {
 				long lastSeen = lastSeenMap.getOrDefault(ip, 0L);
 				s.put("lastSeen", String.valueOf(lastSeen));
 				
+				Map<String, Integer> userRatings = feedbackRatings.getOrDefault(ip, new HashMap<>());
+				s.put("ratingsJson", new Gson().toJson(userRatings));
+				
 				s.put("status", "פעיל");
 				studentsList.add(s);
 			}
@@ -974,6 +981,32 @@ public class RemoteServer {
 			t.close();
 		}
 	}
+	
+	static class FeedbackHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+				try (InputStream is = t.getRequestBody()) {
+					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+					JsonObject json = new Gson().fromJson(body, JsonObject.class);
+					
+					String taskId = json.get("taskId").getAsString(); // למשל "run1"
+					int rating = json.get("rating").getAsInt();
+					String ip = getClientIp(t);
+					
+					// שמירה בתוך המפה הפנימית של התלמיד
+					feedbackRatings.computeIfAbsent(ip, k -> new ConcurrentHashMap<>())
+								   .put(taskId, rating);
+					
+					lastSeenMap.put(ip, System.currentTimeMillis());
+					sendTextResponse(t, 200, "{\"status\":\"ok\"}");
+				}
+			}
+			t.close();
+		}
+	}
+
 	
 }	
 
