@@ -153,26 +153,23 @@
 						<th style="text-align:center;">Level 5</th>
 						<th style="text-align:center;">Level 6</th>
 						<th style="text-align:center;">Creative</th>
+						<th style="text-align:center; background-color: #f0f9ff;">ממוצע עניין</th> 
 						<th style="text-align:center; background-color: #f1f5f9;">סה"כ</th>
 						<th>סטטוס</th>
-						<th>פעולות</th>
 					</tr>
 				</thead>
-				
-				<tbody id="students-table-body">
-					</tbody>
-
-				<tfoot style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #e2e8f0;">
+				<tbody id="students-table-body"></tbody>
+				<tfoot style="background-color: #f8fafc; font-weight: bold;">
 					<tr>
-						<td colspan="2" style="text-align: left; padding-left: 15px;">ממוצע עניין (⭐):</td>
-						<td id="avg-run1" style="text-align:center; color: #0369a1;">-</td>
-						<td id="avg-run2" style="text-align:center; color: #0369a1;">-</td>
-						<td id="avg-run3" style="text-align:center; color: #0369a1;">-</td>
-						<td id="avg-run4" style="text-align:center; color: #0369a1;">-</td>
-						<td id="avg-run5" style="text-align:center; color: #0369a1;">-</td>
-						<td id="avg-run6" style="text-align:center; color: #0369a1;">-</td>
-						<td id="avg-run-creative" style="text-align:center; color: #0369a1;">-</td>
-						<td colspan="3"></td>
+						<td colspan="2" style="text-align: left; padding-left: 15px;">ממוצע עניין ⭐:</td>
+						<td id="avg-run1" style="text-align:center;">-</td>
+						<td id="avg-run2" style="text-align:center;">-</td>
+						<td id="avg-run3" style="text-align:center;">-</td>
+						<td id="avg-run4" style="text-align:center;">-</td>
+						<td id="avg-run5" style="text-align:center;">-</td>
+						<td id="avg-run6" style="text-align:center;">-</td>
+						<td id="avg-run-creative" style="text-align:center;">-</td>
+						<td style="background-color: #f0f9ff;"></td> <td colspan="2"></td>
 					</tr>
 				</tfoot>
 			</table>
@@ -209,14 +206,10 @@
 
 		const now = Date.now();
 		const tenMinutes = 10 * 60 * 1000;
-		let activeInLast10 = 0;
 		
-		// משתנים לחישוב ממוצע כיתתי כללי (עבור הכרטיסייה למעלה)
-		let totalRatingSum = 0;
-		let totalRatingCount = 0;
-
-		// אובייקטים לחישוב ממוצע לכל משימה בנפרד (עבור השורה בתחתית)
 		const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
+		
+		// מונים לממוצעים בתחתית הטבלה
 		const columnTotals = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
 		const columnCounts = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
 
@@ -224,27 +217,25 @@
 			data.activeStudents.forEach(student => {
 				const lastSeen = parseInt(student.lastSeen) || 0;
 				const isActiveNow = (now - lastSeen) < tenMinutes;
-				if (isActiveNow) activeInLast10++;
 
-				// הגנה מפני קריסה בפענוח הנתונים
 				let stats = {};
 				let ratings = {};
 				try {
 					stats = student.details ? JSON.parse(student.details) : {};
 					ratings = student.ratingsJson ? JSON.parse(student.ratingsJson) : {};
-				} catch (e) {
-					console.error("Error parsing JSON for student", student.ip, e);
-				}
-				
+				} catch (e) { ratings = {}; stats = {}; }
+
+				// חישוב ממוצע אישי לתלמיד זה
+				let studentRatingSum = 0;
+				let studentRatingCount = 0;
+
 				const statsCells = keys.map(key => {
 					const count = stats[key] || 0;
 					const rating = parseInt(ratings[key]) || 0;
 					
 					if (rating > 0) {
-						// עדכון מונים כלליים
-						totalRatingSum += rating;
-						totalRatingCount++;
-						// עדכון מונים ספציפיים לעמודה
+						studentRatingSum += rating;
+						studentRatingCount++;
 						columnTotals[key] += rating;
 						columnCounts[key]++;
 					}
@@ -253,18 +244,23 @@
 						? `<div style="margin-top:4px; background:#e0f7fa; color:#006064; font-size:0.75em; padding:1px 6px; border-radius:10px; border:1px solid #b2ebf2; font-weight:bold; display:inline-block;">⭐${rating}</div>` 
 						: '<div style="height:18px;"></div>';
 
-					return `
-						<td style="text-align:center; border-left: 1px solid #f1f5f9;">
-							<div style="color: ${count ? '#1e293b' : '#cbd5e1'}; font-weight:${count ? 'bold' : 'normal'};">${count}</div>
-							${ratingHtml}
-						</td>`;
+					return `<td style="text-align:center; border-left: 1px solid #f1f5f9;">
+								<div>${count}</div>
+								${ratingHtml}
+							</td>`;
 				}).join('');
+
+				// חישוב תוצאת הממוצע האישי
+				const studentAvg = studentRatingCount > 0 ? (studentRatingSum / studentRatingCount).toFixed(1) : "-";
 
 				const row = document.createElement('tr');
 				row.innerHTML = `
 					<td><strong>${student.name || 'אנונימי'}</strong></td>
 					<td><code style="font-size:0.8em;">${student.ip}</code></td>
 					${statsCells}
+					<td style="text-align:center; font-weight:bold; background-color: #f0f9ff; color: #0369a1;">
+						${studentAvg !== "-" ? "⭐ " + studentAvg : "-"}
+					</td>
 					<td style="text-align:center; font-weight:bold; background-color: #f8fafc;">${student.runCount || 0}</td>
 					<td>
 						<span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
@@ -276,25 +272,16 @@
 			});
 		}
 
-		// עדכון שורת הממוצעים בתחתית הטבלה (tfoot)
+		// עדכון שורת הממוצעים בתחתית (tfoot) - אותו קוד מהשלב הקודם
 		keys.forEach(key => {
 			const avgElement = document.getElementById(`avg-${key}`);
 			if (avgElement) {
 				if (columnCounts[key] > 0) {
 					const avg = (columnTotals[key] / columnCounts[key]).toFixed(1);
-					avgElement.innerHTML = `<span style="color: #0369a1;">⭐ ${avg}</span><br><small style="font-weight:normal; color:#64748b; font-size:0.7em;">(${columnCounts[key]})</small>`;
-				} else {
-					avgElement.innerText = "-";
-				}
+					avgElement.innerHTML = `<span style="color: #0369a1;">⭐ ${avg}</span><br><small style="font-size:0.7em;">(${columnCounts[key]})</small>`;
+				} else { avgElement.innerText = "-"; }
 			}
 		});
-
-		// עדכון המונים והממוצע הכללי בכרטיסיות למעלה
-		if (document.getElementById('active-students-count')) document.getElementById('active-students-count').textContent = activeInLast10;
-		if (document.getElementById('total-requests')) document.getElementById('total-requests').textContent = data.totalRequests || 0;
-		
-		const globalAvg = totalRatingCount > 0 ? (totalRatingSum / totalRatingCount).toFixed(1) : "0.0";
-		if (document.getElementById('avg-rating')) document.getElementById('avg-rating').textContent = globalAvg;
 	}
 	
 	async function resetAllData() {
