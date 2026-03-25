@@ -3166,6 +3166,17 @@ window.addEventListener('load', () => {
     }
 });
 
+// קוד זה ירוץ בכל פעם שתלמיד נכנס לדף או מרענן אותו
+window.onload = function() {
+    fetch('/api/reset-all', { 
+        method: 'POST' 
+    })
+    .then(response => {
+        console.log("נתוני ה-Admin אופסו עקב רענון דף index");
+    })
+    .catch(err => console.error("שגיאה באיפוס הנתונים:", err));
+};
+
 // הפעלה ברגע שה-HTML מוכן
 document.addEventListener('DOMContentLoaded', setupJavaEditors);
 </script>
