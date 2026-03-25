@@ -174,6 +174,43 @@
 				</tfoot>
 			</table>
         </div>
+		
+		<div class="card">
+			<h3>רשימת תלמידים מחוברים</h3>
+			<table>
+				<thead>
+					<tr>
+						<th>שם התלמיד</th>
+						<th>IP</th>
+						<th style="text-align:center;">Level 1</th>
+						<th style="text-align:center;">Level 2</th>
+						<th style="text-align:center;">Level 3</th>
+						<th style="text-align:center;">Level 4</th>
+						<th style="text-align:center;">Level 5</th>
+						<th style="text-align:center;">Level 6</th>
+						<th style="text-align:center;">Creative</th>
+						<th style="text-align:center; background:#f0f9ff;">ממוצע תלמיד ⭐</th>
+						<th style="text-align:center; background:#f1f5f9;">סה"כ</th>
+						<th>סטטוס</th>
+					</tr>
+				</thead>
+				<tbody id="students-table-body">
+					</tbody>
+				<tfoot style="background: #f8fafc; font-weight: bold; border-top: 2px solid #cbd5e1;">
+					<tr>
+						<td colspan="2" style="text-align: left; padding-left: 15px;">ממוצע כיתתי (⭐):</td>
+						<td id="avg-run1" style="text-align:center;">-</td>
+						<td id="avg-run2" style="text-align:center;">-</td>
+						<td id="avg-run3" style="text-align:center;">-</td>
+						<td id="avg-run4" style="text-align:center;">-</td>
+						<td id="avg-run5" style="text-align:center;">-</td>
+						<td id="avg-run6" style="text-align:center;">-</td>
+						<td id="avg-run-creative" style="text-align:center;">-</td>
+						<td colspan="4"></td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>	
     </div>
 
     <div style="margin-top: 20px; display: flex; gap: 10px;">
@@ -206,14 +243,12 @@
 
 		const now = Date.now();
 		const tenMinutes = 10 * 60 * 1000;
-		let activeInLast10 = 0;
+		const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
 		
-		// משתנים לממוצע כיתתי כללי (לכרטיסייה למעלה)
+		let activeInLast10 = 0;
 		let globalRatingSum = 0;
 		let globalRatingCount = 0;
 
-		// משתנים לממוצע לכל עמודה (ל-tfoot)
-		const keys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
 		const colTotals = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
 		const colCounts = { run1: 0, run2: 0, run3: 0, run4: 0, run5: 0, run6: 0, 'run-creative': 0 };
 
@@ -223,90 +258,76 @@
 				const isActiveNow = (now - lastSeen) < tenMinutes;
 				if (isActiveNow) activeInLast10++;
 
-				// הגנה על פענוח ה-JSON
-				let stats = {};
-				let ratings = {};
+				let stats = {}, ratings = {};
 				try {
 					if (student.details) stats = JSON.parse(student.details);
 					if (student.ratingsJson) ratings = JSON.parse(student.ratingsJson);
-				} catch (e) { console.error("JSON error for IP " + student.ip, e); }
+				} catch (e) { console.error("JSON Error:", e); }
 
-				let studentRatingSum = 0;
-				let studentRatingCount = 0;
-
-				const statsCells = keys.map(key => {
-					const count = stats[key] || 0;
-					const rating = parseInt(ratings[key]) || 0;
-					
-					if (rating > 0) {
-						globalRatingSum += rating;
-						globalRatingCount++;
-						colTotals[key] += rating;
-						colCounts[key]++;
-						studentRatingSum += rating;
-						studentRatingCount++;
+				// חישוב ממוצע אישי
+				let sSum = 0, sCount = 0;
+				keys.forEach(k => {
+					const r = parseInt(ratings[k]) || 0;
+					if (r > 0) {
+						sSum += r; sCount++;
+						colTotals[k] += r; colCounts[k]++;
+						globalRatingSum += r; globalRatingCount++;
 					}
+				});
+				const studentAvg = sCount > 0 ? (sSum / sCount).toFixed(1) : "-";
 
-					const ratingHtml = rating > 0 
-						? `<div style="margin-top:4px; background:#e0f7fa; color:#006064; font-size:0.75em; padding:1px 6px; border-radius:10px; border:1px solid #b2ebf2; font-weight:bold; display:inline-block;">⭐${rating}</div>` 
-						: '<div style="height:18px;"></div>';
+				// שורה 1: פרטים והרצות
+				const row1 = document.createElement('tr');
+				row1.style.borderTop = "2px solid #cbd5e1";
+				
+				const runCells = keys.map(k => `<td style="text-align:center; font-weight:bold;">${stats[k] || 0}</td>`).join('');
 
-					return `<td style="text-align:center; border-left: 1px solid #f1f5f9;">
-								<div style="color: ${count ? '#1e293b' : '#cbd5e1'}; font-weight:${count ? 'bold' : 'normal'};">${count}</div>
-								${ratingHtml}
-							</td>`;
-				}).join('');
-
-				const studentAvg = studentRatingCount > 0 ? (studentRatingSum / studentRatingCount).toFixed(1) : "-";
-
-				const row = document.createElement('tr');
-				row.innerHTML = `
-					<td><strong>${student.name || 'אנונימי'}</strong></td>
-					<td><code style="font-size:0.8em;">${student.ip}</code></td>
-					${statsCells}
-					<td style="text-align:center; font-weight:bold; background-color: #f0f9ff; color: #0369a1;">
-						${studentAvg !== "-" ? "⭐ " + studentAvg : "-"}
-					</td>
-					<td style="text-align:center; font-weight:bold; background-color: #f8fafc;">${student.runCount || 0}</td>
-					<td>
+				row1.innerHTML = `
+					<td rowspan="2" style="vertical-align:middle; border-left:1px solid #e2e8f0;"><strong>${student.name || 'אנונימי'}</strong></td>
+					<td rowspan="2" style="vertical-align:middle; border-left:1px solid #e2e8f0;"><code style="font-size:0.8em;">${student.ip}</code></td>
+					${runCells}
+					<td rowspan="2" style="text-align:center; font-weight:bold; background:#f0f9ff; vertical-align:middle; color:#0369a1;">${studentAvg !== "-" ? "⭐" + studentAvg : "-"}</td>
+					<td rowspan="2" style="text-align:center; font-weight:bold; background:#f8fafc; vertical-align:middle;">${student.runCount || 0}</td>
+					<td rowspan="2" style="vertical-align:middle; text-align:center;">
 						<span class="status-pill" style="background: ${isActiveNow ? '#dcfce7' : '#f1f5f9'}; color: ${isActiveNow ? '#166534' : '#64748b'};">
 							${isActiveNow ? '● פעיל' : 'לא פעיל'}
 						</span>
 					</td>
+					<td rowspan="2" style="vertical-align:middle; text-align:center;">
+						<button class="btn btn-primary" onclick="viewCode('${student.ip}')" style="padding:4px 8px; font-size:0.8em;">צפה בקוד</button>
+					</td>
 				`;
-				tableBody.appendChild(row);
+				tableBody.appendChild(row1);
+
+				// שורה 2: דירוגים
+				const row2 = document.createElement('tr');
+				row2.innerHTML = keys.map(k => {
+					const r = parseInt(ratings[k]) || 0;
+					return `<td style="text-align:center; background-color: #f8fafc; color:#0ea5e9; font-size:0.8em; font-weight:bold; border-bottom:1px solid #e2e8f0;">${r > 0 ? "⭐" + r : "-"}</td>`;
+				}).join('');
+				tableBody.appendChild(row2);
 			});
 		}
 
-		// --- עדכון כל המונים בדף (חשוב: מחוץ ללולאת התלמידים!) ---
-
-		// 1. כרטיסיות למעלה
-		if (document.getElementById('active-students-count')) 
-			document.getElementById('active-students-count').textContent = activeInLast10;
-		
-		if (document.getElementById('total-requests')) 
-			document.getElementById('total-requests').textContent = data.totalRequests || 0;
-		
-		const avgScore = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
-		if (document.getElementById('avg-rating')) 
-			document.getElementById('avg-rating').textContent = avgScore;
-
-		// 2. ממוצעים בתחתית הטבלה
-		keys.forEach(key => {
-			const el = document.getElementById(`avg-${key}`);
+		// עדכון ממוצעי עמודות בתחתית
+		keys.forEach(k => {
+			const el = document.getElementById(`avg-${k}`);
 			if (el) {
-				if (colCounts[key] > 0) {
-					const avg = (colTotals[key] / colCounts[key]).toFixed(1);
-					el.innerHTML = `<span style="color: #0369a1;">⭐ ${avg}</span>`;
-				} else {
-					el.innerText = "-";
-				}
+				if (colCounts[k] > 0) el.innerHTML = `<span style="color:#0369a1;">⭐${(colTotals[k]/colCounts[k]).toFixed(1)}</span>`;
+				else el.innerText = "-";
 			}
 		});
 
-		if (document.getElementById('last-update')) 
-			document.getElementById('last-update').textContent = "עודכן לאחרונה: " + new Date().toLocaleTimeString();
+		// עדכון המונים למעלה
+		if (document.getElementById('active-students-count')) document.getElementById('active-students-count').textContent = activeInLast10;
+		if (document.getElementById('total-requests')) document.getElementById('total-requests').textContent = data.totalRequests || 0;
+		
+		const finalAvg = globalRatingCount > 0 ? (globalRatingSum / globalRatingCount).toFixed(1) : "0.0";
+		if (document.getElementById('avg-rating')) document.getElementById('avg-rating').textContent = finalAvg;
 	}
+	
+	
+	
 	
 	async function resetAllData() {
 		if (!confirm("האם אתה בטוח?")) return;
@@ -350,50 +371,25 @@
 	
 	function exportToCSV() {
 		const rows = document.querySelectorAll("table tr");
-		let csvContent = "\uFEFF"; // BOM לעברית תקינה
+		let csvContent = "\uFEFF"; 
 
-		rows.forEach((row, index) => {
+		rows.forEach((row) => {
 			const rowData = [];
 			const cols = row.querySelectorAll("td, th");
-			
-			cols.forEach((col, colIndex) => {
-				// דילוג על עמודת ה"פעולות" (הכפתור האחרון)
-				if (colIndex < cols.length - 1) {
-					let cellText = "";
-
-					// בדיקה אם זה תא של Level (תא שמכיל מספר וגם דירוג בנפרד)
-					const countDiv = col.querySelector('div:first-child'); // מספר ההרצות
-					const ratingDiv = col.querySelector('div[style*="background"]'); // בועת הסטאר
-
-					if (countDiv && ratingDiv) {
-						// הפרדה לשתי שורות בתוך התא
-						const count = countDiv.innerText.trim();
-						const rating = ratingDiv.innerText.trim();
-						cellText = `${count}\n${rating}`; 
-					} else {
-						// תא רגיל (שם, IP וכו') - מנקים ירידות שורה קיימות כדי לא לשבור את ה-CSV
-						cellText = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
-					}
-
-					// עטיפה בגרשיים כפולות היא קריטית כדי שאקסל יבין שה-\n הוא ירידת שורה פנימית
-					rowData.push(`"${cellText}"`);
-				}
+			cols.forEach((col) => {
+				let text = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
+				rowData.push(`"${text}"`);
 			});
-
-			csvContent += rowData.join(",") + "\n";
+			if (rowData.length > 0) csvContent += rowData.join(",") + "\n";
 		});
 
-		// יצירת הקובץ והורדה
 		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 		const link = document.createElement("a");
-		const url = URL.createObjectURL(blob);
-		link.setAttribute("href", url);
-		link.setAttribute("download", `art_studio_stats_${new Date().toLocaleDateString()}.csv`);
-		document.body.appendChild(link);
+		link.setAttribute("href", URL.createObjectURL(blob));
+		link.setAttribute("download", `art_studio_report_${new Date().toLocaleDateString()}.csv`);
 		link.click();
-		document.body.removeChild(link);
 	}
-
+	
     // הפעלה ראשונית ורענון כל 5 שניות
     fetchData();
     setInterval(fetchData, 5000);
