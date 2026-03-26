@@ -3186,12 +3186,13 @@ async function registerStudentOnServer(name) {
 
 // קוד שישחזר את השם מהזיכרון אם התלמיד מרענן את הדף
 window.addEventListener('load', () => {
-    const savedName = sessionStorage.getItem('studentName');
+    // שינוי ל-localStorage
+    const savedName = localStorage.getItem('studentName'); 
+    
     if (savedName) {
         const nameInput = document.getElementById('studentName');
         if (nameInput) {
             nameInput.value = savedName;
-            // שליחה לשרת גם בטעינה כדי לסמן שהתלמיד עדיין פעיל
             registerStudentOnServer(savedName);
         }
     }
