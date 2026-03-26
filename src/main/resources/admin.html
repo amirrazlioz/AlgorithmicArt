@@ -371,7 +371,7 @@ function exportToCSV() {
         if (cells.length < 10) return; // הגנה משורות ריקות
 
         const name = cells[0].querySelector("div")?.innerText || "אורח";
-        const ip = cells[1].querySelectorAll("div")[1]?.innerText || "";
+        const ip = cells[1].querySelector("div")?.innerText || "";
         const studentAvg = cells[cells.length - 3].innerText; // עמודת ממוצע ⭐
         const totalRuns = cells[cells.length - 2].innerText; // עמודת סה"כ
         const status = cells[cells.length - 1].innerText;    // עמודת סטטוס
