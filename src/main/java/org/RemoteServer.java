@@ -1,9 +1,6 @@
 package org;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.net.URI;
 
 import com.sun.net.httpserver.HttpServer;
@@ -15,23 +12,13 @@ import com.google.gson.JsonObject;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-import java.net.URL;
+
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.time.Instant;
@@ -530,7 +517,7 @@ public class RemoteServer {
 			System.err.println("Error updating DB for " + taskName + ": " + e.getMessage());
 		}
 	}
-
+	
 	static class RunHandler1 implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {		
 			String ip = getClientIp(t);
@@ -928,12 +915,12 @@ public class RemoteServer {
             int totalGlobalRuns = 0;
 
             try (Connection conn = getConnection()) {
-                // שליפת כל הנתונים מה-DB
-                String sql = "SELECT name, ip, total_runs, last_seen, ratings, run_counts FROM students ORDER BY last_seen DESC";
+                String sql = "SELECT * FROM students ORDER BY last_seen DESC";
                 try (PreparedStatement pstmt = conn.prepareStatement(sql);
                      ResultSet rs = pstmt.executeQuery()) {
                     
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.systemDefault());
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm")
+                                                    .withZone(ZoneId.of("Israel"));
 
                     while (rs.next()) {
                         Map<String, String> s = new HashMap<>();
@@ -944,13 +931,11 @@ public class RemoteServer {
                         s.put("runCount", String.valueOf(runs));
                         totalGlobalRuns += runs;
 
-                        // המרת זמן למחרוזת קריאה
                         long ts = rs.getLong("last_seen");
                         s.put("lastSeen", ts > 0 ? formatter.format(Instant.ofEpochMilli(ts)) : "לעולם לא");
 
-                        // שליחת ה-JSONB כמחרוזת (ה-Admin ב-JS כבר יעשה JSON.parse)
                         String ratings = rs.getString("ratings");
-                        s.put("ratingsJson", (ratings == null) ? "{}" : ratings);
+                        s.put("ratingsJson", (ratings == null || ratings.isEmpty()) ? "{}" : ratings);
                         
                         activeStudents.add(s);
                     }
