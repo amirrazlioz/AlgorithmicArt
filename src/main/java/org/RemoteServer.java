@@ -893,60 +893,52 @@ public class RemoteServer {
 	}
 	
 	static class AdminStatsHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange t) throws IOException {
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+    @Override
+    public void handle(HttpExchange t) throws IOException {
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 
-            List<Map<String, String>> activeStudents = new ArrayList<>();
-            int totalGlobalRuns = 0;
+        List<Map<String, String>> activeStudents = new ArrayList<>();
+        int totalGlobalRuns = 0;
 
-            try (Connection conn = getConnection()) {
-                String sql = "SELECT * FROM students ORDER BY last_seen DESC";
-                try (PreparedStatement pstmt = conn.prepareStatement(sql);
-                     ResultSet rs = pstmt.executeQuery()) {
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT * FROM students ORDER BY last_seen DESC";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                 ResultSet rs = pstmt.executeQuery()) {
+                
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.of("Israel"));
+
+                while (rs.next()) {
+                    Map<String, String> s = new HashMap<>();
+                    s.put("name", rs.getString("name"));
+                    s.put("ip", rs.getString("ip"));
                     
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm")
-                                                    .withZone(ZoneId.of("Israel"));
+                    int runs = rs.getInt("total_runs");
+                    s.put("runCount", String.valueOf(runs));
+                    totalGlobalRuns += runs;
 
-					while (rs.next()) {
-						Map<String, String> s = new HashMap<>();
-						s.put("name", rs.getString("name"));
-						s.put("ip", rs.getString("ip"));
-						s.put("runCount", String.valueOf(rs.getInt("total_runs"))); // סה"כ כללי
-						
-						// שליפת הנתונים המפורטים לפי רמות (Level)
-						String ratingsJson = rs.getString("ratings");
-						String runCountsJson = rs.getString("run_counts");
-						
-						s.put("ratingsJson", (ratingsJson == null) ? "{}" : ratingsJson);
-						s.put("runCountsJson", (runCountsJson == null) ? "{}" : runCountsJson);
+                    long ts = rs.getLong("last_seen");
+                    s.put("lastSeen", ts > 0 ? formatter.format(Instant.ofEpochMilli(ts)) : "-");
 
-						// עיבוד זמן
-						long ts = rs.getLong("last_seen");
-						DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.of("Israel"));
-						s.put("lastSeen", ts > 0 ? fmt.format(Instant.ofEpochMilli(ts)) : "לעולם לא");
-
-						activeStudents.add(s);
-					}
-
+                    // השורות הקריטיות - שליחת ה-JSON הגולמי מה-DB ל-Frontend
+                    s.put("ratingsJson", rs.getString("ratings"));
+                    s.put("runCountsJson", rs.getString("run_counts"));
+                    
+                    activeStudents.add(s);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) { e.printStackTrace(); }
 
-            JsonObject resp = new JsonObject();
-            resp.add("activeStudents", new Gson().toJsonTree(activeStudents));
-            resp.addProperty("totalRequests", totalGlobalRuns);
+        JsonObject resp = new JsonObject();
+        resp.add("activeStudents", new Gson().toJsonTree(activeStudents));
+        resp.addProperty("totalRequests", totalGlobalRuns);
 
-            byte[] b = resp.toString().getBytes(StandardCharsets.UTF_8);
-            t.sendResponseHeaders(200, b.length);
-            try (OutputStream os = t.getResponseBody()) {
-                os.write(b);
-            }
-            t.close();
-        }
+        byte[] b = resp.toString().getBytes(StandardCharsets.UTF_8);
+        t.sendResponseHeaders(200, b.length);
+        try (OutputStream os = t.getResponseBody()) { os.write(b); }
+        t.close();
     }
+}
 
 	/*
 
