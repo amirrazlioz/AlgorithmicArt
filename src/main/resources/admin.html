@@ -261,6 +261,8 @@ function updateUI(data) {
         tr.innerHTML = `
             <td>
                 <div style="font-weight: bold;">${student.name || 'אורח'}</div>
+			</td>
+			<td>
                 <div style="font-size: 0.7em; color: #64748b;">${student.ip}</div>
             </td>
             <td style="text-align:center;">-</td> 
@@ -415,60 +417,7 @@ function exportToCSV() {
     link.download = `art_studio_report_${dateStr}.csv`;
     link.click();
 }	
-/*	
-function exportToCSV() {
-    const activeStudents = document.getElementById('active-users-count')?.innerText || "0";
-    const totalRequests = document.getElementById('total-requests')?.innerText || "0";
-    const avgRating = document.getElementById('avg-rating')?.innerText || "0.0";
 
-    let csvContent = "\uFEFF"; 
-    csvContent += `"סיכום שיעור - Algorithmic Art Studio"\n`;
-    csvContent += `"תאריך יצוא:","${new Date().toLocaleString('he-IL')}"\n`;
-    csvContent += `"תלמידים פעילים:","${activeStudents}"\n`;
-    csvContent += `"סך הרצות קוד:","${totalRequests}"\n`;
-    csvContent += `"מדד עניין כיתתי:","${avgRating}"\n\n`;
-
-    const table = document.querySelector("table");
-    const rows = Array.from(table.querySelectorAll("thead tr, tbody tr, tfoot tr"));
-    
-    rows.forEach((row) => {
-        let rowRuns = [];
-        let rowRatings = [];
-        let isDataRow = row.parentElement.tagName === 'TBODY';
-
-        Array.from(row.querySelectorAll("th, td")).forEach((cell, index) => {
-            // אם זה תא של Level (אינדקסים 3 עד 9 בטבלה שלך)
-            const divs = cell.querySelectorAll('div');
-            
-            if (isDataRow && divs.length === 2) {
-                // פיצול: ה-div הראשון לשורת הרצות, השני לשורת דירוג
-                rowRuns.push(`"${divs[0].innerText.trim()}"`);
-                rowRatings.push(`"${divs[1].innerText.trim()}"`);
-            } else {
-                // תאים רגילים (שם, IP, וכו')
-                const text = `"${cell.innerText.replace(/"/g, '""').trim()}"`;
-                rowRuns.push(text);
-                // בשורת הדירוג נשאיר ריק בעמודות של השם וה-IP כדי לא לחזור על מידע
-                rowRatings.push(index < 3 ? '""' : text); 
-            }
-        });
-
-        csvContent += rowRuns.join(",") + "\n";
-        // הוספת שורת הדירוג רק אם מדובר בשורת נתונים של תלמיד
-        if (isDataRow) {
-            csvContent += rowRatings.join(",") + "\n";
-        }
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
-    link.download = `art_studio_report_${dateStr}.csv`;
-    link.click();
-}
-
-*/
 
 // הגדרת משתנה גלובלי בתחילת הסקריפט
 let creativeEnabledStatus = true; 
