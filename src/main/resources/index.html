@@ -2015,6 +2015,7 @@ let challenge5 = setupCanvas('canvas5', (x, y) => (x === 2 && y === 4) ? 5 : 1, 
 
 async function runFrameCode() {
     const logElement = document.getElementById('console-log1');
+	const savedName = localStorage.getItem('student_name') || "אורח";
     
     // שליפת הקוד מהעורך המקצועי
     if (!javaEditors['code1']) {
@@ -2034,7 +2035,7 @@ async function runFrameCode() {
             headers: { 'Content-Type': 'application/json' }, 
 			body: JSON.stringify({ 
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
 				code: code, 
 				image: challenge1.img 
 			})
@@ -2103,6 +2104,7 @@ function clearCurrentConsole1(btn) {
 
 async function runDiagonalCode() {
 	const logElement = document.getElementById('console-log2');
+	const savedName = localStorage.getItem('student_name') || "אורח";
     
     // שליפת הקוד מהעורך המקצועי
     if (!javaEditors['code2']) {
@@ -2123,7 +2125,7 @@ async function runDiagonalCode() {
             headers: { 'Content-Type': 'application/json' }, 
 			body: JSON.stringify({ 
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
 				code: code, 
 				image: challenge2.img 
 			})
@@ -2195,6 +2197,7 @@ function clearCurrentConsole2(btn) {
 // עבור משימה 3 (מקסימום)
 async function runMaxCode() {
 	const logElement = document.getElementById('console-log3');
+	const savedName = localStorage.getItem('student_name') || "אורח";
     
     // שליפת הקוד מהעורך המקצועי
     if (!javaEditors['code3']) {
@@ -2217,7 +2220,7 @@ async function runMaxCode() {
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ 
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
 				code: code, 
 				image: challenge3.img 
 			})
@@ -2290,6 +2293,7 @@ function clearCurrentConsole3(btn) {
 // הרצת הקוד למשימה 4
 async function runMinCode() {
 	const logElement = document.getElementById('console-log4');
+	const savedName = localStorage.getItem('student_name') || "אורח";
     
     // שליפת הקוד מהעורך המקצועי
     if (!javaEditors['code4']) {
@@ -2311,7 +2315,7 @@ async function runMinCode() {
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ 
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
 				code: code, 
 				image: challenge4.img 
 			}) 
@@ -2420,6 +2424,7 @@ let currentCount5 = 8;
 // עדכון פונקציית הריצה כדי שתשלח את המספר שהוגרל לשרת
 async function runReplicateCode() {
     const logElement = document.getElementById('console-log5');
+	const savedName = localStorage.getItem('student_name') || "אורח";
     
     // שליפת הקוד מהעורך המקצועי
     if (!javaEditors['code5']) {
@@ -2441,7 +2446,7 @@ async function runReplicateCode() {
             // אנחנו מוסיפים את ה-count ל-JSON שנשלח לשרת		
 			body: JSON.stringify({ 
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
 				code: code, 
 				image: challenge5.img,
 				count: typeof currentCount5 !== 'undefined' ? currentCount5 : 0 				
@@ -2550,6 +2555,7 @@ let challenge6 = setupCanvas('canvas6', (x, y) => (x === 2 && y === 2) ? 8 : 1, 
 
 async function runRectCode() {
     const logElement = document.getElementById('console-log6');
+	const savedName = localStorage.getItem('student_name') || "אורח";
     
     // שליפת הקוד מהעורך המקצועי
     if (!javaEditors['code6']) {
@@ -2570,7 +2576,7 @@ async function runRectCode() {
             headers: { 'Content-Type': 'application/json' }, 			
 			body: JSON.stringify({ 
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
 				code: code, 
 				image: challenge6.img,
 				rows: typeof currentRows6 !== 'undefined' ? currentRows6 : 0, 
@@ -2660,6 +2666,7 @@ function refreshRectReplicator() {
 
 async function runCreativeCode() {
     const logElement = document.getElementById('console-log-creative');
+	const savedName = localStorage.getItem('student_name') || "אורח";
 	   
     // שליפת הקוד מהעורך המקצועי
     if (!javaEditors['creative-code']) {
@@ -2680,7 +2687,7 @@ async function runCreativeCode() {
             headers: { 'Content-Type': 'application/json' }, 
 			body: JSON.stringify({ 
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
 				code: code, 
 				image: creativeChallenge.img 			
 			})				
