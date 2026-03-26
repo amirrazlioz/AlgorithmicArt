@@ -1,15 +1,20 @@
 package org;
 
+package org;
+
 import java.sql.*;
 import java.net.URI;
+import java.net.URL; // חסר
+import java.net.URLClassLoader; // חסר
+import java.net.InetSocketAddress;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.*;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
+import java.nio.file.Files; // חסר
+import java.nio.file.Path;  // מומלץ להוסיף
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -17,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.lang.reflect.Method;
 
 
 public class RemoteServer {
