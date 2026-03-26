@@ -375,20 +375,36 @@ function updateUI(data) {
 	}
 	
 function exportToCSV() {
-    const table = document.querySelector("table");
+    // 1. שליפת הנתונים מהכרטיסיות העליונות
+    const activeStudents = document.getElementById('active-students-count')?.innerText || "0";
+    const totalRequests = document.getElementById('total-requests')?.innerText || "0";
+    const avgRating = document.getElementById('avg-rating')?.innerText || "0.0";
+
+    // 2. יצירת תוכן ה-CSV עם ה-BOM לעברית
     let csvContent = "\uFEFF"; 
+    
+    // הוספת שורות סיכום כלליות בראש האקסל
+    csvContent += `"סיכום שיעור - Algorithmic Art Studio"\n`;
+    csvContent += `"תאריך יצוא:","${new Date().toLocaleString('he-IL')}"\n`;
+    csvContent += `"תלמידים פעילים (10 דק אחרונות):","${activeStudents}"\n`;
+    csvContent += `"סך הרצות קוד היום:","${totalRequests}"\n`;
+    csvContent += `"מדד עניין כיתתי ממוצע:","${avgRating}"\n`;
+    csvContent += `\n`; // שורת רווח לפני הטבלה
+
+    // 3. עיבוד הטבלה הקיימת (הלוגיקה המקורית שלך)
+    const table = document.querySelector("table");
     const rows = Array.from(table.querySelectorAll("tr"));
-    let matrix = []; // מטריצה לייצוג הטבלה באקסל
+    let matrix = []; 
 
     rows.forEach((row, rowIndex) => {
         if (!matrix[rowIndex]) matrix[rowIndex] = [];
         let colIndex = 0;
         
         Array.from(row.querySelectorAll("th, td")).forEach(cell => {
-            // דילוג על תאים שכבר תפוסים ע"י rowspan מלמעלה
             while (matrix[rowIndex][colIndex]) colIndex++;
 
-            const text = `"${cell.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim()}"`;
+            // ניקוי טקסט ממעברי שורה ותווים מיותרים
+            const text = `"${cell.innerText.replace(/(\r\n|\n|\r)/gm, " ").replace(/"/g, '""').trim()}"`;
             const rowspan = parseInt(cell.getAttribute("rowspan")) || 1;
             const colspan = parseInt(cell.getAttribute("colspan")) || 1;
 
@@ -402,12 +418,15 @@ function exportToCSV() {
         });
     });
 
+    // חיבור המטריצה לטקסט ה-CSV
     csvContent += matrix.map(row => row.join(",")).join("\n");
 
+    // 4. הורדת הקובץ
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `art_studio_report_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
+    const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
+    link.download = `art_studio_report_${dateStr}.csv`;
     link.click();
 }
 

@@ -89,8 +89,6 @@ public class RemoteServer {
             }
         });
 
-		
-
 		// --- נתיב חדש: נתונים ל-Dashboard הגרפי ---
 		server.createContext("/api/admin-stats", new AdminStatsHandler());
 		
@@ -1040,9 +1038,7 @@ public class RemoteServer {
 			}
 			t.close();
 		}
-	}
-
-	
+	}	
 }	
 
 	
