@@ -502,6 +502,29 @@ public class RemoteServer {
 		}
 		dir.delete();
 	}
+	
+	private static void updateTaskInDB(String ip, String taskName) {
+		try (Connection conn = getConnection()) {
+			// השאילתה מעדכנת את סך ההרצות הכללי ואת המונה הספציפי בתוך ה-JSON
+			String sql = "UPDATE students SET " +
+						 "total_runs = total_runs + 1, " +
+						 "last_seen = ?, " +
+						 "run_counts = jsonb_set(COALESCE(run_counts, '{}'), ARRAY[?], " +
+						 "(COALESCE(run_counts->>?, '0')::int + 1)::text::jsonb) " +
+						 "WHERE ip = ?";
+			
+			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+				long now = System.currentTimeMillis();
+				pstmt.setLong(1, now);
+				pstmt.setString(2, taskName);
+				pstmt.setString(3, taskName);
+				pstmt.setString(4, ip);
+				pstmt.executeUpdate();
+			}
+		} catch (Exception e) {
+			System.err.println("Error updating DB for " + taskName + ": " + e.getMessage());
+		}
+	}
 
 	static class RunHandler1 implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {		
@@ -509,6 +532,9 @@ public class RemoteServer {
 			incrementUserStat(ip, "run1"); 
 			totalRequestsCounter.incrementAndGet();
 			lastSeenMap.put(ip, System.currentTimeMillis());
+			
+			// אנחנו שולחים את ה-IP ואת שם המשימה "run1"
+            updateTaskInDB(ip, "run1");
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -519,22 +545,23 @@ public class RemoteServer {
 			}
 
 			Gson gson = new Gson();
-
 			try (InputStream is = t.getRequestBody()) {
-				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-				JsonObject request = gson.fromJson(body, JsonObject.class);
-				
-				String code = request.get("code").getAsString();
-				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+					JsonObject request = gson.fromJson(body, JsonObject.class);
+					
+					String code = request.get("code").getAsString();
+					int[][] image = gson.fromJson(request.get("image"), int[][].class);
 
-				// שימוש בפונקציה המרכזית!
-				JsonObject responseJson = executeStudentCodeImage(code, image, "addFrame");
-				
-				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
-				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-				t.sendResponseHeaders(200, b.length);
-				t.getResponseBody().write(b);
-
+					JsonObject responseJson = executeStudentCodeImage(code, image, "addFrame");
+					
+					byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+					t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+					t.sendResponseHeaders(200, b.length);
+					
+					// שימוש ב-try-with-resources כדי לוודא שהתשובה נשלחת ונסגרת
+					try (OutputStream os = t.getResponseBody()) {
+						os.write(b);
+					}
 			} catch (Exception e) {
 				// טיפול בשגיאות (קומפילציה או ריצה)
 				JsonObject errorJson = new JsonObject();
@@ -555,6 +582,9 @@ public class RemoteServer {
 			incrementUserStat(ip, "run2"); 
 			totalRequestsCounter.incrementAndGet();
 			lastSeenMap.put(ip, System.currentTimeMillis());
+			
+			// אנחנו שולחים את ה-IP ואת שם המשימה "run2"
+            updateTaskInDB(ip, "run2");
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -579,9 +609,10 @@ public class RemoteServer {
 				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
 				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 				t.sendResponseHeaders(200, b.length);
-				t.getResponseBody().write(b);
-				
-				
+				// שימוש ב-try-with-resources כדי לוודא שהתשובה נשלחת ונסגרת
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}				
 			} catch (Exception e) {
 				// טיפול בשגיאות (קומפילציה או ריצה)
 				JsonObject errorJson = new JsonObject();
@@ -602,6 +633,9 @@ public class RemoteServer {
 			incrementUserStat(ip, "run3"); 
 			totalRequestsCounter.incrementAndGet();
 			lastSeenMap.put(ip, System.currentTimeMillis());
+			
+			// אנחנו שולחים את ה-IP ואת שם המשימה "run3"
+            updateTaskInDB(ip, "run3");
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -626,9 +660,10 @@ public class RemoteServer {
 				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
 				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 				t.sendResponseHeaders(200, b.length);
-				t.getResponseBody().write(b);
-				
-				
+				// שימוש ב-try-with-resources כדי לוודא שהתשובה נשלחת ונסגרת
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
 			} catch (Exception e) {
 				// טיפול בשגיאות (קומפילציה או ריצה)
 				JsonObject errorJson = new JsonObject();
@@ -649,6 +684,9 @@ public class RemoteServer {
 			incrementUserStat(ip, "run4"); 
 			totalRequestsCounter.incrementAndGet();
 			lastSeenMap.put(ip, System.currentTimeMillis());
+			
+			// אנחנו שולחים את ה-IP ואת שם המשימה "run4"
+            updateTaskInDB(ip, "run4");
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -673,9 +711,10 @@ public class RemoteServer {
 				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
 				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 				t.sendResponseHeaders(200, b.length);
-				t.getResponseBody().write(b);
-				
-				
+				// שימוש ב-try-with-resources כדי לוודא שהתשובה נשלחת ונסגרת
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
 			} catch (Exception e) {
 				// טיפול בשגיאות (קומפילציה או ריצה)
 				JsonObject errorJson = new JsonObject();
@@ -696,6 +735,9 @@ public class RemoteServer {
 			incrementUserStat(ip, "run5"); 
 			totalRequestsCounter.incrementAndGet();
 			lastSeenMap.put(ip, System.currentTimeMillis());
+			
+			// אנחנו שולחים את ה-IP ואת שם המשימה "run5"
+            updateTaskInDB(ip, "run5");
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -735,8 +777,10 @@ public class RemoteServer {
 				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
 				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 				t.sendResponseHeaders(200, b.length);
-				t.getResponseBody().write(b);
-						
+				// שימוש ב-try-with-resources כדי לוודא שהתשובה נשלחת ונסגרת
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}			
 			} catch (Exception e) {
 				// טיפול בשגיאות (קומפילציה או ריצה)
 				JsonObject errorJson = new JsonObject();
@@ -757,6 +801,9 @@ public class RemoteServer {
 			incrementUserStat(ip, "run6"); 
 			totalRequestsCounter.incrementAndGet();
 			lastSeenMap.put(ip, System.currentTimeMillis());
+			
+			// אנחנו שולחים את ה-IP ואת שם המשימה "run6"
+            updateTaskInDB(ip, "run6");
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -797,8 +844,10 @@ public class RemoteServer {
 				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
 				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 				t.sendResponseHeaders(200, b.length);
-				t.getResponseBody().write(b);
-						
+				// שימוש ב-try-with-resources כדי לוודא שהתשובה נשלחת ונסגרת
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}		
 			} catch (Exception e) {
 				// טיפול בשגיאות (קומפילציה או ריצה)
 				JsonObject errorJson = new JsonObject();
@@ -819,6 +868,9 @@ public class RemoteServer {
 			incrementUserStat(ip, "run-creative"); 
 			totalRequestsCounter.incrementAndGet();
 			lastSeenMap.put(ip, System.currentTimeMillis());
+			
+			// אנחנו שולחים את ה-IP ואת שם המשימה "run-creative"
+            updateTaskInDB(ip, "run-creative");
 			
 			// הגדרות Header רגילות (CORS)
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -843,8 +895,10 @@ public class RemoteServer {
 				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
 				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 				t.sendResponseHeaders(200, b.length);
-				t.getResponseBody().write(b);
-
+				// שימוש ב-try-with-resources כדי לוודא שהתשובה נשלחת ונסגרת
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
 			} catch (Exception e) {
 				// טיפול בשגיאות (קומפילציה או ריצה)
 				JsonObject errorJson = new JsonObject();
