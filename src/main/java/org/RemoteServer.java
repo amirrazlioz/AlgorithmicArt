@@ -1452,6 +1452,9 @@ static class RunHandler4 implements HttpHandler {
 						long ts = rs.getLong("last_seen");
 						s.put("lastSeen", ts > 0 ? formatter.format(Instant.ofEpochMilli(ts)) : "-");
 
+						// השורה שחסרה לך:
+						s.put("lastSeenMillis", String.valueOf(ts));
+
 						// שליחת ה-JSON-ים של הדירוגים והרצות ל-Frontend של האדמין
 						// שים לב: וודא ששמות העמודות ב-getString תואמים בדיוק למה שיש ב-DB שלך
 						s.put("ratingsJson", rs.getString("ratings")); 

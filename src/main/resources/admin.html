@@ -244,23 +244,25 @@
     data.activeStudents.forEach(student => {
         const tr = document.createElement('tr');
         
-        // --- לוגיקת בועת סטטוס (פעיל ב-10 דקות אחרונות) ---
-        const lastSeenTs = parseInt(student.lastSeen || 0);
-        const now = Date.now();
-        const diffMinutes = (now - lastSeenTs) / (1000 * 60);
-        const isOnline = diffMinutes <= 10; // האם היה פעיל ב-10 דקות האחרונות
-        
-        // עיצוב הבועה
-        const statusDotHtml = `
-            <span style="
-                height: 10px; 
-                width: 10px; 
-                background-color: ${isOnline ? '#10b981' : '#ef4444'}; 
-                border-radius: 50%; 
-                display: inline-block; 
-                margin-left: 8px;
-                box-shadow: ${isOnline ? '0 0 5px #10b981' : 'none'};
-            "></span>`;
+       // --- לוגיקת בועת סטטוס (פעיל ב-10 דקות אחרונות) ---
+		const lastSeenTs = parseInt(student.lastSeenMillis || 0);
+		const now = Date.now();
+
+		// אם אין זמן (0), זה תמיד יהיה אדום
+		const diffMinutes = lastSeenTs > 0 ? (now - lastSeenTs) / (1000 * 60) : 999;
+		const isOnline = diffMinutes <= 10; 
+
+		// עיצוב הבועה
+		const statusDotHtml = `
+			<span style="
+				height: 10px; 
+				width: 10px; 
+				background-color: ${isOnline ? '#10b981' : '#ef4444'}; 
+				border-radius: 50%; 
+				display: inline-block; 
+				margin-left: 8px;
+				box-shadow: ${isOnline ? '0 0 8px #10b981' : 'none'};
+			"></span>`;
         // -----------------------------------------------
 
         let ratings = {}, runCounts = {};
