@@ -500,8 +500,8 @@ public class RemoteServer {
 				pstmt.setString(3, taskName);
 				pstmt.setString(4, taskName);
 				pstmt.setString(5, studentId);
-				
-				pstmt.executeUpdate();
+				int rowsAffected = pstmt.executeUpdate();
+				System.out.println("DB Update result: " + rowsAffected + " rows for " + studentId);
 			}
 		} catch (Exception e) {
 			System.err.println("Error updating DB for student " + studentId + ": " + e.getMessage());
@@ -1653,7 +1653,8 @@ static class RunHandler4 implements HttpHandler {
 					// חילוץ הנתונים החדשים מה-Frontend
 					String name = json.get("studentName").getAsString();
 					// אם הלקוח עדיין לא שלח studentId (גרסה ישנה), נשתמש ב-IP כגיבוי
-					String studentId = json.has("studentId") ? json.get("studentId").getAsString() : getClientIp(t);
+					//String studentId = json.has("studentId") ? json.get("studentId").getAsString() : getClientIp(t);
+					String studentId = json.get("studentId").getAsString();
 					
 					String ip = getClientIp(t);
 					long currentTime = System.currentTimeMillis();
@@ -1669,12 +1670,13 @@ static class RunHandler4 implements HttpHandler {
 							pstmt.setString(2, name);
 							pstmt.setString(3, ip);
 							pstmt.setLong(4, currentTime);
-							pstmt.executeUpdate();
+							int rowsAffected = pstmt.executeUpdate();
+							System.out.println("DB Update result: " + rowsAffected + " rows for " + studentId);
 						}
 					} catch (Exception dbEx) {
 						System.err.println("Database error during registration for ID " + studentId + ": " + dbEx.getMessage());
 					}
-
+					
 					// 3. עדכון מפות מקומיות (לשימוש בזיכרון של השרת)
 					// משתמשים ב-studentId כמפתח במקום ב-IP
 					studentNames.put(studentId, name); 
