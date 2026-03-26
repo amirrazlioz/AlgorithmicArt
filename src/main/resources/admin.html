@@ -202,8 +202,68 @@
             document.getElementById('last-update').innerText = "שגיאת חיבור לשרת";
         }
     }
-	
-	
+
+
+function updateUI(data) {
+    // 1. עדכון המונים בראש הדף
+    document.getElementById('total-requests').textContent = data.totalRequests || 0;
+    const activeCount = data.activeStudents ? data.activeStudents.length : 0;
+    document.getElementById('active-users-count').textContent = activeCount;
+
+    // 2. עדכון הטבלה - שימוש ב-ID המדויק שלך
+    const tableBody = document.getElementById('students-table-body');
+    if (!tableBody) return;
+    tableBody.innerHTML = ''; // ניקוי הטבלה
+
+    if (data.activeStudents && data.activeStudents.length > 0) {
+        data.activeStudents.forEach(student => {
+            const tr = document.createElement('tr');
+            
+            // --- עיבוד הדירוגים (Ratings) לכוכבים ---
+            let ratingsHtml = '<div style="display: flex; flex-direction: column; gap: 4px;">';
+            try {
+                // השרת שולח ratingsJson כמחרוזת, אנחנו הופכים אותה לאובייקט
+                const ratings = JSON.parse(student.ratingsJson || '{}');
+                const taskKeys = Object.keys(ratings).sort(); // מיון לפי שם המשימה
+                
+                if (taskKeys.length === 0) {
+                    ratingsHtml += '<span style="color: #94a3b8; font-size: 0.85em;">אין דירוגים</span>';
+                } else {
+                    taskKeys.forEach(task => {
+                        const starCount = parseInt(ratings[task]);
+                        const stars = '⭐'.repeat(starCount);
+                        ratingsHtml += `<div style="font-size: 0.85em;"><b>${task}:</b> ${stars}</div>`;
+                    });
+                }
+            } catch (e) {
+                ratingsHtml += '<span style="color: #94a3b8;">-</span>';
+            }
+            ratingsHtml += '</div>';
+
+            // --- בניית שורת הטבלה לפי המבנה שלך ---
+            tr.innerHTML = `
+                <td>
+                    <div style="font-weight: 600;">${student.name || 'אורח'}</div>
+                    <div style="font-size: 0.75em; color: #64748b; font-family: monospace;">${student.ip}</div>
+                </td>
+                <td style="text-align: center;">
+                    <span style="background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: bold;">
+                        ${student.runCount || 0}
+                    </span>
+                </td>
+                <td>${ratingsHtml}</td>
+                <td style="color: #475569; font-size: 0.9em; font-weight: 500;">
+                    ${student.lastSeen || 'לא ידוע'}
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    } else {
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #94a3b8;">מחכה לנתונים מהשרת...</td></tr>';
+    }
+}
+
+/*	
 function updateUI(data) {
     const tableBody = document.getElementById('students-table-body');
     if (!tableBody) return;
@@ -333,6 +393,8 @@ function updateUI(data) {
         document.getElementById('last-update').textContent = "עודכן לאחרונה: " + new Date().toLocaleTimeString();
     }
 }
+
+*/
 	
 	async function resetAllData() {
 		if (!confirm("האם אתה בטוח?")) return;

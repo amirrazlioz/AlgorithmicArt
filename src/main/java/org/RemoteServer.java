@@ -913,6 +913,71 @@ public class RemoteServer {
 		}
 	}
 	
+	static class AdminStatsHandler implements HttpHandler {
+    @Override
+    public void handle(HttpExchange t) throws IOException {
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+
+        List<Map<String, String>> activeStudents = new ArrayList<>();
+        int totalGlobalRuns = 0;
+
+        try (Connection conn = getConnection()) {
+            // שולף את כל הסטודנטים, הכי פעילים למעלה
+            String sql = "SELECT * FROM students ORDER BY last_seen DESC";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                 ResultSet rs = pstmt.executeQuery()) {
+                
+                // פורמט תאריך קריא
+                java.time.format.DateTimeFormatter formatter = 
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm");
+
+                while (rs.next()) {
+                    Map<String, String> s = new HashMap<>();
+                    s.put("ip", rs.getString("ip"));
+                    s.put("name", rs.getString("name"));
+                    
+                    int runs = rs.getInt("total_runs");
+                    s.put("runCount", String.valueOf(runs));
+                    totalGlobalRuns += runs;
+
+                    // הפיכת ה-Timestamp לתאריך קריא
+                    long ts = rs.getLong("last_seen");
+                    if (ts > 0) {
+                        String formattedTime = java.time.Instant.ofEpochMilli(ts)
+                            .atZone(java.time.ZoneId.of("Israel")) // או ZoneId.systemDefault()
+                            .format(formatter);
+                        s.put("lastSeen", formattedTime);
+                    } else {
+                        s.put("lastSeen", "לעולם לא");
+                    }
+
+                    // שליחת ה-JSON של הדירוגים והפירוט כפי שהם
+                    s.put("ratingsJson", rs.getString("ratings"));
+                    s.put("details", rs.getString("run_counts"));
+                    
+                    activeStudents.add(s);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("AdminStats Error: " + e.getMessage());
+        }
+
+        JsonObject resp = new JsonObject();
+        resp.add("activeStudents", new Gson().toJsonTree(activeStudents));
+        resp.addProperty("totalRequests", totalGlobalRuns);
+
+        String jsonResponse = resp.toString();
+        byte[] b = jsonResponse.getBytes(StandardCharsets.UTF_8);
+        t.sendResponseHeaders(200, b.length);
+        try (OutputStream os = t.getResponseBody()) {
+            os.write(b);
+        }
+        t.close();
+    }
+}
+
+	/*
 
 	static class AdminStatsHandler implements HttpHandler {
 		@Override
@@ -967,6 +1032,81 @@ public class RemoteServer {
 		}
 	}
 	
+	*/
+	
+	static class RegisterHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            // 1. הגדרות CORS - קריטי לאפשר תקשורת מה-Frontend
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+                t.sendResponseHeaders(204, -1);
+                return;
+            }
+            
+            // זיהוי ה-IP של הסטודנט
+            String ip = getClientIp(t);
+            long currentTime = System.currentTimeMillis();
+            
+            // עדכון מקומי בשרת (בזיכרון)
+            lastSeenMap.put(ip, currentTime);
+
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                try (InputStream is = t.getRequestBody()) {
+                    String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                    JsonObject json = new Gson().fromJson(body, JsonObject.class);
+                    String name = json.get("studentName").getAsString();
+                    
+                    // --- שמירה/עדכון ב-Database (Postgres) ---
+                    try (Connection conn = getConnection()) {
+                        // השאילתה מבצעת Insert, ואם ה-IP כבר קיים (Conflict), היא מעדכנת את השם ואת זמן הראייה האחרון
+                        String sql = "INSERT INTO students (name, ip, last_seen) VALUES (?, ?, ?) " +
+                                     "ON CONFLICT (ip) DO UPDATE SET name = EXCLUDED.name, last_seen = EXCLUDED.last_seen";
+                        
+                        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                            pstmt.setString(1, name);
+                            pstmt.setString(2, ip);
+                            pstmt.setLong(3, currentTime);
+                            pstmt.executeUpdate();
+                        }
+                    } catch (Exception dbEx) {
+                        // הדפסת שגיאה ללוגים של Railway אבל המשך עבודה כדי שהסטודנט לא ייתקע
+                        System.err.println("Database error during registration for IP " + ip + ": " + dbEx.getMessage());
+                    }
+
+                    // עדכון מפות מקומיות לשימוש מהיר ב-AdminHandler
+                    studentNames.put(ip, name); 
+                    if (!onlineUsers.contains(ip)) onlineUsers.add(ip);
+
+                    // שליחת תשובת JSON ללקוח
+                    JsonObject responseJson = new JsonObject();
+                    responseJson.addProperty("status", "registered");
+                    responseJson.addProperty("name", name);
+                    
+                    String resp = responseJson.toString();
+                    t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+                    t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
+                    try (OutputStream os = t.getResponseBody()) {
+                        os.write(resp.getBytes(StandardCharsets.UTF_8));
+                    }
+                    
+                    System.out.println("Student registered: " + name + " | IP: " + ip + " | Time: " + currentTime);
+                    
+                } catch (Exception e) {
+                    System.err.println("Registration failed: " + e.getMessage());
+                    t.sendResponseHeaders(400, 0);
+                }
+            } else {
+                t.sendResponseHeaders(405, -1); // Method Not Allowed
+            }
+            t.close();
+        }
+    }
+	
+	/*
 	static class RegisterHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
@@ -1029,7 +1169,7 @@ public class RemoteServer {
             t.close();
         }
     }
-	
+*/	
 
 	static class ResetAllHandler implements HttpHandler {
 		@Override
