@@ -3015,6 +3015,7 @@ function enableTabOnAllTextareas() {
 async function rateTask(btn, score) {
     // 1. מציאת הורה האפשרויות הספציפי של המשימה הזו
     const optionsContainer = btn.parentElement;
+	const savedName = localStorage.getItem('student_name') || "אורח";
     
     // 2. הסרת מחלקת active מכל העיגולים בתוך המשימה הזו בלבד
     const allCirclesInThisChallenge = optionsContainer.querySelectorAll('.rating-circle');
@@ -3048,7 +3049,7 @@ async function rateTask(btn, score) {
             },
             body: JSON.stringify({
 				studentId: getStudentId(), 
-				name: document.getElementById('student-name').value, 
+				name: savedName, 
                 taskId: taskId,
                 rating: score
             })
