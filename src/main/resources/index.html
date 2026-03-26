@@ -2032,7 +2032,6 @@ async function runFrameCode() {
         const res = await fetch("/run1", { 
             method: "POST", 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ code, image: challenge1.img }) 
 			body: JSON.stringify({ 
 				studentId: getStudentId(), 
 				name: document.getElementById('student-name').value, 
@@ -2683,7 +2682,7 @@ async function runCreativeCode() {
 				studentId: getStudentId(), 
 				name: document.getElementById('student-name').value, 
 				code: code, 
-				image: creativeChallenge.img, 			
+				image: creativeChallenge.img 			
 			})				
         });
 
