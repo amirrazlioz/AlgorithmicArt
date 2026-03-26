@@ -484,17 +484,14 @@ public class RemoteServer {
 	
 	private static void updateTaskInDB(String studentId, String taskName, String currentIp) {
 		try (Connection conn = getConnection()) {
-			// 1. עדכון המונים ב-JSON
-			// 2. עדכון total_runs
-			// 3. עדכון ה-IP האחרון והזמן האחרון
-			// כל זאת לפי ה-student_id
+			// השאילתה מעדכנת את סך ההרצות, את ה-IP האחרון ואת המונה בתוך ה-JSON
 			String sql = "UPDATE students SET " +
 						 "total_runs = total_runs + 1, " +
 						 "last_seen = ?, " +
-						 "ip = ?, " + // עדכון ה-IP למקרה שהשתנה
+						 "ip = ?, " + 
 						 "run_counts = jsonb_set(COALESCE(run_counts, '{}'), ARRAY[?], " +
 						 "(COALESCE(run_counts->>?, '0')::int + 1)::text::jsonb) " +
-						 "WHERE student_id = ?"; // זיהוי לפי המזהה הייחודי
+						 "WHERE student_id = ?"; 
 			
 			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 				long now = System.currentTimeMillis();
@@ -504,14 +501,7 @@ public class RemoteServer {
 				pstmt.setString(4, taskName);
 				pstmt.setString(5, studentId);
 				
-				int rowsAffected = pstmt.executeUpdate();
-				
-				// אם לא עודכנה אף שורה, זה אומר שהתלמיד חדש לגמרי ב-DB
-				if (rowsAffected == 0) {
-					System.out.println("New student detected, creating record for: " + studentId);
-					insertNewStudent(studentId, currentIp);
-					// לאחר היצירה, מריצים את העדכון שוב (או פשוט מטפלים בזה בתוך insert)
-				}
+				pstmt.executeUpdate();
 			}
 		} catch (Exception e) {
 			System.err.println("Error updating DB for student " + studentId + ": " + e.getMessage());
