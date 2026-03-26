@@ -909,23 +909,27 @@ public class RemoteServer {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm")
                                                     .withZone(ZoneId.of("Israel"));
 
-                    while (rs.next()) {
-                        Map<String, String> s = new HashMap<>();
-                        s.put("name", rs.getString("name"));
-                        s.put("ip", rs.getString("ip"));
-                        
-                        int runs = rs.getInt("total_runs");
-                        s.put("runCount", String.valueOf(runs));
-                        totalGlobalRuns += runs;
+					while (rs.next()) {
+						Map<String, String> s = new HashMap<>();
+						s.put("name", rs.getString("name"));
+						s.put("ip", rs.getString("ip"));
+						s.put("runCount", String.valueOf(rs.getInt("total_runs"))); // סה"כ כללי
+						
+						// שליפת הנתונים המפורטים לפי רמות (Level)
+						String ratingsJson = rs.getString("ratings");
+						String runCountsJson = rs.getString("run_counts");
+						
+						s.put("ratingsJson", (ratingsJson == null) ? "{}" : ratingsJson);
+						s.put("runCountsJson", (runCountsJson == null) ? "{}" : runCountsJson);
 
-                        long ts = rs.getLong("last_seen");
-                        s.put("lastSeen", ts > 0 ? formatter.format(Instant.ofEpochMilli(ts)) : "לעולם לא");
+						// עיבוד זמן
+						long ts = rs.getLong("last_seen");
+						DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.of("Israel"));
+						s.put("lastSeen", ts > 0 ? fmt.format(Instant.ofEpochMilli(ts)) : "לעולם לא");
 
-                        String ratings = rs.getString("ratings");
-                        s.put("ratingsJson", (ratings == null || ratings.isEmpty()) ? "{}" : ratings);
-                        
-                        activeStudents.add(s);
-                    }
+						activeStudents.add(s);
+					}
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();
