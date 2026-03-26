@@ -204,52 +204,60 @@
     }
 
 function updateUI(data) {
-    // עדכון המונים למעלה
-    document.getElementById('total-requests').textContent = data.totalRequests || 0;
-    document.getElementById('active-users-count').textContent = data.activeStudents ? data.activeStudents.length : 0;
+    console.log("Data received:", data);
+
+    // עדכון מונה בקשות כולל (רק אם האלמנט קיים)
+    const totalReqElem = document.getElementById('total-requests');
+    if (totalReqElem) {
+        totalReqElem.textContent = data.totalRequests || 0;
+    }
+
+    // עדכון מונה משתמשים (רק אם האלמנט קיים)
+    const activeCountElem = document.getElementById('active-users-count');
+    if (activeCountElem) {
+        activeCountElem.textContent = data.activeStudents ? data.activeStudents.length : 0;
+    }
 
     const tableBody = document.getElementById('students-table-body');
-    if (!tableBody) return;
+    if (!tableBody) {
+        console.error("Critical: students-table-body not found!");
+        return;
+    }
+
     tableBody.innerHTML = '';
 
-    if (data.activeStudents) {
+    if (data.activeStudents && data.activeStudents.length > 0) {
         data.activeStudents.forEach(student => {
             const tr = document.createElement('tr');
             
-            // --- עיבוד דירוגים לכוכבים ---
+            // עיבוד כוכבים מתוך ratingsJson שמגיע מה-DB
             let ratingsHtml = '';
             try {
-                // ה-DB שולח מחרוזת JSON, אנחנו הופכים אותה לאובייקט
                 const ratings = JSON.parse(student.ratingsJson || '{}');
                 ratingsHtml = Object.entries(ratings)
-                    .map(([task, stars]) => `
-                        <div style="font-size: 0.85em; margin-bottom: 2px;">
-                            <span style="color: #64748b;">${task}:</span> 
-                            <span style="color: #f59e0b;">${'⭐'.repeat(stars)}</span>
-                        </div>
-                    `).join('');
+                    .map(([task, stars]) => `<div style="font-size:0.85em;"><b>${task}:</b> ${'⭐'.repeat(stars)}</div>`)
+                    .join('');
             } catch(e) { 
-                ratingsHtml = '<span style="color: #cbd5e1;">אין דירוגים</span>'; 
+                ratingsHtml = '<span style="color:gray;">אין דירוג</span>'; 
             }
 
-            // --- בניית השורה ---
             tr.innerHTML = `
                 <td>
-                    <div style="font-weight: bold; color: #1e293b;">${student.name || 'אורח'}</div>
-                    <div style="font-size: 0.75em; color: #64748b; font-family: monospace;">${student.ip}</div>
+                    <div style="font-weight:600;">${student.name || 'אורח'}</div>
+                    <div style="font-size:0.75em; color:#64748b;">${student.ip}</div>
                 </td>
-                <td style="text-align: center;">
-                    <span style="background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: bold;">
+                <td style="text-align:center;">
+                    <span style="background:#e0e7ff; color:#4338ca; padding:2px 8px; border-radius:10px; font-weight:bold;">
                         ${student.runCount || 0}
                     </span>
                 </td>
-                <td>${ratingsHtml || '<span style="color: #cbd5e1;">אין נתונים</span>'}</td>
-                <td style="font-size: 0.9em; color: #475569; font-weight: 500;">
-                    ${student.lastSeen || '-'}
-                </td>
+                <td>${ratingsHtml}</td>
+                <td style="font-size:0.9em; color:#475569;">${student.lastSeen || '-'}</td>
             `;
             tableBody.appendChild(tr);
         });
+    } else {
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">אין נתונים ב-Database</td></tr>';
     }
 }
 
