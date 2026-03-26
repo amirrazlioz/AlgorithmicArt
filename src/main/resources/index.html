@@ -2147,9 +2147,6 @@ async function runDiagonalCode() {
             if (data.image) {
                 challenge2.draw(data.image);
             }
-			
-			
-            
             // הצגת פלטים של הקונסול (System.out.println)
             if (data.consoleOutput) {
                 logElement.innerHTML = `<div style="color: #fff: margin-bottom: 8px;">✅ הקוד בוצע בהצלחה</div>` + 
@@ -3155,34 +3152,6 @@ async function registerStudentOnServer(name) {
         console.error("Error connecting to server:", error);
     }
 }
-/*
-async function registerStudentOnServer(name) {
-    if (!name || name.trim() === "") return;
-	
-	    // שמירה מקומית כדי שהשם לא ייעלם בריענון
-    sessionStorage.setItem('studentName', name);
-
-    try {
-        const response = await fetch("/api/register", {  
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            // שים לב: השרת מצפה למפתח "studentName" כפי שהגדרת ב-RegisterHandler
-            body: JSON.stringify({ studentName: name })
-        });
-
-        if (response.ok) {
-            console.log("Registered successfully: " + name);
-            // אופציונלי: הוספת סימן וי ירוק ליד השם
-        } else {
-            console.error("Registration failed");
-        }
-    } catch (error) {
-        console.error("Error connecting to server:", error);
-    }
-}
-*/
 
 // קוד שישחזר את השם מהזיכרון אם התלמיד מרענן את הדף
 window.addEventListener('load', () => {
@@ -3203,15 +3172,6 @@ window.addEventListener('load', () => {
 const creativeChallenge = new Challenge('creativeCanvas', 256, 256);
 
 window.onload = () => {
-    // 1. שליחת פקודת איפוס לשרת ב-POST
-	/*
-    fetch('/api/reset-all', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(() => console.log("שרת אופס בהצלחה ברענון אינדקס"))
-    .catch(err => console.error("שגיאה באיפוס:", err));
-	*/
     // 2. הפעלת הקוד הקיים של הקנבס
     if (typeof creativeChallenge !== 'undefined' && creativeChallenge.canvas) {
         creativeChallenge.init();
