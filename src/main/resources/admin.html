@@ -205,60 +205,73 @@
     }
 
 function updateUI(data) {
-    console.log("Data received:", data);
+    console.log("נתונים שהתקבלו:", data);
 
-    // עדכון מונה בקשות כולל (רק אם האלמנט קיים)
+    // 1. עדכון מונים בזהירות (מניעת שגיאת null שקוטעת את הריצה)
     const totalReqElem = document.getElementById('total-requests');
     if (totalReqElem) {
         totalReqElem.textContent = data.totalRequests || 0;
     }
 
-    // עדכון מונה משתמשים (רק אם האלמנט קיים)
-    const activeCountElem = document.getElementById('active-users-count');
-    if (activeCountElem) {
-        activeCountElem.textContent = data.activeStudents ? data.activeStudents.length : 0;
+    const activeUsersElem = document.getElementById('active-users-count');
+    if (activeUsersElem) {
+        activeUsersElem.textContent = data.activeStudents ? data.activeStudents.length : 0;
     }
 
+    // 2. מציאת הטבלה
     const tableBody = document.getElementById('students-table-body');
     if (!tableBody) {
-        console.error("Critical: students-table-body not found!");
+        console.error("לא נמצא אלמנט students-table-body ב-HTML!");
         return;
     }
+    
+    tableBody.innerHTML = ''; // ניקוי הטבלה
 
-    tableBody.innerHTML = '';
-
+    // 3. בניית השורות מה-Database
     if (data.activeStudents && data.activeStudents.length > 0) {
         data.activeStudents.forEach(student => {
             const tr = document.createElement('tr');
             
-            // עיבוד כוכבים מתוך ratingsJson שמגיע מה-DB
-            let ratingsHtml = '';
+            // עיבוד הדירוגים (ratingsJson) לכוכבים ויזואליים
+            let ratingsHtml = '<div style="display: flex; flex-direction: column; gap: 2px;">';
             try {
+                // המרה של הטקסט מה-DB לאובייקט JS
                 const ratings = JSON.parse(student.ratingsJson || '{}');
-                ratingsHtml = Object.entries(ratings)
-                    .map(([task, stars]) => `<div style="font-size:0.85em;"><b>${task}:</b> ${'⭐'.repeat(stars)}</div>`)
-                    .join('');
-            } catch(e) { 
-                ratingsHtml = '<span style="color:gray;">אין דירוג</span>'; 
+                const tasks = Object.keys(ratings).sort();
+                
+                if (tasks.length === 0) {
+                    ratingsHtml += '<span style="color: #94a3b8; font-size: 0.8em;">אין דירוגים</span>';
+                } else {
+                    tasks.forEach(task => {
+                        const stars = '⭐'.repeat(ratings[task]);
+                        ratingsHtml += `<div style="font-size: 0.85em;"><b>${task}:</b> ${stars}</div>`;
+                    });
+                }
+            } catch (e) {
+                ratingsHtml += '<span style="color: #94a3b8;">-</span>';
             }
+            ratingsHtml += '</div>';
 
+            // הזרקת הנתונים לשורה
             tr.innerHTML = `
                 <td>
-                    <div style="font-weight:600;">${student.name || 'אורח'}</div>
-                    <div style="font-size:0.75em; color:#64748b;">${student.ip}</div>
+                    <div style="font-weight: 600;">${student.name || 'אורח'}</div>
+                    <div style="font-size: 0.75em; color: #64748b; font-family: monospace;">${student.ip}</div>
                 </td>
-                <td style="text-align:center;">
-                    <span style="background:#e0e7ff; color:#4338ca; padding:2px 8px; border-radius:10px; font-weight:bold;">
+                <td style="text-align: center;">
+                    <span style="background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 10px; font-weight: bold; font-size: 0.9em;">
                         ${student.runCount || 0}
                     </span>
                 </td>
                 <td>${ratingsHtml}</td>
-                <td style="font-size:0.9em; color:#475569;">${student.lastSeen || '-'}</td>
+                <td style="color: #475569; font-size: 0.85em; font-weight: 500;">
+                    ${student.lastSeen || 'לא ידוע'}
+                </td>
             `;
             tableBody.appendChild(tr);
         });
     } else {
-        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">אין נתונים ב-Database</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color: #64748b;">אין נתונים להצגה</td></tr>';
     }
 }
 
