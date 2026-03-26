@@ -406,20 +406,7 @@ function exportToCSV() {
     // 3. שליפת הנתונים מהטבלה הויזואלית בצורה חכמה או מה-Data
     // נשתמש ב-rows של ה-tbody כדי לעבור תלמיד-תלמיד
     const rows = Array.from(document.querySelectorAll("#students-table-body tr"));
-	
-	
-	// שליפת כל הטקסט מהתא הראשון (השם)
-let name = cells[0].innerText.trim();
-
-// אם השם ריק או מכיל רק את הבועה (שאין לה טקסט), נשתמש בברירת מחדל
-if (!name || name === "" || name === "אורח") {
-    name = "תלמיד ללא שם";
-}
-
-// ניקוי תווים לא רצויים אם נשארו מה-Status Dot (לפעמים נשאר רווח לבן)
-name = name.replace(/\s+/g, ' ').trim();
-
-    
+	    
     // בגלל שכל תלמיד הוא שורה אחת ב-DOM (לפי ה-updateUI שלך), נחלץ ממנה את המידע
     rows.forEach(tr => {
         const cells = tr.querySelectorAll("td");
