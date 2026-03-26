@@ -3116,7 +3116,38 @@ function setupJavaEditors() {
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
 
+async function registerStudentOnServer(name) {
+    if (!name || name.trim() === "") return;
+    
+    // 1. שמירה מקומית של השם (כדי שלא ייעלם בריענון)
+    localStorage.setItem('student_name', name); 
 
+    // 2. קבלת המזהה הייחודי של התלמיד (המפתח הקריטי ל-DB)
+    const studentId = getStudentId(); 
+
+    try {
+        const response = await fetch("/api/register", {  
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // שים לב: אנחנו מוסיפים כאן את ה-studentId
+            body: JSON.stringify({ 
+                studentName: name,
+                studentId: studentId 
+            })
+        });
+
+        if (response.ok) {
+            console.log("Registered successfully: " + name + " (ID: " + studentId + ")");
+        } else {
+            console.error("Registration failed. Status:", response.status);
+        }
+    } catch (error) {
+        console.error("Error connecting to server:", error);
+    }
+}
+/*
 async function registerStudentOnServer(name) {
     if (!name || name.trim() === "") return;
 	
@@ -3143,7 +3174,7 @@ async function registerStudentOnServer(name) {
         console.error("Error connecting to server:", error);
     }
 }
-
+*/
 
 // קוד שישחזר את השם מהזיכרון אם התלמיד מרענן את הדף
 window.addEventListener('load', () => {
