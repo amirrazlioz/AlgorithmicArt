@@ -164,7 +164,7 @@
 				<tbody id="students-table-body"></tbody>		
 				<tfoot style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #e2e8f0;">
 					<tr>
-						<td colspan="3" style="text-align: left; padding-left: 15px;">ממוצע כיתתי Rating ⭐</td>
+						<td colspan="5" style="text-align: left; padding-left: 15px;">ממוצע כיתתי Rating ⭐</td>
 						<td id="avg-run1" style="text-align:center;">-</td>
 						<td id="avg-run2" style="text-align:center;">-</td>
 						<td id="avg-run3" style="text-align:center;">-</td>
@@ -172,9 +172,10 @@
 						<td id="avg-run5" style="text-align:center;">-</td>
 						<td id="avg-run6" style="text-align:center;">-</td>
 						<td id="avg-run-creative" style="text-align:center;">-</td>
-						<td></td><td></td><td></td>
+						<td colspan="3"></td>
 					</tr>
 				</tfoot>
+
 			</table>
 		</div>	
     </div>
@@ -284,13 +285,16 @@ function updateUI(data) {
 }
 
 function updateClassAverages(classTotals, levelKeys) {
-    levelKeys.forEach((key, index) => {
-        // מציאת התא המתאים בשורת ה-Footer (מתחיל מ-id שמתאים ל-Level)
+    levelKeys.forEach((key) => {
         const avgCell = document.getElementById(`avg-${key}`);
         if (avgCell) {
             const stats = classTotals[key];
+            // חישוב הממוצע
             const avg = stats.count > 0 ? (stats.sum / stats.count).toFixed(1) : '-';
+            
+            // עדכון הטקסט והוספת עיצוב קטן
             avgCell.textContent = avg;
+            avgCell.style.color = avg !== '-' ? '#4f46e5' : '#94a3b8';
         }
     });
 }	
@@ -453,7 +457,9 @@ function exportToCSV() {
     const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
     link.download = `art_studio_report_${dateStr}.csv`;
     link.click();
-}	
+}
+
+	
 /*	
 function exportToCSV() {
     // 1. שליפת הנתונים מהכרטיסיות העליונות
