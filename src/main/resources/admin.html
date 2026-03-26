@@ -236,12 +236,12 @@ function updateUI(data) {
         } else {
             levels.forEach(lvl => {
                 const count = runCounts[lvl] || 0;
-                const stars = '⭐'.repeat(ratings[lvl] || 0);
+                const rating = ratings[lvl] || 0;
                 detailsHtml += `
                     <div style="font-size: 0.85em; border-bottom: 1px solid #f1f5f9; padding: 2px 0;">
                         <b style="color: #4f46e5;">${lvl}:</b> 
                         <span style="margin: 0 5px;">${count} הרצות</span> 
-                        <span>${stars}</span>
+                        <span>${rating}</span>
                     </div>`;
             });
         }
