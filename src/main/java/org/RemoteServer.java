@@ -1030,70 +1030,6 @@ public class RemoteServer {
         }
     }
 	
-	/*
-	static class RegisterHandler implements HttpHandler {
-		@Override
-		public void handle(HttpExchange t) throws IOException {
-			// 1. הגדרות CORS - תמיד ראשון
-			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
-
-			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-				t.sendResponseHeaders(204, -1);
-				return;
-			}
-			
-			String ip = getClientIp(t);
-			lastSeenMap.put(ip, System.currentTimeMillis());
-
-			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-				try (InputStream is = t.getRequestBody()) {
-					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-					com.google.gson.JsonObject json = new com.google.gson.Gson().fromJson(body, com.google.gson.JsonObject.class);
-					
-					String name = json.get("studentName").getAsString();
-
-					// תיקון זיהוי IP אמיתי (עבור Railway)
-					ip = t.getRequestHeaders().getFirst("X-Forwarded-For");
-					if (ip == null || ip.isEmpty()) {
-						ip = t.getRemoteAddress().getAddress().getHostAddress();
-					} else {
-						// X-Forwarded-For יכול להכיל רשימה, אנחנו רוצים את הראשון
-						ip = ip.split(",")[0].trim();
-					}
-					
-					// עדכון המערכת
-					studentNames.put(ip, name); 
-					if (!onlineUsers.contains(ip)) {
-						onlineUsers.add(ip);
-					}
-					
-					// הוספת המונה הכללי שרצינו
-					// totalRequestsCounter.incrementAndGet();
-
-					// שליחת תשובה מסודרת
-					String resp = "{\"status\":\"registered\",\"name\":\"" + name + "\"}";
-					t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-					t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
-					try (OutputStream os = t.getResponseBody()) {
-						os.write(resp.getBytes(StandardCharsets.UTF_8));
-					}
-					
-					System.out.println("New student registered: " + name + " (IP: " + ip + ")");
-					
-				} catch (Exception e) {
-					e.printStackTrace(); // עוזר לראות שגיאות ב-Logs של Railway
-					t.sendResponseHeaders(400, 0);
-				}
-			} else {
-				t.sendResponseHeaders(405, -1); // Method Not Allowed
-			}
-			t.close();
-		}
-	}
-	*/
-	
 
 	static class ResetAllHandler implements HttpHandler {
 		@Override
@@ -1121,6 +1057,64 @@ public class RemoteServer {
 		}
 	}
 	
+static class FeedbackHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            // הגדרות CORS
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+                t.sendResponseHeaders(204, -1);
+                return;
+            }
+
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                try (InputStream is = t.getRequestBody()) {
+                    String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                    JsonObject json = new Gson().fromJson(body, JsonObject.class);
+                    
+                    String taskId = json.get("taskId").getAsString(); // למשל "run1"
+                    int rating = json.get("rating").getAsInt();
+                    String ip = getClientIp(t);
+                    
+                    // --- עדכון ב-DATABASE (Postgres) ---
+                    try (Connection conn = getConnection()) {
+                        // מעדכן את הדירוג בתוך אובייקט ה-JSON של הדירוגים
+                        String sql = "UPDATE students SET " +
+                                     "ratings = jsonb_set(COALESCE(ratings, '{}'), ARRAY[?], ?::text::jsonb), " +
+                                     "last_seen = ? " +
+                                     "WHERE ip = ?";
+                        
+                        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                            pstmt.setString(1, taskId);
+                            pstmt.setInt(2, rating);
+                            pstmt.setLong(3, System.currentTimeMillis());
+                            pstmt.setString(4, ip);
+                            pstmt.executeUpdate();
+                        }
+                    } catch (Exception dbEx) {
+                        System.err.println("Database Error in FeedbackHandler: " + dbEx.getMessage());
+                    }
+
+                    // שמירה במפה המקומית (לגיבוי מהיר)
+                    feedbackRatings.computeIfAbsent(ip, k -> new ConcurrentHashMap<>())
+                                   .put(taskId, rating);
+                    
+                    lastSeenMap.put(ip, System.currentTimeMillis());
+                    sendTextResponse(t, 200, "{\"status\":\"ok\"}");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendTextResponse(t, 400, "{\"error\":\"invalid data\"}");
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+            t.close();
+        }
+    }
+/*	
 	static class FeedbackHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -1145,7 +1139,7 @@ public class RemoteServer {
 			t.close();
 		}
 	}
-	
+*/	
 	static class SettingsHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
