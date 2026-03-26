@@ -234,12 +234,11 @@ function updateUI(data) {
         levelKeys.forEach(key => {
             const count = runCounts[key] || 0;
             const starCount = ratings[key] || 0;
-            const stars = '⭐'.repeat(starCount);
             
             levelCellsHtml += `
                 <td style="text-align:center; font-size: 0.9em; border-left: 1px solid #f1f5f9;">
-                    <div style="font-weight: bold; color: #4f46e5;">${count > 0 ? count + ' הרצות' : '-'}</div>
-                    <div style="margin-top: 4px;">${starCount > 0 ? stars : ''}</div>
+                    <div style="font-weight: bold; color: #4f46e5;">${count > 0 ? count : '-'}</div>
+                    <div style="margin-top: 4px;">${starCount > 0 ? starCount : ''}</div>
                 </td>`;
         });
 
