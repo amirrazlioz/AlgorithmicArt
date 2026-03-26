@@ -1561,53 +1561,40 @@ static class RunHandler4 implements HttpHandler {
 	}
 
 	static class ResetAllHandler implements HttpHandler {
-		@Override
-		public void handle(HttpExchange t) throws IOException {
-			// 1. הגדרות CORS מלאות
-			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+    @Override
+    public void handle(HttpExchange t) throws IOException {
+        // הוספת CORS כדי שהדפדפן לא יחסום את הבקשה
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        
+        if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+            try (Connection conn = getConnection();
+                 Statement stmt = conn.createStatement()) {
+                
+                // 1. מחיקת הנתונים מה-Database
+                stmt.executeUpdate("DELETE FROM students");
+                
+                // 2. איפוס המפות בזיכרון השרת
+                feedbackRatings.clear();
+                lastSeenMap.clear();
+                studentNames.clear();
+                onlineUsers.clear();
+                totalRequestsCounter.set(0); // איפוס מונה ההרצות הכללי
 
-			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-				t.sendResponseHeaders(204, -1);
-				t.close();
-				return;
-			}
-
-			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-				// 2. איפוס כל המשתנים הסטטיים בזיכרון
-				onlineUsers.clear();
-				studentNames.clear();
-				userActivityStats.clear();
-				lastSeenMap.clear();
-				totalRequestsCounter.set(0);
-				feedbackRatings.clear();
-
-				// 3. איפוס מסד הנתונים (אופציונלי אך מומלץ אם אתה רוצה ניקוי מוחלט)
-				try (Connection conn = getConnection()) {
-					String sql = "DELETE FROM students"; // מוחק את כל התלמידים מהטבלה
-					try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-						pstmt.executeUpdate();
-					}
-					System.out.println("Database cleared by Admin.");
-				} catch (Exception e) {
-					System.err.println("Error clearing DB during reset: " + e.getMessage());
-				}
-
-				// 4. שליחת תגובה
-				String resp = "{\"status\":\"reset_success\"}";
-				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-				byte[] b = resp.getBytes(StandardCharsets.UTF_8);
-				t.sendResponseHeaders(200, b.length);
-				try (OutputStream os = t.getResponseBody()) {
-					os.write(b);
-				}
-			} else {
-				t.sendResponseHeaders(405, -1); // Method Not Allowed
-			}
-			t.close();
-		}
-	}
+                String resp = "{\"status\":\"success\"}";
+                t.sendResponseHeaders(200, resp.length());
+                try (OutputStream os = t.getResponseBody()) { 
+                    os.write(resp.getBytes(StandardCharsets.UTF_8)); 
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                sendTextResponse(t, 500, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        } else {
+            t.sendResponseHeaders(405, -1); // Method Not Allowed
+        }
+        t.close();
+    }
+}
 	
 	static class FeedbackHandler implements HttpHandler {
 		@Override
