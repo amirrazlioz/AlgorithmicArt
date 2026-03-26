@@ -34,6 +34,11 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
+
 
 public class RemoteServer {
 	
@@ -914,68 +919,58 @@ public class RemoteServer {
 	}
 	
 	static class AdminStatsHandler implements HttpHandler {
-    @Override
-    public void handle(HttpExchange t) throws IOException {
-        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
 
-        List<Map<String, String>> activeStudents = new ArrayList<>();
-        int totalGlobalRuns = 0;
+            List<Map<String, String>> activeStudents = new ArrayList<>();
+            int totalGlobalRuns = 0;
 
-        try (Connection conn = getConnection()) {
-            // שולף את כל הסטודנטים, הכי פעילים למעלה
-            String sql = "SELECT * FROM students ORDER BY last_seen DESC";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql);
-                 ResultSet rs = pstmt.executeQuery()) {
-                
-                // פורמט תאריך קריא
-                java.time.format.DateTimeFormatter formatter = 
-                    java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm");
-
-                while (rs.next()) {
-                    Map<String, String> s = new HashMap<>();
-                    s.put("ip", rs.getString("ip"));
-                    s.put("name", rs.getString("name"));
+            try (Connection conn = getConnection()) {
+                // שליפת כל הנתונים מה-DB
+                String sql = "SELECT name, ip, total_runs, last_seen, ratings, run_counts FROM students ORDER BY last_seen DESC";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                     ResultSet rs = pstmt.executeQuery()) {
                     
-                    int runs = rs.getInt("total_runs");
-                    s.put("runCount", String.valueOf(runs));
-                    totalGlobalRuns += runs;
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.systemDefault());
 
-                    // הפיכת ה-Timestamp לתאריך קריא
-                    long ts = rs.getLong("last_seen");
-                    if (ts > 0) {
-                        String formattedTime = java.time.Instant.ofEpochMilli(ts)
-                            .atZone(java.time.ZoneId.of("Israel")) // או ZoneId.systemDefault()
-                            .format(formatter);
-                        s.put("lastSeen", formattedTime);
-                    } else {
-                        s.put("lastSeen", "לעולם לא");
+                    while (rs.next()) {
+                        Map<String, String> s = new HashMap<>();
+                        s.put("name", rs.getString("name"));
+                        s.put("ip", rs.getString("ip"));
+                        
+                        int runs = rs.getInt("total_runs");
+                        s.put("runCount", String.valueOf(runs));
+                        totalGlobalRuns += runs;
+
+                        // המרת זמן למחרוזת קריאה
+                        long ts = rs.getLong("last_seen");
+                        s.put("lastSeen", ts > 0 ? formatter.format(Instant.ofEpochMilli(ts)) : "לעולם לא");
+
+                        // שליחת ה-JSONB כמחרוזת (ה-Admin ב-JS כבר יעשה JSON.parse)
+                        String ratings = rs.getString("ratings");
+                        s.put("ratingsJson", (ratings == null) ? "{}" : ratings);
+                        
+                        activeStudents.add(s);
                     }
-
-                    // שליחת ה-JSON של הדירוגים והפירוט כפי שהם
-                    s.put("ratingsJson", rs.getString("ratings"));
-                    s.put("details", rs.getString("run_counts"));
-                    
-                    activeStudents.add(s);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            System.err.println("AdminStats Error: " + e.getMessage());
-        }
 
-        JsonObject resp = new JsonObject();
-        resp.add("activeStudents", new Gson().toJsonTree(activeStudents));
-        resp.addProperty("totalRequests", totalGlobalRuns);
+            JsonObject resp = new JsonObject();
+            resp.add("activeStudents", new Gson().toJsonTree(activeStudents));
+            resp.addProperty("totalRequests", totalGlobalRuns);
 
-        String jsonResponse = resp.toString();
-        byte[] b = jsonResponse.getBytes(StandardCharsets.UTF_8);
-        t.sendResponseHeaders(200, b.length);
-        try (OutputStream os = t.getResponseBody()) {
-            os.write(b);
+            byte[] b = resp.toString().getBytes(StandardCharsets.UTF_8);
+            t.sendResponseHeaders(200, b.length);
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }
+            t.close();
         }
-        t.close();
     }
-}
 
 	/*
 
