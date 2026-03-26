@@ -119,6 +119,19 @@ public class RemoteServer {
 		System.out.println("Server started on port " + port);
 	}
 	
+	// --- כאן כדאי להוסיף את המתודה החדשה ---
+    private static Connection getConnection() throws Exception {
+        String dbUrl = System.getenv("DATABASE_URL");
+        if (dbUrl == null) throw new RuntimeException("DATABASE_URL is missing!");
+        
+        URI dbUri = new URI(dbUrl);
+        String username = dbUri.getUserInfo().split(":")[0];
+        String password = dbUri.getUserInfo().split(":")[1];
+        String dbPath = "jdbc:postgresql://" + dbUri.getHost() + ":" + dbUri.getPort() + dbUri.getPath();
+        
+        return DriverManager.getConnection(dbPath, username, password);
+    }
+	
 	
 	// 1. פונקציית עזר לזיהוי IP - קריטי ל-Railway!
     private static String getClientIp(HttpExchange t) {
@@ -900,8 +913,70 @@ public class RemoteServer {
 		}
 	}
 	
+	static class RegisterHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            // 1. הגדרות CORS
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+                t.sendResponseHeaders(204, -1);
+                return;
+            }
+            
+            String ip = getClientIp(t);
+            lastSeenMap.put(ip, System.currentTimeMillis());
+
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                try (InputStream is = t.getRequestBody()) {
+                    String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                    JsonObject json = new Gson().fromJson(body, JsonObject.class);
+                    String name = json.get("studentName").getAsString();
+                    
+                    // --- שמירה ב-Database (Postgres) ---
+                    try (Connection conn = getConnection()) {
+                        String sql = "INSERT INTO students (name, ip, last_seen) VALUES (?, ?, ?) " +
+                                     "ON CONFLICT (ip) DO UPDATE SET name = EXCLUDED.name, last_seen = EXCLUDED.last_seen";
+                        
+                        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                            pstmt.setString(1, name);
+                            pstmt.setString(2, ip);
+                            pstmt.setLong(3, System.currentTimeMillis());
+                            pstmt.executeUpdate();
+                        }
+                    } catch (Exception dbEx) {
+                        System.err.println("Database error: " + dbEx.getMessage());
+                        // ממשיכים בכל זאת כדי לא לתקוע את התלמיד אם ה-DB זמנית למטה
+                    }
+
+                    // עדכון המפות המקומיות (לגיבוי מהיר)
+                    studentNames.put(ip, name); 
+                    if (!onlineUsers.contains(ip)) onlineUsers.add(ip);
+
+                    // שליחת תשובה ללקוח
+                    String resp = "{\"status\":\"registered\",\"name\":\"" + name + "\"}";
+                    t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+                    t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
+                    try (OutputStream os = t.getResponseBody()) {
+                        os.write(resp.getBytes(StandardCharsets.UTF_8));
+                    }
+                    
+                    System.out.println("Student registered and saved to DB: " + name + " (IP: " + ip + ")");
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    t.sendResponseHeaders(400, 0);
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+            t.close();
+        }
+    }
 	
-	
+	/*
 	static class RegisterHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -963,6 +1038,8 @@ public class RemoteServer {
 			t.close();
 		}
 	}
+	*/
+	
 
 	static class ResetAllHandler implements HttpHandler {
 		@Override
