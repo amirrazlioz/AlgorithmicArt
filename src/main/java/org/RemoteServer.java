@@ -482,6 +482,44 @@ public class RemoteServer {
 		dir.delete();
 	}
 	
+	private static void updateTaskInDB(String studentId, String taskName, String currentIp) {
+		try (Connection conn = getConnection()) {
+			// 1. עדכון המונים ב-JSON
+			// 2. עדכון total_runs
+			// 3. עדכון ה-IP האחרון והזמן האחרון
+			// כל זאת לפי ה-student_id
+			String sql = "UPDATE students SET " +
+						 "total_runs = total_runs + 1, " +
+						 "last_seen = ?, " +
+						 "ip = ?, " + // עדכון ה-IP למקרה שהשתנה
+						 "run_counts = jsonb_set(COALESCE(run_counts, '{}'), ARRAY[?], " +
+						 "(COALESCE(run_counts->>?, '0')::int + 1)::text::jsonb) " +
+						 "WHERE student_id = ?"; // זיהוי לפי המזהה הייחודי
+			
+			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+				long now = System.currentTimeMillis();
+				pstmt.setLong(1, now);
+				pstmt.setString(2, currentIp);
+				pstmt.setString(3, taskName);
+				pstmt.setString(4, taskName);
+				pstmt.setString(5, studentId);
+				
+				int rowsAffected = pstmt.executeUpdate();
+				
+				// אם לא עודכנה אף שורה, זה אומר שהתלמיד חדש לגמרי ב-DB
+				if (rowsAffected == 0) {
+					System.out.println("New student detected, creating record for: " + studentId);
+					insertNewStudent(studentId, currentIp);
+					// לאחר היצירה, מריצים את העדכון שוב (או פשוט מטפלים בזה בתוך insert)
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Error updating DB for student " + studentId + ": " + e.getMessage());
+		}
+	}
+	
+	/*
+	
 	private static void updateTaskInDB(String ip, String taskName) {
 		try (Connection conn = getConnection()) {
 			// השאילתה מעדכנת את סך ההרצות הכללי ואת המונה הספציפי בתוך ה-JSON
@@ -504,7 +542,92 @@ public class RemoteServer {
 			System.err.println("Error updating DB for " + taskName + ": " + e.getMessage());
 		}
 	}
+	*/
 	
+	private static void checkAndCreateStudent(String studentId, String name, String ip) {
+		// השאילתה בודקת אם ה-student_id קיים. אם לא - יוצרת. אם כן - מעדכנת שם ו-IP.
+		String sql = "INSERT INTO students (student_id, name, ip, last_seen, total_runs, run_counts) " +
+					 "VALUES (?, ?, ?, ?, 0, '{}'::jsonb) " +
+					 "ON CONFLICT (student_id) DO UPDATE SET name = EXCLUDED.name, ip = EXCLUDED.ip, last_seen = EXCLUDED.last_seen";
+		
+		try (Connection conn = getConnection(); 
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, studentId);
+			pstmt.setString(2, name);
+			pstmt.setString(3, ip);
+			pstmt.setLong(4, System.currentTimeMillis());
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			System.err.println("Error ensuring student exists: " + e.getMessage());
+		}
+	}
+
+	static class RunHandler1 implements HttpHandler {
+		public void handle(HttpExchange t) throws IOException {     
+			// 1. הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+			try (InputStream is = t.getRequestBody()) {
+				// 2. קריאת ה-JSON מהדפדפן
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String currentIp = getClientIp(t);
+				
+				// 3. חילוץ המזהה הייחודי והשם
+				String studentId = request.has("studentId") ? request.get("studentId").getAsString() : currentIp;
+				String studentName = request.has("name") ? request.get("name").getAsString() : "אורח";
+				
+				// 4. עדכון הסטטיסטיקות בזיכרון (Maps)
+				incrementUserStat(studentId, "run1"); 
+				totalRequestsCounter.incrementAndGet();
+				lastSeenMap.put(studentId, System.currentTimeMillis());
+				studentNames.put(studentId, studentName); 
+
+				// 5. עדכון ב-Database
+				// קודם מוודאים שהתלמיד קיים (UPSERT), ואז מעדכנים את המשימה
+				checkAndCreateStudent(studentId, studentName, currentIp);
+				updateTaskInDB(studentId, "run1", currentIp); // תיקון: בלי המילה String בקריאה
+
+				// 6. הרצת הקוד כרגיל
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				JsonObject responseJson = executeStudentCodeImage(code, image, "addFrame");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
+			} finally {
+				t.close();
+			}
+		}
+	}
+	
+	/*
 	static class RunHandler1 implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {		
 			String ip = getClientIp(t);
@@ -554,7 +677,75 @@ public class RemoteServer {
 			}
 		}
 	}	
+*/
 
+	static class RunHandler2 implements HttpHandler {    
+		public void handle(HttpExchange t) throws IOException {
+			// 1. הגדרות Header רגילות (CORS) - הוספת Headers מלאים לתמיכה בדפדפנים
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				// 2. קריאת ה-JSON מהדפדפן (חובה לעשות זאת לפני שמשתמשים בנתונים)
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String currentIp = getClientIp(t);
+				
+				// 3. חילוץ המזהה הייחודי (LocalStorage) והשם
+				String studentId = request.has("studentId") ? request.get("studentId").getAsString() : currentIp;
+				String studentName = request.has("name") ? request.get("name").getAsString() : "אורח";
+
+				// 4. עדכון הסטטיסטיקות בזיכרון (Maps) לפי studentId
+				incrementUserStat(studentId, "run2"); 
+				totalRequestsCounter.incrementAndGet();
+				lastSeenMap.put(studentId, System.currentTimeMillis());
+				studentNames.put(studentId, studentName); // עדכון השם במפה בזיכרון
+
+				// 5. עדכון ב-Database
+				// מוודאים שהתלמיד קיים בטבלה עם ה-ID הזה, ואז מעדכנים את המשימה
+				checkAndCreateStudent(studentId, studentName, currentIp);
+				updateTaskInDB(studentId, "run2", currentIp);
+
+				// 6. הרצת הקוד הלוגי
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				// שימוש בפונקציה המרכזית (אלגוריתם האלכסון)
+				JsonObject responseJson = executeStudentCodeImage(code, image, "createDiagonal");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}               
+			} catch (Exception e) {
+				// טיפול בשגיאות (קומפילציה או ריצה)
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
+			} finally {
+				t.close();
+			}
+		}
+	}
+/*
 	static class RunHandler2 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
 			String ip = getClientIp(t);
@@ -605,6 +796,76 @@ public class RemoteServer {
 			}
 		}
 	}
+*/
+
+static class RunHandler3 implements HttpHandler {    
+    public void handle(HttpExchange t) throws IOException {
+        // 1. הגדרות Header רגילות (CORS)
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+        if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+            t.sendResponseHeaders(204, -1);
+            t.close();
+            return;
+        }
+
+        Gson gson = new Gson();
+
+        try (InputStream is = t.getRequestBody()) {
+            // 2. קריאת ה-JSON מהדפדפן
+            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject request = gson.fromJson(body, JsonObject.class);
+            
+            String currentIp = getClientIp(t);
+            
+            // 3. חילוץ המזהה הייחודי (LocalStorage) והשם
+            String studentId = request.has("studentId") ? request.get("studentId").getAsString() : currentIp;
+            String studentName = request.has("name") ? request.get("name").getAsString() : "אורח";
+
+            // 4. עדכון הסטטיסטיקות בזיכרון (Maps) לפי ה-studentId הקבוע
+            incrementUserStat(studentId, "run3"); 
+            totalRequestsCounter.incrementAndGet();
+            lastSeenMap.put(studentId, System.currentTimeMillis());
+            studentNames.put(studentId, studentName);
+
+            // 5. עדכון ב-Database
+            // מוודאים שהתלמיד קיים (לפי studentId) ואז מעדכנים את משימה 3
+            checkAndCreateStudent(studentId, studentName, currentIp);
+            updateTaskInDB(studentId, "run3", currentIp);
+
+            // 6. הרצת הקוד הלוגי
+            String code = request.get("code").getAsString();
+            int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+            // כאן מתבצעת הפונקציה הספציפית לשלב 3: findMaxDiagonal
+            JsonObject responseJson = executeStudentCodeInt(code, image, "findMaxDiagonal");
+            
+            byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(200, b.length);
+            
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }
+        } catch (Exception e) {
+            // טיפול בשגיאות
+            JsonObject errorJson = new JsonObject();
+            errorJson.addProperty("error", e.getMessage());
+            byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(400, b.length);
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }
+        } finally {
+            t.close();
+        }
+    }
+}
+
+/*
 
 	static class RunHandler3 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
@@ -656,6 +917,76 @@ public class RemoteServer {
 			}
 		}
 	}
+*/
+
+static class RunHandler4 implements HttpHandler {    
+    public void handle(HttpExchange t) throws IOException {
+        // 1. הגדרות Header רגילות (CORS)
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+        if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+            t.sendResponseHeaders(204, -1);
+            t.close();
+            return;
+        }
+
+        Gson gson = new Gson();
+
+        try (InputStream is = t.getRequestBody()) {
+            // 2. קריאת ה-JSON מהדפדפן (חובה לבצע לפני השימוש ב-studentId)
+            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject request = gson.fromJson(body, JsonObject.class);
+            
+            String currentIp = getClientIp(t);
+            
+            // 3. חילוץ המזהה הייחודי (LocalStorage) והשם
+            String studentId = request.has("studentId") ? request.get("studentId").getAsString() : currentIp;
+            String studentName = request.has("name") ? request.get("name").getAsString() : "אורח";
+
+            // 4. עדכון הסטטיסטיקות בזיכרון (Maps) לפי ה-studentId הקבוע
+            incrementUserStat(studentId, "run4"); 
+            totalRequestsCounter.incrementAndGet();
+            lastSeenMap.put(studentId, System.currentTimeMillis());
+            studentNames.put(studentId, studentName);
+
+            // 5. עדכון ב-Database
+            // מוודאים שהתלמיד קיים (לפי studentId) ואז מעדכנים את משימה 4
+            checkAndCreateStudent(studentId, studentName, currentIp);
+            updateTaskInDB(studentId, "run4", currentIp);
+
+            // 6. הרצת הקוד הלוגי
+            String code = request.get("code").getAsString();
+            int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+            // הרצת השלב הספציפי: findMinSecondaryDiagonal
+            JsonObject responseJson = executeStudentCodeInt(code, image, "findMinSecondaryDiagonal");
+            
+            byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(200, b.length);
+            
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }
+        } catch (Exception e) {
+            // טיפול בשגיאות
+            JsonObject errorJson = new JsonObject();
+            errorJson.addProperty("error", e.getMessage());
+            byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(400, b.length);
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }
+        } finally {
+            t.close();
+        }
+    }
+}
+
+/*
 
 	static class RunHandler4 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
@@ -707,7 +1038,8 @@ public class RemoteServer {
 			}
 		}
 	}
-
+*/
+/*
 	static class RunHandler5 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
 			String ip = getClientIp(t);
@@ -773,7 +1105,89 @@ public class RemoteServer {
 			}
 		}
 	}
+	*/
+	
+	static class RunHandler5 implements HttpHandler {    
+    public void handle(HttpExchange t) throws IOException {
+        // 1. הגדרות Header רגילות (CORS)
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 
+        if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+            t.sendResponseHeaders(204, -1);
+            t.close();
+            return;
+        }
+
+        Gson gson = new Gson();
+
+        try (InputStream is = t.getRequestBody()) {
+            // 2. קריאת ה-JSON מהדפדפן בתחילת התהליך
+            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject req = gson.fromJson(body, JsonObject.class);
+            
+            String currentIp = getClientIp(t);
+            
+            // 3. חילוץ המזהה הייחודי (LocalStorage) והשם
+            String studentId = req.has("studentId") ? req.get("studentId").getAsString() : currentIp;
+            String studentName = req.has("name") ? req.get("name").getAsString() : "אורח";
+
+            // 4. עדכון הסטטיסטיקות בזיכרון (Maps) לפי ה-studentId הקבוע
+            incrementUserStat(studentId, "run5"); 
+            totalRequestsCounter.incrementAndGet();
+            lastSeenMap.put(studentId, System.currentTimeMillis());
+            studentNames.put(studentId, studentName);
+
+            // 5. עדכון ב-Database
+            // מוודאים שהתלמיד קיים בטבלה, ואז מעדכנים את משימה 5
+            checkAndCreateStudent(studentId, studentName, currentIp);
+            updateTaskInDB(studentId, "run5", currentIp);
+
+            // 6. חילוץ נתוני הקוד והתמונה
+            String code = req.get("code").getAsString();
+            int[][] image = gson.fromJson(req.get("image"), int[][].class);
+            int countToReplicate = req.has("count") ? req.get("count").getAsInt() : 1;
+
+            // חישוב המיקום הראשון שאינו רקע (לוגיקה שלך)
+            int rPos = 0, cPos = 0;
+            boolean found = false;
+            for (int r = 0; r < image.length && !found; r++) {
+                for (int c = 0; c < image[r].length; c++) {
+                    if (image[r][c] != 1) { // מניח ש-1 הוא צבע הרקע
+                        rPos = r; cPos = c;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            
+            // 7. הרצת הקוד הלוגי - replicatePixel
+            JsonObject responseJson = executeStudentCodeRepPixel(code, image, rPos, cPos, countToReplicate, "replicatePixel");
+            
+            byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(200, b.length);
+            
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }           
+        } catch (Exception e) {
+            // טיפול בשגיאות
+            JsonObject errorJson = new JsonObject();
+            errorJson.addProperty("error", e.getMessage());
+            byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(400, b.length);
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }
+        } finally {
+            t.close();
+        }
+    }
+}
+/*
 	static class RunHandler6 implements HttpHandler {	
 		public void handle(HttpExchange t) throws IOException {
 			String ip = getClientIp(t);
@@ -840,7 +1254,90 @@ public class RemoteServer {
 			}
 		}
 	}
+	*/
+	static class RunHandler6 implements HttpHandler {    
+    public void handle(HttpExchange t) throws IOException {
+        // 1. הגדרות Header רגילות (CORS)
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 
+        if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+            t.sendResponseHeaders(204, -1);
+            t.close();
+            return;
+        }
+        
+        Gson gson = new Gson();
+
+        try (InputStream is = t.getRequestBody()) {
+            // 2. קריאת ה-JSON מהדפדפן כבר עכשיו
+            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject req = gson.fromJson(body, JsonObject.class);
+            
+            String currentIp = getClientIp(t);
+            
+            // 3. חילוץ המזהה הייחודי (LocalStorage) והשם
+            String studentId = req.has("studentId") ? req.get("studentId").getAsString() : currentIp;
+            String studentName = req.has("name") ? req.get("name").getAsString() : "אורח";
+
+            // 4. עדכון הסטטיסטיקות לפי המזהה הקבוע (studentId) במקום ה-IP
+            incrementUserStat(studentId, "run6"); 
+            totalRequestsCounter.incrementAndGet();
+            lastSeenMap.put(studentId, System.currentTimeMillis());
+            studentNames.put(studentId, studentName);
+
+            // 5. עדכון ב-Database
+            // מוודאים שהתלמיד קיים בטבלה לפי studentId, ואז מעדכנים את משימה 6
+            checkAndCreateStudent(studentId, studentName, currentIp);
+            updateTaskInDB(studentId, "run6", currentIp);
+
+            // 6. חילוץ נתוני הקוד והפרמטרים
+            String code = req.get("code").getAsString();
+            int[][] image = gson.fromJson(req.get("image"), int[][].class);
+            int rowsCount = req.get("rows").getAsInt();
+            int colsCount = req.get("cols").getAsInt();
+
+            // חישוב המיקום הראשון שאינו רקע (לוגיקה שלך)
+            int rPos = 0, cPos = 0;
+            boolean found = false;
+            for (int r = 0; r < image.length && !found; r++) {
+                for (int c = 0; c < image[r].length; c++) {
+                    if (image[r][c] != 1) { // מניח ש-1 הוא צבע הרקע
+                        rPos = r; cPos = c;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+                
+            // 7. הרצת הקוד הלוגי - replicateRectangle
+            JsonObject responseJson = executeStudentCodeRepRec(code, image, rPos, cPos, rowsCount, colsCount, "replicateRectangle");
+            
+            byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(200, b.length);
+            
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }       
+        } catch (Exception e) {
+            // טיפול בשגיאות
+            JsonObject errorJson = new JsonObject();
+            errorJson.addProperty("error", e.getMessage());
+            byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+            t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+            t.sendResponseHeaders(400, b.length);
+            try (OutputStream os = t.getResponseBody()) {
+                os.write(b);
+            }
+        } finally {
+            t.close();
+        }
+    }
+}
+
+/*
 	static class RunCreative implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
 			String ip = getClientIp(t);
@@ -891,7 +1388,135 @@ public class RemoteServer {
 			}
 		}
 	}
+	*/
+	static class RunCreative implements HttpHandler {
+		public void handle(HttpExchange t) throws IOException {
+			// 1. הגדרות Header רגילות (CORS)
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
+			Gson gson = new Gson();
+
+			try (InputStream is = t.getRequestBody()) {
+				// 2. קריאת ה-JSON מהדפדפן
+				String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+				JsonObject request = gson.fromJson(body, JsonObject.class);
+				
+				String currentIp = getClientIp(t);
+				
+				// 3. חילוץ המזהה הייחודי (LocalStorage) והשם
+				String studentId = request.has("studentId") ? request.get("studentId").getAsString() : currentIp;
+				String studentName = request.has("name") ? request.get("name").getAsString() : "אורח";
+
+				// 4. עדכון הסטטיסטיקות בזיכרון (Maps) לפי ה-studentId הקבוע
+				incrementUserStat(studentId, "run-creative"); 
+				totalRequestsCounter.incrementAndGet();
+				lastSeenMap.put(studentId, System.currentTimeMillis());
+				studentNames.put(studentId, studentName);
+
+				// 5. עדכון ב-Database
+				// מוודאים שהתלמיד קיים (לפי studentId) ואז מעדכנים את משימת היצירה
+				checkAndCreateStudent(studentId, studentName, currentIp);
+				updateTaskInDB(studentId, "run-creative", currentIp);
+
+				// 6. הרצת הקוד הלוגי
+				String code = request.get("code").getAsString();
+				int[][] image = gson.fromJson(request.get("image"), int[][].class);
+
+				// שימוש בפונקציה המרכזית ליצירת תמונה חופשית
+				JsonObject responseJson = executeStudentCodeImage(code, image, "createImage");
+				
+				byte[] b = gson.toJson(responseJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(200, b.length);
+				
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
+			} catch (Exception e) {
+				// טיפול בשגיאות
+				JsonObject errorJson = new JsonObject();
+				errorJson.addProperty("error", e.getMessage());
+				byte[] b = gson.toJson(errorJson).getBytes(StandardCharsets.UTF_8);
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				t.sendResponseHeaders(400, b.length);
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(b);
+				}
+			} finally {
+				t.close();
+			}
+		}
+	}
 	
+	
+	static class AdminStatsHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+
+			List<Map<String, String>> activeStudents = new ArrayList<>();
+			int totalGlobalRuns = 0;
+
+			try (Connection conn = getConnection()) {
+				// שליפת כל הנתונים, מסודרים לפי מי שהיה פעיל לאחרונה
+				String sql = "SELECT * FROM students ORDER BY last_seen DESC";
+				try (PreparedStatement pstmt = conn.prepareStatement(sql);
+					 ResultSet rs = pstmt.executeQuery()) {
+					
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.of("Israel"));
+
+					while (rs.next()) {
+						Map<String, String> s = new HashMap<>();
+						
+						// המזהים הבסיסיים
+						s.put("studentId", rs.getString("student_id")); // הוספנו את המזהה הייחודי
+						s.put("name", rs.getString("name"));
+						s.put("ip", rs.getString("ip")); // יציג את ה-IP האחרון ממנו התלמיד התחבר
+						
+						int runs = rs.getInt("total_runs");
+						s.put("runCount", String.valueOf(runs));
+						totalGlobalRuns += runs;
+
+						long ts = rs.getLong("last_seen");
+						s.put("lastSeen", ts > 0 ? formatter.format(Instant.ofEpochMilli(ts)) : "-");
+
+						// שליחת ה-JSON-ים של הדירוגים והרצות ל-Frontend של האדמין
+						// שים לב: וודא ששמות העמודות ב-getString תואמים בדיוק למה שיש ב-DB שלך
+						s.put("ratingsJson", rs.getString("ratings")); 
+						s.put("runCountsJson", rs.getString("run_counts"));
+						
+						activeStudents.add(s);
+					}
+				}
+			} catch (Exception e) { 
+				System.err.println("Error in AdminStatsHandler: " + e.getMessage());
+				e.printStackTrace(); 
+			}
+
+			JsonObject resp = new JsonObject();
+			resp.add("activeStudents", new Gson().toJsonTree(activeStudents));
+			// totalRequests מציג את סך כל ההרצות של כל הכיתה יחד
+			resp.addProperty("totalRequests", totalGlobalRuns);
+
+			byte[] b = resp.toString().getBytes(StandardCharsets.UTF_8);
+			t.sendResponseHeaders(200, b.length);
+			try (OutputStream os = t.getResponseBody()) { 
+				os.write(b); 
+			}
+			t.close();
+		}
+	}
+	
+	/*
 	static class AdminStatsHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange t) throws IOException {
@@ -940,63 +1565,9 @@ public class RemoteServer {
     }
 }
 
-	/*
+*/
 
-	static class AdminStatsHandler implements HttpHandler {
-		@Override
-		public void handle(HttpExchange t) throws IOException {
-			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-			t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-
-			// בניית רשימת הסטודנטים המעודכנת
-			List<Map<String, String>> studentsList = new ArrayList<>();
-				
-			for (Map.Entry<String, String> entry : studentNames.entrySet()) {
-				String ip = entry.getKey();
-				Map<String, String> s = new HashMap<>();
-				s.put("ip", ip);
-				s.put("name", entry.getValue());
-				
-				// 1. שליפת מפת הפעילויות המפורטת של התלמיד (7 המונים)
-				Map<String, Integer> stats = userActivityStats.getOrDefault(ip, new ConcurrentHashMap<>());
-				
-				// 2. נהפוך את המפה ל-JSON קטן כדי שה-JS יוכל לקרוא את הפירוט
-				s.put("details", new com.google.gson.Gson().toJson(stats));
-				
-				// 3. לטובת התצוגה הראשית בטבלה - נחשב את סך כל ההרצות מכל ה-Handlers
-				int totalRuns = stats.values().stream().mapToInt(Integer::intValue).sum();
-				s.put("runCount", String.valueOf(totalRuns));
-				
-				// שליחת חותמת הזמן האחרונה
-				long lastSeen = lastSeenMap.getOrDefault(ip, 0L);
-				s.put("lastSeen", String.valueOf(lastSeen));
-				
-				Map<String, Integer> userRatings = feedbackRatings.getOrDefault(ip, new HashMap<>());
-				s.put("ratingsJson", new Gson().toJson(userRatings));
-				
-				s.put("status", "פעיל");
-				studentsList.add(s);
-			}
-			
-
-			JsonObject resp = new JsonObject();
-			// התיקון כאן: השם חייב להיות activeStudents
-			resp.add("activeStudents", new com.google.gson.Gson().toJsonTree(studentsList));
-			resp.addProperty("totalRequests", totalRequestsCounter.get());
-			resp.add("levelStats", new JsonObject()); 
-
-			String response = new com.google.gson.Gson().toJson(resp);
-			byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-			t.sendResponseHeaders(200, bytes.length);
-			try (OutputStream os = t.getResponseBody()) {
-				os.write(bytes);
-			}
-			t.close();
-		}
-	}
-	
-	*/
-	
+/*
 	static class RegisterHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
@@ -1068,79 +1639,99 @@ public class RemoteServer {
             t.close();
         }
     }
-	
-	/*
+
+*/
 	static class RegisterHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange t) throws IOException {
-            // 1. הגדרות CORS
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			// 1. הגדרות CORS
+			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
 
-            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-                t.sendResponseHeaders(204, -1);
-                return;
-            }
-            
-            String ip = getClientIp(t);
-            lastSeenMap.put(ip, System.currentTimeMillis());
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
 
-            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-                try (InputStream is = t.getRequestBody()) {
-                    String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                    JsonObject json = new Gson().fromJson(body, JsonObject.class);
-                    String name = json.get("studentName").getAsString();
-                    
-                    // --- שמירה ב-Database (Postgres) ---
-                    try (Connection conn = getConnection()) {
-                        String sql = "INSERT INTO students (name, ip, last_seen) VALUES (?, ?, ?) " +
-                                     "ON CONFLICT (ip) DO UPDATE SET name = EXCLUDED.name, last_seen = EXCLUDED.last_seen";
-                        
-                        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                            pstmt.setString(1, name);
-                            pstmt.setString(2, ip);
-                            pstmt.setLong(3, System.currentTimeMillis());
-                            pstmt.executeUpdate();
-                        }
-                    } catch (Exception dbEx) {
-                        System.err.println("Database error: " + dbEx.getMessage());
-                        // ממשיכים בכל זאת כדי לא לתקוע את התלמיד אם ה-DB זמנית למטה
-                    }
+			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+				try (InputStream is = t.getRequestBody()) {
+					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+					JsonObject json = new Gson().fromJson(body, JsonObject.class);
+					
+					// חילוץ הנתונים החדשים מה-Frontend
+					String name = json.get("studentName").getAsString();
+					// אם הלקוח עדיין לא שלח studentId (גרסה ישנה), נשתמש ב-IP כגיבוי
+					String studentId = json.has("studentId") ? json.get("studentId").getAsString() : getClientIp(t);
+					
+					String ip = getClientIp(t);
+					long currentTime = System.currentTimeMillis();
 
-                    // עדכון המפות המקומיות (לגיבוי מהיר)
-                    studentNames.put(ip, name); 
-                    if (!onlineUsers.contains(ip)) onlineUsers.add(ip);
+					// 2. עדכון ב-Database (Postgres)
+					try (Connection conn = getConnection()) {
+						// השינוי הקריטי: ON CONFLICT בודק עכשיו את ה-student_id ולא את ה-IP
+						String sql = "INSERT INTO students (student_id, name, ip, last_seen) VALUES (?, ?, ?, ?) " +
+									 "ON CONFLICT (student_id) DO UPDATE SET name = EXCLUDED.name, ip = EXCLUDED.ip, last_seen = EXCLUDED.last_seen";
+						
+						try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+							pstmt.setString(1, studentId);
+							pstmt.setString(2, name);
+							pstmt.setString(3, ip);
+							pstmt.setLong(4, currentTime);
+							pstmt.executeUpdate();
+						}
+					} catch (Exception dbEx) {
+						System.err.println("Database error during registration for ID " + studentId + ": " + dbEx.getMessage());
+					}
 
-                    // שליחת תשובה ללקוח
-                    String resp = "{\"status\":\"registered\",\"name\":\"" + name + "\"}";
-                    t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
-                    t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
-                    try (OutputStream os = t.getResponseBody()) {
-                        os.write(resp.getBytes(StandardCharsets.UTF_8));
-                    }
-                    
-                    System.out.println("Student registered and saved to DB: " + name + " (IP: " + ip + ")");
-                    
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    t.sendResponseHeaders(400, 0);
-                }
-            } else {
-                t.sendResponseHeaders(405, -1);
-            }
-            t.close();
-        }
-    }
-*/	
+					// 3. עדכון מפות מקומיות (לשימוש בזיכרון של השרת)
+					// משתמשים ב-studentId כמפתח במקום ב-IP
+					studentNames.put(studentId, name); 
+					lastSeenMap.put(studentId, currentTime);
+					if (!onlineUsers.contains(studentId)) onlineUsers.add(studentId);
+
+					// 4. שליחת תשובה
+					JsonObject responseJson = new JsonObject();
+					responseJson.addProperty("status", "registered");
+					responseJson.addProperty("studentId", studentId);
+					
+					String resp = responseJson.toString();
+					t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+					t.sendResponseHeaders(200, resp.getBytes(StandardCharsets.UTF_8).length);
+					try (OutputStream os = t.getResponseBody()) {
+						os.write(resp.getBytes(StandardCharsets.UTF_8));
+					}
+					
+					System.out.println("Student registered: " + name + " | ID: " + studentId + " | IP: " + ip);
+					
+				} catch (Exception e) {
+					System.err.println("Registration failed: " + e.getMessage());
+					t.sendResponseHeaders(400, 0);
+				}
+			} else {
+				t.sendResponseHeaders(405, -1);
+			}
+			t.close();
+		}
+	}
 
 	static class ResetAllHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
+			// 1. הגדרות CORS מלאות
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-			
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
 			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-				// איפוס כל המשתנים הסטטיים
+				// 2. איפוס כל המשתנים הסטטיים בזיכרון
 				onlineUsers.clear();
 				studentNames.clear();
 				userActivityStats.clear();
@@ -1148,10 +1739,24 @@ public class RemoteServer {
 				totalRequestsCounter.set(0);
 				feedbackRatings.clear();
 
+				// 3. איפוס מסד הנתונים (אופציונלי אך מומלץ אם אתה רוצה ניקוי מוחלט)
+				try (Connection conn = getConnection()) {
+					String sql = "DELETE FROM students"; // מוחק את כל התלמידים מהטבלה
+					try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+						pstmt.executeUpdate();
+					}
+					System.out.println("Database cleared by Admin.");
+				} catch (Exception e) {
+					System.err.println("Error clearing DB during reset: " + e.getMessage());
+				}
+
+				// 4. שליחת תגובה
 				String resp = "{\"status\":\"reset_success\"}";
-				t.sendResponseHeaders(200, resp.length());
+				t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+				byte[] b = resp.getBytes(StandardCharsets.UTF_8);
+				t.sendResponseHeaders(200, b.length);
 				try (OutputStream os = t.getResponseBody()) {
-					os.write(resp.getBytes());
+					os.write(b);
 				}
 			} else {
 				t.sendResponseHeaders(405, -1); // Method Not Allowed
@@ -1159,7 +1764,7 @@ public class RemoteServer {
 			t.close();
 		}
 	}
-	
+	/*
 static class FeedbackHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
@@ -1217,32 +1822,76 @@ static class FeedbackHandler implements HttpHandler {
             t.close();
         }
     }
-/*	
+	
+	*/
+	
 	static class FeedbackHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
+			// 1. הגדרות CORS
 			t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+			t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+			if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+				t.sendResponseHeaders(204, -1);
+				t.close();
+				return;
+			}
+
 			if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
 				try (InputStream is = t.getRequestBody()) {
 					String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 					JsonObject json = new Gson().fromJson(body, JsonObject.class);
 					
+					// חילוץ הנתונים מה-JSON
 					String taskId = json.get("taskId").getAsString(); // למשל "run1"
 					int rating = json.get("rating").getAsInt();
-					String ip = getClientIp(t);
 					
-					// שמירה בתוך המפה הפנימית של התלמיד
-					feedbackRatings.computeIfAbsent(ip, k -> new ConcurrentHashMap<>())
+					// המזהה הקריטי: studentId מה-LocalStorage
+					String currentIp = getClientIp(t);
+					String studentId = json.has("studentId") ? json.get("studentId").getAsString() : currentIp;
+					
+					// --- עדכון ב-DATABASE (Postgres) ---
+					try (Connection conn = getConnection()) {
+						// עדכון לפי student_id במקום לפי IP
+						String sql = "UPDATE students SET " +
+									 "ratings = jsonb_set(COALESCE(ratings, '{}'), ARRAY[?], ?::text::jsonb), " +
+									 "last_seen = ?, " +
+									 "ip = ? " + // נעדכן גם את ה-IP האחרון ליופי ב-Admin
+									 "WHERE student_id = ?";
+						
+						try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+							pstmt.setString(1, taskId);
+							pstmt.setInt(2, rating);
+							pstmt.setLong(3, System.currentTimeMillis());
+							pstmt.setString(4, currentIp);
+							pstmt.setString(5, studentId);
+							pstmt.executeUpdate();
+						}
+					} catch (Exception dbEx) {
+						System.err.println("Database Error in FeedbackHandler: " + dbEx.getMessage());
+					}
+
+					// עדכון במפות המקומיות בזיכרון השרת לפי studentId
+					feedbackRatings.computeIfAbsent(studentId, k -> new ConcurrentHashMap<>())
 								   .put(taskId, rating);
 					
-					lastSeenMap.put(ip, System.currentTimeMillis());
+					lastSeenMap.put(studentId, System.currentTimeMillis());
+					
 					sendTextResponse(t, 200, "{\"status\":\"ok\"}");
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					sendTextResponse(t, 400, "{\"error\":\"invalid data\"}");
 				}
+			} else {
+				t.sendResponseHeaders(405, -1);
 			}
 			t.close();
 		}
 	}
-*/	
+	
 	static class SettingsHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
