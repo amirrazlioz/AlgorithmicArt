@@ -245,7 +245,7 @@
         const tr = document.createElement('tr');
         
         // --- לוגיקת בועת סטטוס (פעיל ב-10 דקות אחרונות) ---
-        const lastSeenTs = parseInt(student.lastSeenTimestamp || 0);
+        const lastSeenTs = parseInt(student.lastSeen || 0);
         const now = Date.now();
         const diffMinutes = (now - lastSeenTs) / (1000 * 60);
         const isOnline = diffMinutes <= 10; // האם היה פעיל ב-10 דקות האחרונות
