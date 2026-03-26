@@ -425,16 +425,7 @@ name = name.replace(/\s+/g, ' ').trim();
         const cells = tr.querySelectorAll("td");
         if (cells.length < 10) return; // הגנה משורות ריקות
 		
-		// שליפת כל הטקסט מהתא הראשון (השם)
-		let name = cells[0].innerText.trim();
-
-		// אם השם ריק או מכיל רק את הבועה (שאין לה טקסט), נשתמש בברירת מחדל
-		if (!name || name === "" || name === "אורח") {
-			name = "תלמיד ללא שם";
-		}
-
-		// ניקוי תווים לא רצויים אם נשארו מה-Status Dot (לפעמים נשאר רווח לבן)
-		name = name.replace(/\s+/g, ' ').trim();
+		const name = cells[0].innerText.replace(/[^\w\sא-ת]/g, '').trim();
 
        // const name = cells[0].querySelector("div")?.innerText || "אורח";
         const ip = cells[1].querySelector("div")?.innerText || "";
