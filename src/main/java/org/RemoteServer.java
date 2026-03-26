@@ -492,7 +492,6 @@ public class RemoteServer {
 						 "run_counts = jsonb_set(COALESCE(run_counts, '{}'), ARRAY[?], " +
 						 "(COALESCE(run_counts->>?, '0')::int + 1)::text::jsonb) " +
 						 "WHERE student_id = ?"; 
-			
 			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 				long now = System.currentTimeMillis();
 				pstmt.setLong(1, now);
