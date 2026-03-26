@@ -243,6 +243,8 @@
 
     data.activeStudents.forEach(student => {
         const tr = document.createElement('tr');
+		
+		console.log(`Student: ${student.name}, Time: ${student.lastSeenMillis}, Now: ${Date.now()}`);
         
        // --- לוגיקת בועת סטטוס (פעיל ב-10 דקות אחרונות) ---
 		const lastSeenTs = parseInt(student.lastSeenMillis || 0);
