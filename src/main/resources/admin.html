@@ -133,7 +133,7 @@
             <div id="total-requests" class="stat-value">0</div>
         </div>
         <div class="card">
-            <div class="stat-label">מדד עניין כיתתי (ממוצע)</div>
+            <div class="stat-label">מדד עניין כיתתי (ממוצע) ⭐</div>
             <div id="avg-rating" class="stat-value" style="color: #0ea5e9;">0.0</div>
         </div>
     </div>
@@ -281,7 +281,7 @@
     const globalAvgDisplay = document.getElementById('avg-rating');
     if (globalAvgDisplay) {
         const finalGlobalAvg = globalStarsCount > 0 ? (globalStarsSum / globalStarsCount).toFixed(1) : "0.0";
-        globalAvgDisplay.textContent = finalGlobalAvg + " ⭐";
+        globalAvgDisplay.textContent = finalGlobalAvg;
     }
 
     updateClassAverages(classTotals, levelKeys);
