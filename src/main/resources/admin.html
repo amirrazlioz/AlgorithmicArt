@@ -114,6 +114,22 @@
         @media (max-width: 768px) {
             .main-grid { grid-template-columns: 1fr; }
         }
+		
+		.status-dot {
+			height: 10px;
+			width: 10px;
+			border-radius: 50%;
+			display: inline-block;
+			margin-left: 8px;
+		}
+		.status-online {
+			background-color: #10b981; /* ירוק */
+			box-shadow: 0 0 5px #10b981;
+		}
+		.status-offline {
+			background-color: #ef4444; /* אדום */
+		}
+
     </style>
 </head>
 <body>
@@ -227,6 +243,26 @@
 
     data.activeStudents.forEach(student => {
         const tr = document.createElement('tr');
+        
+        // --- לוגיקת בועת סטטוס (פעיל ב-10 דקות אחרונות) ---
+        const lastSeenTs = parseInt(student.lastSeenTimestamp || 0);
+        const now = Date.now();
+        const diffMinutes = (now - lastSeenTs) / (1000 * 60);
+        const isOnline = diffMinutes <= 10; // האם היה פעיל ב-10 דקות האחרונות
+        
+        // עיצוב הבועה
+        const statusDotHtml = `
+            <span style="
+                height: 10px; 
+                width: 10px; 
+                background-color: ${isOnline ? '#10b981' : '#ef4444'}; 
+                border-radius: 50%; 
+                display: inline-block; 
+                margin-left: 8px;
+                box-shadow: ${isOnline ? '0 0 5px #10b981' : 'none'};
+            "></span>`;
+        // -----------------------------------------------
+
         let ratings = {}, runCounts = {};
         try {
             ratings = JSON.parse(student.ratingsJson || '{}');
@@ -239,11 +275,8 @@
             const starCount = ratings[key] || 0;
             
             if (starCount > 0) {
-                // עדכון ממוצע לכל Level (ל-Footer)
                 classTotals[key].sum += starCount;
                 classTotals[key].count += 1;
-                
-                // עדכון ממוצע כיתתי כולל (לכרטיסייה למעלה)
                 globalStarsSum += starCount;
                 globalStarsCount += 1;
             }
@@ -259,7 +292,10 @@
         const avg = ratingValues.length > 0 ? (ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length).toFixed(1) : '-';
 
         tr.innerHTML = `
-            <td style="font-weight: bold;">${student.name || 'אורח'}</td>
+            <td style="font-weight: bold; display: flex; align-items: center;">
+                ${statusDotHtml}
+                ${student.name || 'אורח'}
+            </td>
             <td style="font-family: monospace; font-size: 0.85em; color: #64748b;">${student.ip || '-'}</td>
             <td style="background:#f8fafc; font-weight: bold; color: #64748b; font-size: 0.8em;">
                 <div>מספר הרצות</div>
@@ -277,7 +313,6 @@
         tableBody.appendChild(tr);
     });
 
-    // עדכון המדד הכיתתי בכרטיסייה למעלה
     const globalAvgDisplay = document.getElementById('avg-rating');
     if (globalAvgDisplay) {
         const finalGlobalAvg = globalStarsCount > 0 ? (globalStarsSum / globalStarsCount).toFixed(1) : "0.0";
@@ -286,6 +321,90 @@
 
     updateClassAverages(classTotals, levelKeys);
 }
+/*
+	
+	function updateUI(data) {
+		// מונים עבור המדד הכיתתי הכולל
+		let globalStarsSum = 0;
+		let globalStarsCount = 0;
+
+		// עדכון מונים כלליים בראש הדף
+		const totalElem = document.getElementById('total-requests');
+		if(totalElem) totalElem.textContent = data.totalRequests || 0;
+		
+		const countElem = document.getElementById('active-users-count');
+		if(countElem) countElem.textContent = data.activeStudents ? data.activeStudents.length : 0;
+
+		const tableBody = document.getElementById('students-table-body');
+		if (!tableBody) return;
+		tableBody.innerHTML = '';
+
+		const levelKeys = ['run1', 'run2', 'run3', 'run4', 'run5', 'run6', 'run-creative'];
+		const classTotals = {};
+		levelKeys.forEach(key => classTotals[key] = { sum: 0, count: 0 });
+
+		data.activeStudents.forEach(student => {
+			const tr = document.createElement('tr');
+			let ratings = {}, runCounts = {};
+			try {
+				ratings = JSON.parse(student.ratingsJson || '{}');
+				runCounts = JSON.parse(student.runCountsJson || '{}');
+			} catch(e) { console.error("JSON Parse error"); }
+
+			let levelCellsHtml = '';
+			levelKeys.forEach(key => {
+				const count = runCounts[key] || 0;
+				const starCount = ratings[key] || 0;
+				
+				if (starCount > 0) {
+					// עדכון ממוצע לכל Level (ל-Footer)
+					classTotals[key].sum += starCount;
+					classTotals[key].count += 1;
+					
+					// עדכון ממוצע כיתתי כולל (לכרטיסייה למעלה)
+					globalStarsSum += starCount;
+					globalStarsCount += 1;
+				}
+				
+				levelCellsHtml += `
+					<td style="text-align:center; font-size: 0.9em; border-left: 1px solid #f1f5f9;">
+						<div style="font-weight: bold; color: #4f46e5;">${count > 0 ? count : '-'}</div>
+						<div style="margin-top: 4px;">${starCount > 0 ? starCount : ''}</div>
+					</td>`;
+			});
+
+			const ratingValues = Object.values(ratings).filter(v => v > 0);
+			const avg = ratingValues.length > 0 ? (ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length).toFixed(1) : '-';
+
+			tr.innerHTML = `
+				<td style="font-weight: bold;">${student.name || 'אורח'}</td>
+				<td style="font-family: monospace; font-size: 0.85em; color: #64748b;">${student.ip || '-'}</td>
+				<td style="background:#f8fafc; font-weight: bold; color: #64748b; font-size: 0.8em;">
+					<div>מספר הרצות</div>
+					<div style="margin-top: 10px;">Rating</div>
+				</td>
+				${levelCellsHtml}
+				<td style="text-align:center; font-weight:bold; background:#f0f9ff;">${avg}</td>
+				<td style="text-align:center; font-weight:bold; background:#f1f5f9;">${student.runCount || 0}</td>
+				<td style="text-align:center;">
+					<span class="status-pill" style="background: #f1f5f9; color: #475569; font-family: monospace; white-space: nowrap; padding: 4px 8px;">
+						${student.lastSeen || '-'}
+					</span>
+				</td>
+			`;
+			tableBody.appendChild(tr);
+		});
+
+		// עדכון המדד הכיתתי בכרטיסייה למעלה
+		const globalAvgDisplay = document.getElementById('avg-rating');
+		if (globalAvgDisplay) {
+			const finalGlobalAvg = globalStarsCount > 0 ? (globalStarsSum / globalStarsCount).toFixed(1) : "0.0";
+			globalAvgDisplay.textContent = finalGlobalAvg;
+		}
+
+		updateClassAverages(classTotals, levelKeys);
+	}
+*/
 
 function updateClassAverages(classTotals, levelKeys) {
     levelKeys.forEach((key) => {
