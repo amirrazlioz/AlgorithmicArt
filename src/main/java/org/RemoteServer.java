@@ -2,48 +2,32 @@ package org;
 
 import java.sql.*;
 import java.net.URI;
-
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-
-import java.net.URLClassLoader;
-import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
-
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class RemoteServer {
 	
 	private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
     private static final AtomicInteger totalRequestsCounter = new AtomicInteger(0);
+    private static final Map<String, Long> lastSeenMap = new ConcurrentHashMap<>();
     private static final Map<String, String> studentNames = new ConcurrentHashMap<>();
-    // private static final Map<String, AtomicInteger> userRunCounts = new ConcurrentHashMap<>();
-
-	// מפה שמחזיקה לכל IP מפה פנימית של מונים (לפי שם ה-Handler)
 	private static final Map<String, Map<String, Integer>> userActivityStats = new ConcurrentHashMap<>();
-	
-	// במקום או בנוסף ל-onlineUsers, נשתמש בזה כדי לעקוב אחרי זמן:
-	private static final Map<String, Long> lastSeenMap = new ConcurrentHashMap<>();
-	
-	// IP -> (TaskName -> Rating)
 	private static final Map<String, Map<String, Integer>> feedbackRatings = new ConcurrentHashMap<>();
-	
-	private static boolean creativeEnabled = true; // ברירת מחדל - פתוח
+	private static boolean creativeEnabled = true;
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
