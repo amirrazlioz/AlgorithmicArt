@@ -947,29 +947,16 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 						</div>
 					</div>
 				</div>
-
+				
+				
 <div class="workspace">
     <div class="preview-side">
         <canvas id="canvas1" width="280" height="280"></canvas>
     </div>
     <div class="editor-side">
         <div id="editor-code1" class="editor-container"></div>
-
-        <textarea id="code1" spellcheck="false" style="display:none;">				
-public static int[][] addFrame(int[][] image){
-    int height = image.length;
-    int width = image[0].length;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if ( i==0 || j==0 || i==height-1 || j==width-1)
-                image[i][j] = 1;  
-        }
-    }
-    System.out.println("height is " + height );
-    System.out.println("width is  " + width );
-    return image;
-}
-        </textarea>			
+        
+        <textarea id="code1" spellcheck="false" style="display:none;"></textarea>			
         
         <button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
                 style="padding: 15px 90px; font-size: 20px; width: auto; 
@@ -978,7 +965,8 @@ public static int[][] addFrame(int[][] image){
             🚀 RUN
         </button>
     </div>
-</div>
+</div>				
+
 				<div class="console-container">
 					<div class="console-header">
 					<span>Console Output</span>
@@ -3204,6 +3192,51 @@ function getStudentId() {
     }
     return uuid;
 }
+
+window.addEventListener('load', () => {
+    const studentName = localStorage.getItem('student_name');
+    const codeTextArea = document.getElementById('code1');
+    
+    // 1. הגדרת הגרסאות
+    const studentCode = `public static int[][] addFrame(int[][] image){
+    int height = image.length;
+    int width = image[0].length;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            // תלמיד: כתוב כאן את התנאי למסגרת
+        }
+    }
+    return image;
+}`;
+
+    const teacherCode = `public static int[][] addFrame(int[][] image){
+    int height = image.length;
+    int width = image[0].length;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if ( i==0 || j==0 || i==height-1 || j==width-1)
+                image[i][j] = 1;  
+        }
+    }
+    System.out.println("height is " + height );
+    System.out.println("width is  " + width );
+    return image;
+}`;
+
+    // 2. בחירת הקוד המתאים
+    const finalCode = (studentName === "מורה") ? teacherCode : studentCode;
+
+    // 3. הכנסה ל-textarea
+    if (codeTextArea) {
+        codeTextArea.value = finalCode;
+    }
+
+    // 4. עדכון עורך הקוד (אם אתה משתמש ב-Ace או Monaco)
+    // אם יש לך משתנה של ה-editor, למשל window.editor1:
+    if (window.editor1) {
+        window.editor1.setValue(finalCode);
+    }
+});
 
 // הפעל את הבדיקה כל 10 שניות
 setInterval(checkCreativeStatus, 10000);
