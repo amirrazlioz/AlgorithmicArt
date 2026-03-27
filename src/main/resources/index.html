@@ -891,20 +891,14 @@ textarea.code-hidden {
 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 
 
-.reset-btn {
-    background-color: #f44336; /* אדום עדין */
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    margin-right: 10px;
-    transition: background 0.3s;
+.editor-actions button:hover {
+    transform: translateY(-2px);
 }
 
-.reset-btn:hover {
-    background-color: #d32f2f;
+.editor-actions button:last-child:hover {
+    color: #f44336; /* אדום רק ב-hover על האיפוס */
+    border-color: #f44336;
+    background: rgba(244, 67, 54, 0.05);
 }
 
 </style>
@@ -964,29 +958,33 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 						</div>
 					</div>
 				</div>
-						
+				
 				<div class="workspace">
 					<div class="preview-side">
 						<canvas id="canvas1" width="280" height="280"></canvas>
 					</div>
 					<div class="editor-side">
 						<div id="editor-code1" class="editor-container"></div>
+						<textarea id="code1" spellcheck="false" style="display:none;"></textarea>            
 						
-						<textarea id="code1" spellcheck="false" style="display:none;"></textarea>			
-						
-						<button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
-								style="padding: 15px 90px; font-size: 20px; width: auto; 
-								background: linear-gradient(135deg, #10b981, #047857); border: none; 
-								box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; margin-top: 15px;">
-							🚀 RUN
-						</button>
-						
-						<div class="task-header">
-							<button onclick="resetTaskCode('code1')" class="reset-btn">איפוס קוד ↺</button>
+						<div class="editor-actions" style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+							
+							<button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
+									style="padding: 12px 60px; font-size: 18px; flex-grow: 1;
+									background: linear-gradient(135deg, #10b981, #047857); border: none; 
+									box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;">
+								🚀 RUN
+							</button>
+							
+							<button onclick="resetTaskCode('code1')" title="איפוס קוד למצב התחלתי"
+									style="background: transparent; border: 1px solid #444; color: #858585; 
+									padding: 12px 15px; border-radius: 5px; cursor: pointer; transition: all 0.2; font-size: 14px;">
+								↺ איפוס
+							</button>
+							
 						</div>
-
 					</div>
-				</div>				
+				</div>
 
 				<div class="console-container">
 					<div class="console-header">
