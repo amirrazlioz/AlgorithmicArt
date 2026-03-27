@@ -3117,31 +3117,30 @@ function getTaskContent(id, isTeacher) {
         },
 		'code5': {
             student: 
-`public static int[][] replicatePixel(int[][] image, int row, int col, int count){
+`public static void replicatePixel(int[][] image, int row, int col, int count){
 
     // TODO: מימוש מלא
 
 }`,
             teacher: 
-`public static int[][] replicatePixel(int[][]image, int row, int col, int count){
+`public static void replicatePixel(int[][]image, int row, int col, int count){
 	int colorToCopy = image[row][col];
 	int width = image[0].length;
 	for (int j = 0; j < count; j++){
 		if ( j + col <= 15 )
 			image[row][j+col]= colorToCopy ;  
 	}        
-	return image;
 }`
         },
 		'code6': {
             student: 
-`public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
+`public static void replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
 
     // TODO: מימוש מלא
 
 }`,
             teacher: 
-`public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
+`public static void replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
 	int colorToCopy = image[row][col];
 	int width = image[0].length;
 	for (int i = 0; i < rowsCount; i++) {
@@ -3150,12 +3149,11 @@ function getTaskContent(id, isTeacher) {
 				image[i+row][j+col]=colorToCopy ;  
 		}
 	} 
-	return image;
 }`
         },
 		'creative-code': {
 student: 
-`public static int[][] createImage(int[][] image) {
+`public static void createImage(int[][] image) {
 	int height = image.length;
 	int width = image[0].length;
 
@@ -3200,7 +3198,6 @@ student:
 		r = r * 0.96; // הקטנת רדיוס
 		a = a + 0.1;  // שינוי זווית
 	}
-	return image;
 }
 
 private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
@@ -3228,7 +3225,7 @@ private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, in
 }`
 ,
 teacher: 
-`public static int[][] createImage(int[][] image) {
+`public static void createImage(int[][] image) {
 	int height = image.length;
 	int width = image[0].length;
 
@@ -3273,7 +3270,6 @@ teacher:
 		r = r * 0.96; // הקטנת רדיוס
 		a = a + 0.1;  // שינוי זווית
 	}
-	return image;
 }
 
 private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {

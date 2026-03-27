@@ -149,18 +149,7 @@ public class RemoteServer {
 		
 		final int[][][] resultHolder = new int[1][][];
 		final String[] logHolder = new String[1];
-		
-		/*
-		try {
-			String classCode = "package " + uniqueId + ";\n" +
-							   "public class " + className + " {\n" +
-							   "    public static int[][] run(int[][] image) {\n" +
-							   "        return " + wrapperMethodName + "(image);\n" +
-							   "    }\n" +
-							   studentCode + "\n" +
-							   "}";
-		*/					   
-							   
+			   
 		try {					   
 			String classCode = "package " + uniqueId + ";\n" +
                    "public class " + className + " {\n" +
@@ -200,10 +189,7 @@ public class RemoteServer {
 								ByteArrayOutputStream baos = new ByteArrayOutputStream();
 								try (PrintStream newOut = new PrintStream(baos)) {
 									System.setOut(newOut);
-									
-									// הרצת קוד התלמיד
-									// resultHolder[0] = (int[][]) method.invoke(null, (Object) image);
-									
+																		
 									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
 									method.invoke(null, (Object) image);
 
@@ -334,6 +320,7 @@ public class RemoteServer {
 		final int[][][] resultHolder = new int[1][][];
 		final String[] logHolder = new String[1];
 		
+		/*
 		try {
 			String classCode = "package " + uniqueId + ";\n" +
 							   "public class " + className + " {\n" +
@@ -341,7 +328,18 @@ public class RemoteServer {
 							   "        return " + wrapperMethodName + "(image, r, c, count);\n" +
 							   "    }\n" +
 							   studentCode + "\n" +
-							   "}";       
+							   "}"; 
+		*/
+		
+		try {
+			String classCode = "package " + uniqueId + ";\n" +
+                   "public class " + className + " {\n" +
+				   "    public static void run(int[][] image, int r, int c, int count) {\n" +
+                   "        " + wrapperMethodName + "(image, r, c, count);\n" +   // הסרת ה-return
+                   "    }\n" +
+                   studentCode + "\n" +
+                   "}";
+							   
 							   
 			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
 
@@ -376,7 +374,13 @@ public class RemoteServer {
 									System.setOut(newOut);
 									
 									// הרצה עם הפרמטרים r, c, count
-									resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, count);
+									//resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, count);
+									
+									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
+									method.invoke(null, (Object) image, r, c, count);
+
+									// 2. השמת המערך המקורי לתוך ה-resultHolder (הוא כבר מכיל את השינויים של התלמיד)
+									resultHolder[0] = image;
 									
 									System.out.flush();
 								} finally {
@@ -419,6 +423,7 @@ public class RemoteServer {
 		final int[][][] resultHolder = new int[1][][];
 		final String[] logHolder = new String[1];
 		
+		/*
 		try {
 			String classCode = "package " + uniqueId + ";\n" +
 							   "public class " + className + " {\n" +
@@ -426,7 +431,18 @@ public class RemoteServer {
 							   "        return " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +
 							   "    }\n" +
 							   studentCode + "\n" +
-							   "}";       
+							   "}"; 
+		*/
+		
+		try {
+			String classCode = "package " + uniqueId + ";\n" +
+                   "public class " + className + " {\n" +
+				   "    public static void run(int[][] image, int r, int c, int rCount, int cCount) {\n" +
+                   "        " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +   // הסרת ה-return
+                   "    }\n" +
+                   studentCode + "\n" +
+                   "}";
+							   
 							   
 			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
 
@@ -459,7 +475,13 @@ public class RemoteServer {
 								try (PrintStream newOut = new PrintStream(baos)) {
 									System.setOut(newOut);
 									
-									resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, rCount, cCount);
+									//resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, rCount, cCount);
+									
+									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
+									method.invoke(null, (Object) image, r, c, rCount, cCount);
+
+									// 2. השמת המערך המקורי לתוך ה-resultHolder (הוא כבר מכיל את השינויים של התלמיד)
+									resultHolder[0] = image;
 									
 									System.out.flush();
 								} finally {
