@@ -3242,7 +3242,8 @@ function setupJavaEditors() {
     const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
     
     // שליפת הסטטוס מה-Storage
-    const isTeacher = localStorage.getItem('student_name') === "מורה";
+	const savedName = localStorage.getItem('student_name');
+	const isTeacher = savedName !== null && savedName.trim() === "מורה";
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -3380,7 +3381,8 @@ function getStudentId() {
 }
 
 function refreshAllEditorsContent() {
-    const isTeacher = localStorage.getItem('student_name') === "מורה";
+	const savedName = localStorage.getItem('student_name');
+	const isTeacher = savedName !== null && savedName.trim() === "מורה";
     const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
 
     codeIds.forEach(id => {
@@ -3399,20 +3401,18 @@ function refreshAllEditorsContent() {
     });
 }
 
-// מאזין לגלילה של הדף
 window.addEventListener('scroll', () => {
     const nameInput = document.getElementById('studentName');
     if (nameInput) {
         const currentName = nameInput.value.trim();
-        const savedName = localStorage.getItem('student_name');
+        const savedName = localStorage.getItem('student_name') || "";
 
-        // אם יש שם בתיבה והוא שונה ממה ששמור כבר - נבצע רישום
-        if (currentName !== "" && currentName !== savedName) {
-            console.log("Saving name via scroll trigger...");
+        // אם השם הנוכחי שונה ממה ששמור (כולל מצב שרוקנו את השדה)
+        if (currentName !== savedName) {
             registerStudentOnServer(currentName);
         }
     }
-}, { passive: true }); // passive משפר ביצועי גלילה
+}, { passive: true });
 
 
 // הפעל את הבדיקה כל 10 שניות
