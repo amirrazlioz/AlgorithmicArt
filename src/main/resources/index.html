@@ -3298,6 +3298,8 @@ async function registerStudentOnServer(name) {
     
     // 1. שמירה מקומית של השם (כדי שלא ייעלם בריענון)
     localStorage.setItem('student_name', name); 
+	
+	refreshAllEditorsContent(); // השורה שמוסיפים
 
     // 2. קבלת המזהה הייחודי של התלמיד (המפתח הקריטי ל-DB)
     const studentId = getStudentId(); 
@@ -3375,6 +3377,26 @@ function getStudentId() {
         localStorage.setItem('student_uuid', uuid);
     }
     return uuid;
+}
+
+function refreshAllEditorsContent() {
+    const isTeacher = localStorage.getItem('student_name') === "מורה";
+    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
+
+    codeIds.forEach(id => {
+        const customContent = getTaskContent(id, isTeacher);
+        if (customContent !== null) {
+            // עדכון ה-textarea
+            const textArea = document.getElementById(id);
+            if (textArea) textArea.value = customContent;
+
+            // עדכון ה-CodeMirror (החלק הוויזואלי)
+            if (javaEditors[id]) {
+                javaEditors[id].setValue(customContent);
+                javaEditors[id].refresh();
+            }
+        }
+    });
 }
 
 
