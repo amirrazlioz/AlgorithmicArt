@@ -320,16 +320,6 @@ public class RemoteServer {
 		final int[][][] resultHolder = new int[1][][];
 		final String[] logHolder = new String[1];
 		
-		/*
-		try {
-			String classCode = "package " + uniqueId + ";\n" +
-							   "public class " + className + " {\n" +
-							   "    public static int[][] run(int[][] image, int r, int c, int count) {\n" +
-							   "        return " + wrapperMethodName + "(image, r, c, count);\n" +
-							   "    }\n" +
-							   studentCode + "\n" +
-							   "}"; 
-		*/
 		
 		try {
 			String classCode = "package " + uniqueId + ";\n" +
@@ -372,10 +362,7 @@ public class RemoteServer {
 								ByteArrayOutputStream baos = new ByteArrayOutputStream();
 								try (PrintStream newOut = new PrintStream(baos)) {
 									System.setOut(newOut);
-									
-									// הרצה עם הפרמטרים r, c, count
-									//resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, count);
-									
+																		
 									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
 									method.invoke(null, (Object) image, r, c, count);
 
@@ -422,18 +409,7 @@ public class RemoteServer {
 		
 		final int[][][] resultHolder = new int[1][][];
 		final String[] logHolder = new String[1];
-		
-		/*
-		try {
-			String classCode = "package " + uniqueId + ";\n" +
-							   "public class " + className + " {\n" +
-							   "    public static int[][] run(int[][] image, int r, int c, int rCount, int cCount) {\n" +
-							   "        return " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +
-							   "    }\n" +
-							   studentCode + "\n" +
-							   "}"; 
-		*/
-		
+				
 		try {
 			String classCode = "package " + uniqueId + ";\n" +
                    "public class " + className + " {\n" +
@@ -473,9 +449,7 @@ public class RemoteServer {
 								PrintStream originalOut = System.out;
 								ByteArrayOutputStream baos = new ByteArrayOutputStream();
 								try (PrintStream newOut = new PrintStream(baos)) {
-									System.setOut(newOut);
-									
-									//resultHolder[0] = (int[][]) method.invoke(null, (Object) image, r, c, rCount, cCount);
+									System.setOut(newOut);									
 									
 									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
 									method.invoke(null, (Object) image, r, c, rCount, cCount);
