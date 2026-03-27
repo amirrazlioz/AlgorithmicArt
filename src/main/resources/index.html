@@ -3241,6 +3241,82 @@ private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, in
 function setupJavaEditors() {
     const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
     
+    // 1. בדיקת סטטוס מורה/תלמיד
+    const savedName = localStorage.getItem('student_name');
+    const isTeacher = savedName !== null && savedName.trim() === "מורה";
+
+    // הגדרת ה-Observer לרענון ויזואלי בגלילה
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.dataset.editorId;
+                if (javaEditors[id]) {
+                    javaEditors[id].refresh();
+                }
+            }
+        });
+    }, { threshold: 0.1 });
+
+    codeIds.forEach(id => {
+        const textArea = document.getElementById(id);
+        const container = document.getElementById('editor-' + id);
+
+        if (textArea && container) {
+            
+            // 2. לוגיקת בחירת התוכן (תיעדוף: מורה > קוד תלמיד שמור > קוד ברירת מחדל)
+            const defaultContent = getTaskContent(id, isTeacher);
+            const savedStudentCode = localStorage.getItem('saved_code_' + id);
+            
+            if (isTeacher) {
+                // מורה תמיד מקבל את הפתרון מה-TaskContent
+                textArea.value = defaultContent || "";
+            } else if (savedStudentCode) {
+                // תלמיד שחזר לדף יקבל את מה שכתב לפני הריענון
+                textArea.value = savedStudentCode;
+            } else if (defaultContent !== null) {
+                // תלמיד חדש יקבל את קוד המקור של המשימה
+                textArea.value = defaultContent;
+            }
+
+            // 3. יצירת עורך CodeMirror
+            javaEditors[id] = CodeMirror(container, {
+                value: textArea.value,
+                mode: "text/x-java",
+                theme: "dracula",
+                lineNumbers: true,
+                lineWrapping: true,
+                tabSize: 4
+            });
+
+            container.dataset.editorId = id;
+            observer.observe(container);
+
+            // 4. ניהול שינויים: סנכרון ל-TextArea ושמירה אוטומטית לתלמיד
+            javaEditors[id].on('change', (cm) => {
+                const currentCode = cm.getValue();
+                textArea.value = currentCode;
+                
+                // אנחנו שומרים ב-Storage רק אם המשתמש אינו מורה
+                // זה מונע מהפתרון של המורה לדרוס את הקוד האישי של התלמיד בזיכרון
+                if (!isTeacher) {
+                    localStorage.setItem('saved_code_' + id, currentCode);
+                }
+            });
+
+            // רענון קטן לביטחון שהטקסט מופיע כראוי
+            setTimeout(() => javaEditors[id].refresh(), 200);
+        }
+    });
+
+    // קריאה לפונקציות העזר הקיימות שלך
+    if (typeof refreshReplicator === "function") refreshReplicator();
+    if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
+}
+/*
+
+function setupJavaEditors() {
+    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
+    
     // שליפת הסטטוס מה-Storage
 	const savedName = localStorage.getItem('student_name');
 	const isTeacher = savedName !== null && savedName.trim() === "מורה";
@@ -3293,7 +3369,7 @@ function setupJavaEditors() {
     if (typeof refreshReplicator === "function") refreshReplicator();
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
-
+*/
 
 async function registerStudentOnServer(name) {
     if (!name || name.trim() === "") {
