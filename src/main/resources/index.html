@@ -3294,11 +3294,13 @@ function setupJavaEditors() {
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
 
+
 async function registerStudentOnServer(name) {
-    if (!name || name.trim() === "") return;
-    
-    // 1. שמירה מקומית של השם (כדי שלא ייעלם בריענון)
-    localStorage.setItem('student_name', name); 
+    if (!name || name.trim() === "") {
+        localStorage.removeItem('student_name'); // מוחק את השם אם השדה ריק
+    } else {
+        localStorage.setItem('student_name', name); // שומר את השם החדש
+    }
 	
 	refreshAllEditorsContent(); // השורה שמוסיפים
 
@@ -3404,16 +3406,20 @@ function refreshAllEditorsContent() {
 window.addEventListener('scroll', () => {
     const nameInput = document.getElementById('studentName');
     if (nameInput) {
+        // לוקחים את הערך הנוכחי (גם אם הוא ריק)
         const currentName = nameInput.value.trim();
+        // לוקחים את מה ששמור (אם אין כלום, מחזירים מחרוזת ריקה)
         const savedName = localStorage.getItem('student_name') || "";
 
-        // אם השם הנוכחי שונה ממה ששמור (כולל מצב שרוקנו את השדה)
+        // אם יש הבדל (למשל: היה כתוב "מורה" ועכשיו השדה ריק)
         if (currentName !== savedName) {
+            console.log("Scroll detected name change. Syncing...");
+            
+            // עדכון הרישום (הפונקציה הזו כבר תדאג לעשות refresh לעורכים)
             registerStudentOnServer(currentName);
         }
     }
 }, { passive: true });
-
 
 // הפעל את הבדיקה כל 10 שניות
 setInterval(checkCreativeStatus, 10000);
