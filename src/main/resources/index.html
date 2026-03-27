@@ -3257,28 +3257,24 @@ function setupJavaEditors() {
         });
     }, { threshold: 0.1 });
 
-    codeIds.forEach(id => {
+	codeIds.forEach(id => {
         const textArea = document.getElementById(id);
         const container = document.getElementById('editor-' + id);
 
         if (textArea && container) {
-            
-            // 2. לוגיקת בחירת התוכן (תיעדוף: מורה > קוד תלמיד שמור > קוד ברירת מחדל)
             const defaultContent = getTaskContent(id, isTeacher);
             const savedStudentCode = localStorage.getItem('saved_code_' + id);
             
+            // קביעת התוכן הראשוני
             if (isTeacher) {
-                // מורה תמיד מקבל את הפתרון המלא
                 textArea.value = defaultContent || "";
-            } else if (savedStudentCode && savedStudentCode.trim() !== "") {
-                // תלמיד שחזר לדף יקבל את מה שכתב
+            } else if (savedStudentCode) {
                 textArea.value = savedStudentCode;
             } else if (defaultContent !== null) {
-                // תלמיד חדש יקבל את קוד המקור
                 textArea.value = defaultContent;
             }
 
-            // 3. יצירת עורך CodeMirror
+            // יצירת העורך
             window.javaEditors[id] = CodeMirror(container, {
                 value: textArea.value,
                 mode: "text/x-java",
@@ -3291,18 +3287,20 @@ function setupJavaEditors() {
             container.dataset.editorId = id;
             observer.observe(container);
 
-            // 4. *** החלק הקריטי לשמירה ***
+            // --- התיקון כאן: שמירה תמיד ---
             window.javaEditors[id].on('change', (cm) => {
                 const currentCode = cm.getValue();
-                textArea.value = currentCode; // מעדכן את ה-textarea (בשביל ה-RUN)
+                textArea.value = currentCode;
                 
-                // שמירה ב-localStorage רק אם זה תלמיד (שלא ידרוס את השמירה עם פתרונות המורה)
-                if (!isTeacher) {
+                // בודקים שוב אם הוא מורה ברגע השינוי
+                const currentIsTeacher = localStorage.getItem('student_name') === "מורה";
+                
+                // אם זה לא מורה - תשמור. לא משנה אם יש שם או אין שם.
+                if (!currentIsTeacher) {
                     localStorage.setItem('saved_code_' + id, currentCode);
                 }
             });
 
-            // רענון קטן לביטחון
             setTimeout(() => window.javaEditors[id].refresh(), 200);
         }
     });
@@ -3456,6 +3454,7 @@ function getStudentId() {
     return uuid;
 }
 
+/*
 function refreshAllEditorsContent() {
 	const savedName = localStorage.getItem('student_name');
 	const isTeacher = savedName !== null && savedName.trim() === "מורה";
@@ -3472,6 +3471,35 @@ function refreshAllEditorsContent() {
             if (javaEditors[id]) {
                 javaEditors[id].setValue(customContent);
                 javaEditors[id].refresh();
+            }
+        }
+    });
+}
+*/
+
+function refreshAllEditorsContent() {
+    const savedName = localStorage.getItem('student_name');
+    const isTeacher = savedName !== null && savedName.trim() === "מורה";
+    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
+
+    codeIds.forEach(id => {
+        const textArea = document.getElementById(id);
+        const defaultContent = getTaskContent(id, isTeacher);
+        const savedStudentCode = localStorage.getItem('saved_code_' + id);
+        
+        let targetContent = "";
+
+        if (isTeacher) {
+            targetContent = defaultContent || "";
+        } else {
+            // אם זה תלמיד (עם שם או בלי), עדיפות לקוד השמור שלו
+            targetContent = savedStudentCode || defaultContent || "";
+        }
+
+        if (window.javaEditors && window.javaEditors[id]) {
+            // רק אם התוכן באמת שונה, נעדכן (כדי לא להרוס את המיקוד של הסמן)
+            if (window.javaEditors[id].getValue() !== targetContent) {
+                window.javaEditors[id].setValue(targetContent);
             }
         }
     });
