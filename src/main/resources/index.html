@@ -947,25 +947,24 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 						</div>
 					</div>
 				</div>
-				
-				
-<div class="workspace">
-    <div class="preview-side">
-        <canvas id="canvas1" width="280" height="280"></canvas>
-    </div>
-    <div class="editor-side">
-        <div id="editor-code1" class="editor-container"></div>
-        
-        <textarea id="code1" spellcheck="false" style="display:none;"></textarea>			
-        
-        <button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
-                style="padding: 15px 90px; font-size: 20px; width: auto; 
-                background: linear-gradient(135deg, #10b981, #047857); border: none; 
-                box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; margin-top: 15px;">
-            🚀 RUN
-        </button>
-    </div>
-</div>				
+						
+				<div class="workspace">
+					<div class="preview-side">
+						<canvas id="canvas1" width="280" height="280"></canvas>
+					</div>
+					<div class="editor-side">
+						<div id="editor-code1" class="editor-container"></div>
+						
+						<textarea id="code1" spellcheck="false" style="display:none;"></textarea>			
+						
+						<button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
+								style="padding: 15px 90px; font-size: 20px; width: auto; 
+								background: linear-gradient(135deg, #10b981, #047857); border: none; 
+								box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; margin-top: 15px;">
+							🚀 RUN
+						</button>
+					</div>
+				</div>				
 
 				<div class="console-container">
 					<div class="console-header">
@@ -1002,37 +1001,25 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 					2. צבעו את <b>האלכסון המשני</b> בצבע אחר לבחירתכם.
 					<b>ממש\י את הפעולה : createDiagonal</b>
 				</div>
-<div class="workspace">
-    <div class="preview-side">
-        <canvas id="canvas2" width="280" height="280"></canvas>
-    </div>
-    <div class="editor-side">
-        <div id="editor-code2" class="editor-container"></div>
-			<textarea id="code2" spellcheck="false" style="display:none;">
-public static int[][] createDiagonal(int[][] image){
-	int height = image.length;
-	int width = image[0].length;
-
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			if ( i==j)
-				image[i][j] = 1; 
-			if ( i==15-j)
-				image[i][j] = 10;      
-		}
-	}
-	return image;
-}
-</textarea>		
-						<button class="btn-run" onclick="runDiagonalCode() ; gtag('event', 'run_code', {'level': '02'});" 
-						style="padding: 15px 90px; font-size: 20px; width: auto; 
-						background: linear-gradient(135deg, #10b981, #047857); border: none; 
-						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-						🚀 RUN
-						</button>
-			
+				
+				<div class="workspace">
+					<div class="preview-side">
+						<canvas id="canvas2" width="280" height="280"></canvas>
 					</div>
-				</div>
+					<div class="editor-side">
+						<div id="editor-code2" class="editor-container"></div>
+						
+						<textarea id="code2" spellcheck="false" style="display:none;"></textarea>			
+						
+						<button class="btn-run" onclick="runDiagonalCode(); gtag('event', 'run_code', {'level': '02'});" 
+								style="padding: 15px 90px; font-size: 20px; width: auto; 
+								background: linear-gradient(135deg, #10b981, #047857); border: none; 
+								box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; margin-top: 15px;">
+							🚀 RUN
+						</button>
+					</div>
+				</div>	
+
 				<div class="console-container">
 					<div class="console-header">
 					<span>Console Output</span>
@@ -1085,20 +1072,7 @@ public static int[][] createDiagonal(int[][] image){
 
 					<div class="editor-side">
 						<div id="editor-code3" class="editor-container"></div>
-							<textarea id="code3" spellcheck="false" style="display:none;">										
-public static int findMaxDiagonal(int[][] image){
-	int max = 0;
-	int size = image.length;
-
-	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == j && image[i][j] > max )
-				max = image[i][j];  
-		}
-	}
-	return max ;
-}
-						</textarea>	
+							<textarea id="code3" spellcheck="false" style="display:none;">	</textarea>	
 						<button class="btn-run" onclick="runMaxCode(); gtag('event', 'run_code', {'level': '03'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
@@ -1162,28 +1136,13 @@ public static int findMaxDiagonal(int[][] image){
 					</div>
 					<div class="editor-side">
 						<div id="editor-code4" class="editor-container"></div>
-							<textarea id="code4" spellcheck="false" style="display:none;">					
-public static int findMinSecondaryDiagonal(int[][] image){
-	int min = 48; 
-	int size = image.length;
-
-	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == 15-j && image[i][j] < min)
-				min= image[i][j];  
-		}
-	}
-	return min;
-}
-</textarea>	
+							<textarea id="code4" spellcheck="false" style="display:none;">	</textarea>	
 						<button class="btn-run" onclick="runMinCode(); gtag('event', 'run_code', {'level': '04'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
 						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
 						🚀 RUN
 						</button>
-						
-
 						
 						<div class="challenge-card no-print">
 							<div style="padding: 10px;">
@@ -1243,17 +1202,7 @@ public static int findMinSecondaryDiagonal(int[][] image){
 					</div>
 					<div class="editor-side">
 						<div id="editor-code5" class="editor-container"></div>
-							<textarea id="code5" spellcheck="false" style="display:none;">	
-public static int[][] replicatePixel(int[][]image, int row, int col, int count){
-	int colorToCopy = image[row][col];
-	int width = image[0].length;
-	for (int j = 0; j < count; j++){
-		if ( j + col <= 15 )
-			image[row][j+col]= colorToCopy ;  
-	}        
-	return image;
-}
-</textarea>		
+							<textarea id="code5" spellcheck="false" style="display:none;">	</textarea>		
 						<button class="btn-run" onclick="runReplicateCode(); gtag('event', 'run_code', {'level': '05'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
@@ -1308,19 +1257,7 @@ public static int[][] replicatePixel(int[][]image, int row, int col, int count){
 					</div>
 					<div class="editor-side">
 						<div id="editor-code6" class="editor-container"></div>
-							<textarea id="code6" spellcheck="false" style="display:none;">				
-public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
-	int colorToCopy = image[row][col];
-	int width = image[0].length;
-	for (int i = 0; i < rowsCount; i++) {
-		for (int j = 0; j < colsCount; j++) {
-			if ( j + col <= 15 && i + row <= 15)
-				image[i+row][j+col]=colorToCopy ;  
-		}
-	} 
-	return image;
-}
-</textarea>		
+							<textarea id="code6" spellcheck="false" style="display:none;">	</textarea>		
 						<button class="btn-run" onclick="runRectCode(); gtag('event', 'run_code', {'level': '06'});" 
 						style="padding: 15px 90px; font-size: 20px; width: auto; 
 						background: linear-gradient(135deg, #10b981, #047857); border: none; 
@@ -1444,79 +1381,7 @@ public static int[][] replicateRectangle( int[][]image, int row, int col,int row
 		<div class="workspace" style="flex-direction: column; align-items: center;">
 			<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
 				<div id="editor-creative-code" class="editor-container"></div>
-					<textarea id="creative-code" spellcheck="false" style="display:none;">							
-public static int[][] createImage(int[][] image) {
-    int height = image.length;
-    int width = image[0].length;
-
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            image[i][j] = 27;
-        }
-    }
-
-    // נקודת מרכז התמונה
-    double centerX = width / 2.0;
-    double centerY = height / 2.0;
-    
-    // רדיוס התחלתי
-    double r = Math.min(width, height) * 0.60;
-    
-    // זווית התחלה
-    double a = Math.PI / 4; 
-
-    // רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
-    for (int iter = 1; iter <= 48 && r >= 1; iter++) {        
-        // חישוב 4 פינות הריבוע הנוכחי
-        int x1 = (int) (centerX + r * Math.cos(a));
-        int y1 = (int) (centerY + r * Math.sin(a));
-        
-        int x2 = (int) (centerX + r * Math.cos(a + Math.PI / 2));
-        int y2 = (int) (centerY + r * Math.sin(a + Math.PI / 2));
-        
-        int x3 = (int) (centerX + r * Math.cos(a + Math.PI));
-        int y3 = (int) (centerY + r * Math.sin(a + Math.PI));
-        
-        int x4 = (int) (centerX + r * Math.cos(a + 3 * Math.PI / 2));
-        int y4 = (int) (centerY + r * Math.sin(a + 3 * Math.PI / 2));
-
-        // ציור צלעות הריבוע עם אינדקס הצבע הנוכחי
-        simpleLine(image, x1, y1, x2, y2, iter);
-        simpleLine(image, x2, y2, x3, y3, iter);
-        simpleLine(image, x3, y3, x4, y4, iter);
-        simpleLine(image, x4, y4, x1, y1, iter);
-
-		// עדכון הפרמטרים לסיבוב הבא
-        r = r * 0.96; // הקטנת רדיוס
-        a = a + 0.1;  // שינוי זווית
-    }
-    return image;
-}
-
-private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
-    int dx = Math.abs(x1 - x0);
-    int dy = -Math.abs(y1 - y0);
-    int sx = x0 < x1 ? 1 : -1;
-    int sy = y0 < y1 ? 1 : -1;
-    int err = dx + dy;
-
-    while (true) {
-        if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
-            image[y0][x0] = val;
-        }
-        if (x0 == x1 && y0 == y1) break;
-        int e2 = 2 * err;
-        if (e2 >= dy) {
-            err += dy;
-            x0 += sx;
-        }
-        if (e2 <= dx) {
-            err += dx;
-            y0 += sy;
-        }
-    }
-}
-				</textarea>
+					<textarea id="creative-code" spellcheck="false" style="display:none;">	</textarea>
 								
 					<button class="btn-run" onclick="runCreativeCode() ; gtag('event', 'run_creative_code', {'level': '01'});" 
 						style="padding: 10px 15px; font-size: 13px; min-width: 90px; flex: 1; 
@@ -3069,52 +2934,252 @@ function getTaskContent(id, isTeacher) {
     const contents = {
         'code1': {
             student: 
-`public static int[][] addFrame(int[][] image){
-    int height = image.length;
-    int width = image[0].length;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            // תלמיד: כתוב כאן את התנאי למסגרת
-        }
-    }
-    return image;
-}`,
+			`public static int[][] addFrame(int[][] image){
+				int height = image.length;
+				int width = image[0].length;
+				for (int i = 0; i < height; i++) {
+					for (int j = 0; j < width; j++) {
+						// תלמיד: כתוב כאן את התנאי למסגרת
+					}
+				}
+				return image;
+			}`,
             teacher: 
-`public static int[][] addFrame(int[][] image){
-    int height = image.length;
-    int width = image[0].length;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (i == 0 || j == 0 || i == height - 1 || j == width - 1)
-                image[i][j] = 1;  
-        }
-    }
-    return image;
-}`
+			`public static int[][] addFrame(int[][] image){
+				int height = image.length;
+				int width = image[0].length;
+				for (int i = 0; i < height; i++) {
+					for (int j = 0; j < width; j++) {
+						if (i == 0 || j == 0 || i == height - 1 || j == width - 1)
+							image[i][j] = 1;  
+					}
+				}
+				return image;
+			}`
         },
         'code2': {
             student: `// קוד התחלתי למשימה 2...`,
-            teacher: `// פתרון מלא למורה משימה 2...`
+            teacher: 
+			`public static int[][] createDiagonal(int[][] image){
+				int height = image.length;
+				int width = image[0].length;
+				for (int i = 0; i < height; i++) {
+					for (int j = 0; j < width; j++) {
+						if ( i==j)
+							image[i][j] = 1; 
+						if ( i==15-j)
+							image[i][j] = 10;      
+					}
+				}
+				return image;
+			}`
         },
 		'code3': {
             student: `// קוד התחלתי למשימה 3...`,
-            teacher: `// פתרון מלא למורה משימה 3...`
+            teacher:
+			`public static int findMaxDiagonal(int[][] image){
+				int max = 0;
+				int size = image.length;
+
+				for (int i = 0; i < size ; i++) {
+					for (int j = 0; j < size ; j++) {
+						if ( i == j && image[i][j] > max )
+							max = image[i][j];  
+					}
+				}
+				return max ;
+			}`
         },
 		'code4': {
             student: `// קוד התחלתי למשימה 4...`,
-            teacher: `// פתרון מלא למורה משימה 4...`
+            teacher: 
+			`public static int findMinSecondaryDiagonal(int[][] image){
+				int min = 48; 
+				int size = image.length;
+
+				for (int i = 0; i < size ; i++) {
+					for (int j = 0; j < size ; j++) {
+						if ( i == 15-j && image[i][j] < min)
+							min= image[i][j];  
+					}
+				}
+				return min;
+			}`
         },
 		'code5': {
             student: `// קוד התחלתי למשימה 5...`,
-            teacher: `// פתרון מלא למורה משימה 5...`
+            teacher: 
+			`public static int[][] replicatePixel(int[][]image, int row, int col, int count){
+				int colorToCopy = image[row][col];
+				int width = image[0].length;
+				for (int j = 0; j < count; j++){
+					if ( j + col <= 15 )
+						image[row][j+col]= colorToCopy ;  
+				}        
+				return image;
+			}`
         },
 		'code6': {
             student: `// קוד התחלתי למשימה 6...`,
-            teacher: `// פתרון מלא למורה משימה 6...`
+            teacher: 
+			`public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
+				int colorToCopy = image[row][col];
+				int width = image[0].length;
+				for (int i = 0; i < rowsCount; i++) {
+					for (int j = 0; j < colsCount; j++) {
+						if ( j + col <= 15 && i + row <= 15)
+							image[i+row][j+col]=colorToCopy ;  
+					}
+				} 
+				return image;
+			}`
         },
 		'creative-code': {
-            student: `// קוד התחלתי למשימה 7...`,
-            teacher: `// פתרון מלא למורה משימה 7...`
+            student: 
+			`public static int[][] createImage(int[][] image) {
+				int height = image.length;
+				int width = image[0].length;
+
+				for (int i = 0; i < height; i++) {
+					for (int j = 0; j < width; j++) {
+						image[i][j] = 27;
+					}
+				}
+
+				// נקודת מרכז התמונה
+				double centerX = width / 2.0;
+				double centerY = height / 2.0;
+				
+				// רדיוס התחלתי
+				double r = Math.min(width, height) * 0.60;
+				
+				// זווית התחלה
+				double a = Math.PI / 4; 
+
+				// רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
+				for (int iter = 1; iter <= 48 && r >= 1; iter++) {        
+					// חישוב 4 פינות הריבוע הנוכחי
+					int x1 = (int) (centerX + r * Math.cos(a));
+					int y1 = (int) (centerY + r * Math.sin(a));
+					
+					int x2 = (int) (centerX + r * Math.cos(a + Math.PI / 2));
+					int y2 = (int) (centerY + r * Math.sin(a + Math.PI / 2));
+					
+					int x3 = (int) (centerX + r * Math.cos(a + Math.PI));
+					int y3 = (int) (centerY + r * Math.sin(a + Math.PI));
+					
+					int x4 = (int) (centerX + r * Math.cos(a + 3 * Math.PI / 2));
+					int y4 = (int) (centerY + r * Math.sin(a + 3 * Math.PI / 2));
+
+					// ציור צלעות הריבוע עם אינדקס הצבע הנוכחי
+					simpleLine(image, x1, y1, x2, y2, iter);
+					simpleLine(image, x2, y2, x3, y3, iter);
+					simpleLine(image, x3, y3, x4, y4, iter);
+					simpleLine(image, x4, y4, x1, y1, iter);
+
+					// עדכון הפרמטרים לסיבוב הבא
+					r = r * 0.96; // הקטנת רדיוס
+					a = a + 0.1;  // שינוי זווית
+				}
+				return image;
+			}
+
+			private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
+				int dx = Math.abs(x1 - x0);
+				int dy = -Math.abs(y1 - y0);
+				int sx = x0 < x1 ? 1 : -1;
+				int sy = y0 < y1 ? 1 : -1;
+				int err = dx + dy;
+
+				while (true) {
+					if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
+						image[y0][x0] = val;
+					}
+					if (x0 == x1 && y0 == y1) break;
+					int e2 = 2 * err;
+					if (e2 >= dy) {
+						err += dy;
+						x0 += sx;
+					}
+					if (e2 <= dx) {
+						err += dx;
+						y0 += sy;
+					}
+				}
+			}`
+			,
+            teacher: 
+			`public static int[][] createImage(int[][] image) {
+				int height = image.length;
+				int width = image[0].length;
+
+				for (int i = 0; i < height; i++) {
+					for (int j = 0; j < width; j++) {
+						image[i][j] = 27;
+					}
+				}
+
+				// נקודת מרכז התמונה
+				double centerX = width / 2.0;
+				double centerY = height / 2.0;
+				
+				// רדיוס התחלתי
+				double r = Math.min(width, height) * 0.60;
+				
+				// זווית התחלה
+				double a = Math.PI / 4; 
+
+				// רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
+				for (int iter = 1; iter <= 48 && r >= 1; iter++) {        
+					// חישוב 4 פינות הריבוע הנוכחי
+					int x1 = (int) (centerX + r * Math.cos(a));
+					int y1 = (int) (centerY + r * Math.sin(a));
+					
+					int x2 = (int) (centerX + r * Math.cos(a + Math.PI / 2));
+					int y2 = (int) (centerY + r * Math.sin(a + Math.PI / 2));
+					
+					int x3 = (int) (centerX + r * Math.cos(a + Math.PI));
+					int y3 = (int) (centerY + r * Math.sin(a + Math.PI));
+					
+					int x4 = (int) (centerX + r * Math.cos(a + 3 * Math.PI / 2));
+					int y4 = (int) (centerY + r * Math.sin(a + 3 * Math.PI / 2));
+
+					// ציור צלעות הריבוע עם אינדקס הצבע הנוכחי
+					simpleLine(image, x1, y1, x2, y2, iter);
+					simpleLine(image, x2, y2, x3, y3, iter);
+					simpleLine(image, x3, y3, x4, y4, iter);
+					simpleLine(image, x4, y4, x1, y1, iter);
+
+					// עדכון הפרמטרים לסיבוב הבא
+					r = r * 0.96; // הקטנת רדיוס
+					a = a + 0.1;  // שינוי זווית
+				}
+				return image;
+			}
+
+			private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
+				int dx = Math.abs(x1 - x0);
+				int dy = -Math.abs(y1 - y0);
+				int sx = x0 < x1 ? 1 : -1;
+				int sy = y0 < y1 ? 1 : -1;
+				int err = dx + dy;
+
+				while (true) {
+					if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
+						image[y0][x0] = val;
+					}
+					if (x0 == x1 && y0 == y1) break;
+					int e2 = 2 * err;
+					if (e2 >= dy) {
+						err += dy;
+						x0 += sx;
+					}
+					if (e2 <= dx) {
+						err += dx;
+						y0 += sy;
+					}
+				}
+			}`
         }
     };
 
