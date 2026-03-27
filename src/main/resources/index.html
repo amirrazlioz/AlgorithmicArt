@@ -3065,8 +3065,121 @@ document.addEventListener('DOMContentLoaded', () => {
 var javaEditors = {};
 
 // 2. פונקציית האתחול
+function getTaskContent(id, isTeacher) {
+    const contents = {
+        'code1': {
+            student: 
+`public static int[][] addFrame(int[][] image){
+    int height = image.length;
+    int width = image[0].length;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            // תלמיד: כתוב כאן את התנאי למסגרת
+        }
+    }
+    return image;
+}`,
+            teacher: 
+`public static int[][] addFrame(int[][] image){
+    int height = image.length;
+    int width = image[0].length;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (i == 0 || j == 0 || i == height - 1 || j == width - 1)
+                image[i][j] = 1;  
+        }
+    }
+    return image;
+}`
+        },
+        'code2': {
+            student: `// קוד התחלתי למשימה 2...`,
+            teacher: `// פתרון מלא למורה משימה 2...`
+        },
+		'code3': {
+            student: `// קוד התחלתי למשימה 3...`,
+            teacher: `// פתרון מלא למורה משימה 3...`
+        },
+		'code4': {
+            student: `// קוד התחלתי למשימה 4...`,
+            teacher: `// פתרון מלא למורה משימה 4...`
+        },
+		'code5': {
+            student: `// קוד התחלתי למשימה 5...`,
+            teacher: `// פתרון מלא למורה משימה 5...`
+        },
+		'code6': {
+            student: `// קוד התחלתי למשימה 6...`,
+            teacher: `// פתרון מלא למורה משימה 6...`
+        },
+		'creative-code': {
+            student: `// קוד התחלתי למשימה 7...`,
+            teacher: `// פתרון מלא למורה משימה 7...`
+        }
+    };
 
+    if (contents[id]) {
+        return isTeacher ? contents[id].teacher : contents[id].student;
+    }
+    return null; // אם אין הגדרה מיוחדת, ישתמש במה שיש ב-HTML
+}
 
+function setupJavaEditors() {
+    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
+    
+    // שליפת הסטטוס מה-Storage
+    const isTeacher = localStorage.getItem('student_name') === "מורה";
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.dataset.editorId;
+                if (javaEditors[id]) {
+                    javaEditors[id].refresh();
+                }
+            }
+        });
+    }, { threshold: 0.1 });
+
+    codeIds.forEach(id => {
+        const textArea = document.getElementById(id);
+        const container = document.getElementById('editor-' + id);
+
+        if (textArea && container) {
+            
+            // --- הזרקת הקוד לפי סוג המשתמש ---
+            const customContent = getTaskContent(id, isTeacher);
+            if (customContent !== null) {
+                textArea.value = customContent;
+            }
+            // --------------------------------
+
+            javaEditors[id] = CodeMirror(container, {
+                value: textArea.value,
+                mode: "text/x-java",
+                theme: "dracula",
+                lineNumbers: true,
+                lineWrapping: true,
+                tabSize: 4
+            });
+
+            container.dataset.editorId = id;
+            observer.observe(container);
+
+            // סנכרון מהעורך חזרה ל-textarea כדי שה-Run יעבוד
+            javaEditors[id].on('change', (cm) => {
+                textArea.value = cm.getValue();
+            });
+
+            setTimeout(() => javaEditors[id].refresh(), 200);
+        }
+    });
+
+    if (typeof refreshReplicator === "function") refreshReplicator();
+    if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
+}
+
+/*
 function setupJavaEditors() {
     const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
     
@@ -3108,7 +3221,7 @@ function setupJavaEditors() {
 	if (typeof refreshReplicator === "function") refreshReplicator();
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
-
+*/
 async function registerStudentOnServer(name) {
     if (!name || name.trim() === "") return;
     
@@ -3193,50 +3306,6 @@ function getStudentId() {
     return uuid;
 }
 
-window.addEventListener('load', () => {
-    const studentName = localStorage.getItem('student_name');
-    const codeTextArea = document.getElementById('code1');
-    
-    // 1. הגדרת הגרסאות
-    const studentCode = `public static int[][] addFrame(int[][] image){
-    int height = image.length;
-    int width = image[0].length;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            // תלמיד: כתוב כאן את התנאי למסגרת
-        }
-    }
-    return image;
-}`;
-
-    const teacherCode = `public static int[][] addFrame(int[][] image){
-    int height = image.length;
-    int width = image[0].length;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if ( i==0 || j==0 || i==height-1 || j==width-1)
-                image[i][j] = 1;  
-        }
-    }
-    System.out.println("height is " + height );
-    System.out.println("width is  " + width );
-    return image;
-}`;
-
-    // 2. בחירת הקוד המתאים
-    const finalCode = (studentName === "מורה") ? teacherCode : studentCode;
-
-    // 3. הכנסה ל-textarea
-    if (codeTextArea) {
-        codeTextArea.value = finalCode;
-    }
-
-    // 4. עדכון עורך הקוד (אם אתה משתמש ב-Ace או Monaco)
-    // אם יש לך משתנה של ה-editor, למשל window.editor1:
-    if (window.editor1) {
-        window.editor1.setValue(finalCode);
-    }
-});
 
 // הפעל את הבדיקה כל 10 שניות
 setInterval(checkCreativeStatus, 10000);
