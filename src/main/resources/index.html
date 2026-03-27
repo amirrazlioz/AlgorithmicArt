@@ -2935,14 +2935,17 @@ function getTaskContent(id, isTeacher) {
         'code1': {
             student: 
 `public static int[][] addFrame(int[][] image){
-	int height = image.length;
-	int width = image[0].length;
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			// תלמיד: כתוב כאן את התנאי למסגרת
-		}
-	}
-	return image;
+    int height = image.length;
+    int width = image[0].length;
+
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+
+            // TODO: תנאי למסגרת
+
+        }
+    }
+    return image;
 }`,
             teacher: 
 `public static int[][] addFrame(int[][] image){
@@ -2958,228 +2961,274 @@ function getTaskContent(id, isTeacher) {
 }`
         },
         'code2': {
-            student: `// קוד התחלתי למשימה 2...`,
+            student: 
+`public static int[][] createDiagonal(int[][] image){
+	int height = image.length;
+	int width = image[0].length;	
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+
+			// TODO: תנאי לאלכסונים
+
+		}
+	}
+	return image;
+}`,
             teacher: 
-			`public static int[][] createDiagonal(int[][] image){
-				int height = image.length;
-				int width = image[0].length;
-				for (int i = 0; i < height; i++) {
-					for (int j = 0; j < width; j++) {
-						if ( i==j)
-							image[i][j] = 1; 
-						if ( i==15-j)
-							image[i][j] = 10;      
-					}
-				}
-				return image;
-			}`
+`public static int[][] createDiagonal(int[][] image){
+	int height = image.length;
+	int width = image[0].length;
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			if ( i==j)
+				image[i][j] = 1; 
+			if ( i==15-j)
+				image[i][j] = 10;      
+		}
+	}
+	return image;
+}`
         },
 		'code3': {
-            student: `// קוד התחלתי למשימה 3...`,
-            teacher:
-			`public static int findMaxDiagonal(int[][] image){
-				int max = 0;
-				int size = image.length;
+            student: 
+`public static int findMaxDiagonal(int[][] image){
+	int max = ???;
+	int size = image.length;
+	for (...) {
+		for (...) {
 
-				for (int i = 0; i < size ; i++) {
-					for (int j = 0; j < size ; j++) {
-						if ( i == j && image[i][j] > max )
-							max = image[i][j];  
-					}
-				}
-				return max ;
-			}`
+			// TODO: בדיקה ועדכון max
+
+		}
+	}	
+	return max ;
+}`,
+            teacher:
+`public static int findMaxDiagonal(int[][] image){
+	int max = 0;
+	int size = image.length;
+
+	for (int i = 0; i < size ; i++) {
+		for (int j = 0; j < size ; j++) {
+			if ( i == j && image[i][j] > max )
+				max = image[i][j];  
+		}
+	}
+	return max ;
+}`
         },
 		'code4': {
-            student: `// קוד התחלתי למשימה 4...`,
-            teacher: 
-			`public static int findMinSecondaryDiagonal(int[][] image){
-				int min = 48; 
-				int size = image.length;
+            student: 
+`public static int findMinSecondaryDiagonal(int[][] image){
+	int min = ???; 
+	int size = image.length;
+	for (...) {
+		for (...) {
 
-				for (int i = 0; i < size ; i++) {
-					for (int j = 0; j < size ; j++) {
-						if ( i == 15-j && image[i][j] < min)
-							min= image[i][j];  
-					}
-				}
-				return min;
-			}`
+			// TODO: בדיקה ועדכון min
+
+		}
+	}	
+	return min;
+}`,
+            teacher: 
+`public static int findMinSecondaryDiagonal(int[][] image){
+	int min = 48; 
+	int size = image.length;
+
+	for (int i = 0; i < size ; i++) {
+		for (int j = 0; j < size ; j++) {
+			if ( i == 15-j && image[i][j] < min)
+				min= image[i][j];  
+		}
+	}
+	return min;
+}`
         },
 		'code5': {
-            student: `// קוד התחלתי למשימה 5...`,
+            student: 
+`public static int[][] replicatePixel(int[][] image, int row, int col, int count){
+
+    // TODO: מימוש מלא
+
+}`,
             teacher: 
-			`public static int[][] replicatePixel(int[][]image, int row, int col, int count){
-				int colorToCopy = image[row][col];
-				int width = image[0].length;
-				for (int j = 0; j < count; j++){
-					if ( j + col <= 15 )
-						image[row][j+col]= colorToCopy ;  
-				}        
-				return image;
-			}`
+`public static int[][] replicatePixel(int[][]image, int row, int col, int count){
+	int colorToCopy = image[row][col];
+	int width = image[0].length;
+	for (int j = 0; j < count; j++){
+		if ( j + col <= 15 )
+			image[row][j+col]= colorToCopy ;  
+	}        
+	return image;
+}`
         },
 		'code6': {
-            student: `// קוד התחלתי למשימה 6...`,
+            student: 
+`public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
+
+    // TODO: מימוש מלא
+
+}`,
             teacher: 
-			`public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
-				int colorToCopy = image[row][col];
-				int width = image[0].length;
-				for (int i = 0; i < rowsCount; i++) {
-					for (int j = 0; j < colsCount; j++) {
-						if ( j + col <= 15 && i + row <= 15)
-							image[i+row][j+col]=colorToCopy ;  
-					}
-				} 
-				return image;
-			}`
+`public static int[][] replicateRectangle( int[][]image, int row, int col,int rowsCount, int colsCount){
+	int colorToCopy = image[row][col];
+	int width = image[0].length;
+	for (int i = 0; i < rowsCount; i++) {
+		for (int j = 0; j < colsCount; j++) {
+			if ( j + col <= 15 && i + row <= 15)
+				image[i+row][j+col]=colorToCopy ;  
+		}
+	} 
+	return image;
+}`
         },
 		'creative-code': {
-            student: 
-			`public static int[][] createImage(int[][] image) {
-				int height = image.length;
-				int width = image[0].length;
+student: 
+`public static int[][] createImage(int[][] image) {
+	int height = image.length;
+	int width = image[0].length;
 
-				for (int i = 0; i < height; i++) {
-					for (int j = 0; j < width; j++) {
-						image[i][j] = 27;
-					}
-				}
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			image[i][j] = 27;
+		}
+	}
 
-				// נקודת מרכז התמונה
-				double centerX = width / 2.0;
-				double centerY = height / 2.0;
-				
-				// רדיוס התחלתי
-				double r = Math.min(width, height) * 0.60;
-				
-				// זווית התחלה
-				double a = Math.PI / 4; 
+	// נקודת מרכז התמונה
+	double centerX = width / 2.0;
+	double centerY = height / 2.0;
+	
+	// רדיוס התחלתי
+	double r = Math.min(width, height) * 0.60;
+	
+	// זווית התחלה
+	double a = Math.PI / 4; 
 
-				// רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
-				for (int iter = 1; iter <= 48 && r >= 1; iter++) {        
-					// חישוב 4 פינות הריבוע הנוכחי
-					int x1 = (int) (centerX + r * Math.cos(a));
-					int y1 = (int) (centerY + r * Math.sin(a));
-					
-					int x2 = (int) (centerX + r * Math.cos(a + Math.PI / 2));
-					int y2 = (int) (centerY + r * Math.sin(a + Math.PI / 2));
-					
-					int x3 = (int) (centerX + r * Math.cos(a + Math.PI));
-					int y3 = (int) (centerY + r * Math.sin(a + Math.PI));
-					
-					int x4 = (int) (centerX + r * Math.cos(a + 3 * Math.PI / 2));
-					int y4 = (int) (centerY + r * Math.sin(a + 3 * Math.PI / 2));
+	// רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
+	for (int iter = 1; iter <= 48 && r >= 1; iter++) {        
+		// חישוב 4 פינות הריבוע הנוכחי
+		int x1 = (int) (centerX + r * Math.cos(a));
+		int y1 = (int) (centerY + r * Math.sin(a));
+		
+		int x2 = (int) (centerX + r * Math.cos(a + Math.PI / 2));
+		int y2 = (int) (centerY + r * Math.sin(a + Math.PI / 2));
+		
+		int x3 = (int) (centerX + r * Math.cos(a + Math.PI));
+		int y3 = (int) (centerY + r * Math.sin(a + Math.PI));
+		
+		int x4 = (int) (centerX + r * Math.cos(a + 3 * Math.PI / 2));
+		int y4 = (int) (centerY + r * Math.sin(a + 3 * Math.PI / 2));
 
-					// ציור צלעות הריבוע עם אינדקס הצבע הנוכחי
-					simpleLine(image, x1, y1, x2, y2, iter);
-					simpleLine(image, x2, y2, x3, y3, iter);
-					simpleLine(image, x3, y3, x4, y4, iter);
-					simpleLine(image, x4, y4, x1, y1, iter);
+		// ציור צלעות הריבוע עם אינדקס הצבע הנוכחי
+		simpleLine(image, x1, y1, x2, y2, iter);
+		simpleLine(image, x2, y2, x3, y3, iter);
+		simpleLine(image, x3, y3, x4, y4, iter);
+		simpleLine(image, x4, y4, x1, y1, iter);
 
-					// עדכון הפרמטרים לסיבוב הבא
-					r = r * 0.96; // הקטנת רדיוס
-					a = a + 0.1;  // שינוי זווית
-				}
-				return image;
-			}
+		// עדכון הפרמטרים לסיבוב הבא
+		r = r * 0.96; // הקטנת רדיוס
+		a = a + 0.1;  // שינוי זווית
+	}
+	return image;
+}
 
-			private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
-				int dx = Math.abs(x1 - x0);
-				int dy = -Math.abs(y1 - y0);
-				int sx = x0 < x1 ? 1 : -1;
-				int sy = y0 < y1 ? 1 : -1;
-				int err = dx + dy;
+private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
+	int dx = Math.abs(x1 - x0);
+	int dy = -Math.abs(y1 - y0);
+	int sx = x0 < x1 ? 1 : -1;
+	int sy = y0 < y1 ? 1 : -1;
+	int err = dx + dy;
 
-				while (true) {
-					if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
-						image[y0][x0] = val;
-					}
-					if (x0 == x1 && y0 == y1) break;
-					int e2 = 2 * err;
-					if (e2 >= dy) {
-						err += dy;
-						x0 += sx;
-					}
-					if (e2 <= dx) {
-						err += dx;
-						y0 += sy;
-					}
-				}
-			}`
-			,
-            teacher: 
-			`public static int[][] createImage(int[][] image) {
-				int height = image.length;
-				int width = image[0].length;
+	while (true) {
+		if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
+			image[y0][x0] = val;
+		}
+		if (x0 == x1 && y0 == y1) break;
+		int e2 = 2 * err;
+		if (e2 >= dy) {
+			err += dy;
+			x0 += sx;
+		}
+		if (e2 <= dx) {
+			err += dx;
+			y0 += sy;
+		}
+	}
+}`
+,
+teacher: 
+`public static int[][] createImage(int[][] image) {
+	int height = image.length;
+	int width = image[0].length;
 
-				for (int i = 0; i < height; i++) {
-					for (int j = 0; j < width; j++) {
-						image[i][j] = 27;
-					}
-				}
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			image[i][j] = 27;
+		}
+	}
 
-				// נקודת מרכז התמונה
-				double centerX = width / 2.0;
-				double centerY = height / 2.0;
-				
-				// רדיוס התחלתי
-				double r = Math.min(width, height) * 0.60;
-				
-				// זווית התחלה
-				double a = Math.PI / 4; 
+	// נקודת מרכז התמונה
+	double centerX = width / 2.0;
+	double centerY = height / 2.0;
+	
+	// רדיוס התחלתי
+	double r = Math.min(width, height) * 0.60;
+	
+	// זווית התחלה
+	double a = Math.PI / 4; 
 
-				// רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
-				for (int iter = 1; iter <= 48 && r >= 1; iter++) {        
-					// חישוב 4 פינות הריבוע הנוכחי
-					int x1 = (int) (centerX + r * Math.cos(a));
-					int y1 = (int) (centerY + r * Math.sin(a));
-					
-					int x2 = (int) (centerX + r * Math.cos(a + Math.PI / 2));
-					int y2 = (int) (centerY + r * Math.sin(a + Math.PI / 2));
-					
-					int x3 = (int) (centerX + r * Math.cos(a + Math.PI));
-					int y3 = (int) (centerY + r * Math.sin(a + Math.PI));
-					
-					int x4 = (int) (centerX + r * Math.cos(a + 3 * Math.PI / 2));
-					int y4 = (int) (centerY + r * Math.sin(a + 3 * Math.PI / 2));
+	// רצה מ-1 עד 48 (הצבעים) כל עוד הרדיוס גדול מ-1
+	for (int iter = 1; iter <= 48 && r >= 1; iter++) {        
+		// חישוב 4 פינות הריבוע הנוכחי
+		int x1 = (int) (centerX + r * Math.cos(a));
+		int y1 = (int) (centerY + r * Math.sin(a));
+		
+		int x2 = (int) (centerX + r * Math.cos(a + Math.PI / 2));
+		int y2 = (int) (centerY + r * Math.sin(a + Math.PI / 2));
+		
+		int x3 = (int) (centerX + r * Math.cos(a + Math.PI));
+		int y3 = (int) (centerY + r * Math.sin(a + Math.PI));
+		
+		int x4 = (int) (centerX + r * Math.cos(a + 3 * Math.PI / 2));
+		int y4 = (int) (centerY + r * Math.sin(a + 3 * Math.PI / 2));
 
-					// ציור צלעות הריבוע עם אינדקס הצבע הנוכחי
-					simpleLine(image, x1, y1, x2, y2, iter);
-					simpleLine(image, x2, y2, x3, y3, iter);
-					simpleLine(image, x3, y3, x4, y4, iter);
-					simpleLine(image, x4, y4, x1, y1, iter);
+		// ציור צלעות הריבוע עם אינדקס הצבע הנוכחי
+		simpleLine(image, x1, y1, x2, y2, iter);
+		simpleLine(image, x2, y2, x3, y3, iter);
+		simpleLine(image, x3, y3, x4, y4, iter);
+		simpleLine(image, x4, y4, x1, y1, iter);
 
-					// עדכון הפרמטרים לסיבוב הבא
-					r = r * 0.96; // הקטנת רדיוס
-					a = a + 0.1;  // שינוי זווית
-				}
-				return image;
-			}
+		// עדכון הפרמטרים לסיבוב הבא
+		r = r * 0.96; // הקטנת רדיוס
+		a = a + 0.1;  // שינוי זווית
+	}
+	return image;
+}
 
-			private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
-				int dx = Math.abs(x1 - x0);
-				int dy = -Math.abs(y1 - y0);
-				int sx = x0 < x1 ? 1 : -1;
-				int sy = y0 < y1 ? 1 : -1;
-				int err = dx + dy;
+private static void simpleLine(int[][] image, int x0, int y0, int x1, int y1, int val) {
+	int dx = Math.abs(x1 - x0);
+	int dy = -Math.abs(y1 - y0);
+	int sx = x0 < x1 ? 1 : -1;
+	int sy = y0 < y1 ? 1 : -1;
+	int err = dx + dy;
 
-				while (true) {
-					if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
-						image[y0][x0] = val;
-					}
-					if (x0 == x1 && y0 == y1) break;
-					int e2 = 2 * err;
-					if (e2 >= dy) {
-						err += dy;
-						x0 += sx;
-					}
-					if (e2 <= dx) {
-						err += dx;
-						y0 += sy;
-					}
-				}
-			}`
+	while (true) {
+		if (y0 >= 0 && y0 < image.length && x0 >= 0 && x0 < image[0].length) {
+			image[y0][x0] = val;
+		}
+		if (x0 == x1 && y0 == y1) break;
+		int e2 = 2 * err;
+		if (e2 >= dy) {
+			err += dy;
+			x0 += sx;
+		}
+		if (e2 <= dx) {
+			err += dx;
+			y0 += sy;
+		}
+	}
+}`
         }
     };
 
@@ -3244,49 +3293,6 @@ function setupJavaEditors() {
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
 
-/*
-function setupJavaEditors() {
-    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
-    
-    // יצירת ה"צופה" (Observer) שיזהה מתי רואים את העורך
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const id = entry.target.dataset.editorId;
-                if (javaEditors[id]) {
-                    javaEditors[id].refresh(); // רענון ברגע שרואים את האלמנט
-                }
-            }
-        });
-    }, { threshold: 0.1 });
-
-    codeIds.forEach(id => {
-        const textArea = document.getElementById(id);
-        const container = document.getElementById('editor-' + id);
-
-        if (textArea && container) {
-            javaEditors[id] = CodeMirror(container, {
-                value: textArea.value,
-                mode: "text/x-java",
-                theme: "dracula",
-                lineNumbers: true,
-                lineWrapping: true,
-                tabSize: 4
-            });
-
-            // מחברים את הצופה לקונטיינר של העורך
-            container.dataset.editorId = id;
-            observer.observe(container);
-
-            // רענון ראשוני
-            setTimeout(() => javaEditors[id].refresh(), 200);
-        }
-    });
-	
-	if (typeof refreshReplicator === "function") refreshReplicator();
-    if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
-}
-*/
 async function registerStudentOnServer(name) {
     if (!name || name.trim() === "") return;
     
