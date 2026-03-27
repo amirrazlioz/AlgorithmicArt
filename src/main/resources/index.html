@@ -968,7 +968,6 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 						<textarea id="code1" spellcheck="false" style="display:none;"></textarea>            
 						
 <div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
-    
     <button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
             style="flex: 4; font-size: 18px; font-weight: bold;
             background: linear-gradient(135deg, #10b981, #047857); border: none; 
@@ -982,8 +981,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
             display: flex; align-items: center; justify-content: center; min-width: 80px;">
         ↺ איפוס
-    </button>
-    
+    </button> 
 </div>
 					</div>
 
@@ -1034,12 +1032,22 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 						
 						<textarea id="code2" spellcheck="false" style="display:none;"></textarea>			
 						
-						<button class="btn-run" onclick="runDiagonalCode(); gtag('event', 'run_code', {'level': '02'});" 
-								style="padding: 15px 90px; font-size: 20px; width: auto; 
-								background: linear-gradient(135deg, #10b981, #047857); border: none; 
-								box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; margin-top: 15px;">
-							🚀 RUN
-						</button>
+<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+    <button class="btn-run" onclick="runDiagonalCode(); gtag('event', 'run_code', {'level': '02'});" 
+            style="flex: 4; font-size: 18px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #047857); border: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin: 0;">
+        🚀 RUN
+    </button>
+    
+    <button onclick="resetTaskCode('code2')" title="איפוס קוד"
+            style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+            border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; min-width: 80px;">
+        ↺ איפוס
+    </button> 
+</div>
 					</div>
 				</div>	
 
@@ -1096,12 +1104,23 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 					<div class="editor-side">
 						<div id="editor-code3" class="editor-container"></div>
 							<textarea id="code3" spellcheck="false" style="display:none;">	</textarea>	
-						<button class="btn-run" onclick="runMaxCode(); gtag('event', 'run_code', {'level': '03'});" 
-						style="padding: 15px 90px; font-size: 20px; width: auto; 
-						background: linear-gradient(135deg, #10b981, #047857); border: none; 
-						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-						🚀 RUN
-						</button>
+						
+<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+    <button class="btn-run" onclick="runMaxCode(); gtag('event', 'run_code', {'level': '03'});" 
+            style="flex: 4; font-size: 18px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #047857); border: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin: 0;">
+        🚀 RUN
+    </button>
+    
+    <button onclick="resetTaskCode('code3')" title="איפוס קוד"
+            style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+            border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; min-width: 80px;">
+        ↺ איפוס
+    </button> 
+</div>
 						
 						<div class="challenge-card no-print">  
 							<div style="padding: 10px;">
@@ -1160,12 +1179,24 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 					<div class="editor-side">
 						<div id="editor-code4" class="editor-container"></div>
 							<textarea id="code4" spellcheck="false" style="display:none;">	</textarea>	
-						<button class="btn-run" onclick="runMinCode(); gtag('event', 'run_code', {'level': '04'});" 
-						style="padding: 15px 90px; font-size: 20px; width: auto; 
-						background: linear-gradient(135deg, #10b981, #047857); border: none; 
-						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-						🚀 RUN
-						</button>
+						
+						
+<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+    <button class="btn-run" onclick="runMinCode(); gtag('event', 'run_code', {'level': '04'});" 
+            style="flex: 4; font-size: 18px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #047857); border: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin: 0;">
+        🚀 RUN
+    </button>
+    
+    <button onclick="resetTaskCode('code4')" title="איפוס קוד"
+            style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+            border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; min-width: 80px;">
+        ↺ איפוס
+    </button> 
+</div>						
 						
 						<div class="challenge-card no-print">
 							<div style="padding: 10px;">
@@ -1226,12 +1257,24 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 					<div class="editor-side">
 						<div id="editor-code5" class="editor-container"></div>
 							<textarea id="code5" spellcheck="false" style="display:none;">	</textarea>		
-						<button class="btn-run" onclick="runReplicateCode(); gtag('event', 'run_code', {'level': '05'});" 
-						style="padding: 15px 90px; font-size: 20px; width: auto; 
-						background: linear-gradient(135deg, #10b981, #047857); border: none; 
-						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-						🚀 RUN
-						</button>
+						
+						
+<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+    <button class="btn-run" onclick="runReplicateCode(); gtag('event', 'run_code', {'level': '05'});" 
+            style="flex: 4; font-size: 18px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #047857); border: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin: 0;">
+        🚀 RUN
+    </button>
+    
+    <button onclick="resetTaskCode('code5')" title="איפוס קוד"
+            style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+            border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; min-width: 80px;">
+        ↺ איפוס
+    </button> 
+</div>						
 					
 					</div>
 				</div>
@@ -1281,12 +1324,23 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 					<div class="editor-side">
 						<div id="editor-code6" class="editor-container"></div>
 							<textarea id="code6" spellcheck="false" style="display:none;">	</textarea>		
-						<button class="btn-run" onclick="runRectCode(); gtag('event', 'run_code', {'level': '06'});" 
-						style="padding: 15px 90px; font-size: 20px; width: auto; 
-						background: linear-gradient(135deg, #10b981, #047857); border: none; 
-						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-						🚀 RUN
-						</button>					
+
+<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+    <button class="btn-run" onclick="runRectCode(); gtag('event', 'run_code', {'level': '06'});" 
+            style="flex: 4; font-size: 18px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #047857); border: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin: 0;">
+        🚀 RUN
+    </button>
+    
+    <button onclick="resetTaskCode('code6')" title="איפוס קוד"
+            style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+            border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; min-width: 80px;">
+        ↺ איפוס
+    </button> 
+</div>							
 					</div>
 				</div>
 				<div class="console-container">
@@ -1405,13 +1459,24 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 			<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
 				<div id="editor-creative-code" class="editor-container"></div>
 					<textarea id="creative-code" spellcheck="false" style="display:none;">	</textarea>
-								
-					<button class="btn-run" onclick="runCreativeCode() ; gtag('event', 'run_creative_code', {'level': '01'});" 
-						style="padding: 10px 15px; font-size: 13px; min-width: 90px; flex: 1; 
-						background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; 
-						box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-						🚀 RUN ART
-					</button>
+												
+<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+    <button class="btn-run" onclick="runCreativeCode(); gtag('event', 'run_code', {'level': '01'});" 
+            style="flex: 4; font-size: 18px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #047857); border: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin: 0;">
+        🚀 RUN ART
+    </button>
+    
+    <button onclick="resetTaskCode('creative-code')" title="איפוס קוד"
+            style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+            border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; min-width: 80px;">
+        ↺ איפוס
+    </button> 
+</div>					
+					
 				</div>
 			</div>
 			<div class="console-container">
@@ -3448,7 +3513,7 @@ function refreshAllEditorsContent() {
 }
 
 function resetTaskCode(id) {
-    if (confirm("האם אתה בטוח שברצונך לאפס את המשימה לקוד המקורי? כל השינויים שלך יימחקו.")) {
+   // if (confirm("האם אתה בטוח שברצונך לאפס את המשימה לקוד המקורי? כל השינויים שלך יימחקו.")) {
         // 1. מחיקת השמירה מהזיכרון
         localStorage.removeItem('saved_code_' + id);
         
@@ -3461,7 +3526,7 @@ function resetTaskCode(id) {
             document.getElementById(id).value = originalContent;
             window.javaEditors[id].refresh();
         }
-    }
+    // }
 }
 
 window.addEventListener('scroll', () => {
