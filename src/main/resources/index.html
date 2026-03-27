@@ -3245,13 +3245,13 @@ function setupJavaEditors() {
     const savedName = localStorage.getItem('student_name');
     const isTeacher = savedName !== null && savedName.trim() === "מורה";
 
-    // הגדרת ה-Observer לרענון ויזואלי בגלילה
+    // הגדרת ה-Observer לרענון ויזואלי בגלילה (כדי שהקוד לא ייראה לבן)
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const id = entry.target.dataset.editorId;
-                if (javaEditors[id]) {
-                    javaEditors[id].refresh();
+                if (window.javaEditors && window.javaEditors[id]) {
+                    window.javaEditors[id].refresh();
                 }
             }
         });
@@ -3268,18 +3268,18 @@ function setupJavaEditors() {
             const savedStudentCode = localStorage.getItem('saved_code_' + id);
             
             if (isTeacher) {
-                // מורה תמיד מקבל את הפתרון מה-TaskContent
+                // מורה תמיד מקבל את הפתרון המלא
                 textArea.value = defaultContent || "";
-            } else if (savedStudentCode) {
-                // תלמיד שחזר לדף יקבל את מה שכתב לפני הריענון
+            } else if (savedStudentCode && savedStudentCode.trim() !== "") {
+                // תלמיד שחזר לדף יקבל את מה שכתב
                 textArea.value = savedStudentCode;
             } else if (defaultContent !== null) {
-                // תלמיד חדש יקבל את קוד המקור של המשימה
+                // תלמיד חדש יקבל את קוד המקור
                 textArea.value = defaultContent;
             }
 
             // 3. יצירת עורך CodeMirror
-            javaEditors[id] = CodeMirror(container, {
+            window.javaEditors[id] = CodeMirror(container, {
                 value: textArea.value,
                 mode: "text/x-java",
                 theme: "dracula",
@@ -3291,24 +3291,22 @@ function setupJavaEditors() {
             container.dataset.editorId = id;
             observer.observe(container);
 
-            // 4. ניהול שינויים: סנכרון ל-TextArea ושמירה אוטומטית לתלמיד
-            javaEditors[id].on('change', (cm) => {
+            // 4. *** החלק הקריטי לשמירה ***
+            window.javaEditors[id].on('change', (cm) => {
                 const currentCode = cm.getValue();
-                textArea.value = currentCode;
+                textArea.value = currentCode; // מעדכן את ה-textarea (בשביל ה-RUN)
                 
-                // אנחנו שומרים ב-Storage רק אם המשתמש אינו מורה
-                // זה מונע מהפתרון של המורה לדרוס את הקוד האישי של התלמיד בזיכרון
+                // שמירה ב-localStorage רק אם זה תלמיד (שלא ידרוס את השמירה עם פתרונות המורה)
                 if (!isTeacher) {
                     localStorage.setItem('saved_code_' + id, currentCode);
                 }
             });
 
-            // רענון קטן לביטחון שהטקסט מופיע כראוי
-            setTimeout(() => javaEditors[id].refresh(), 200);
+            // רענון קטן לביטחון
+            setTimeout(() => window.javaEditors[id].refresh(), 200);
         }
     });
 
-    // קריאה לפונקציות העזר הקיימות שלך
     if (typeof refreshReplicator === "function") refreshReplicator();
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
