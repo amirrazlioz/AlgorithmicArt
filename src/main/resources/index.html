@@ -3399,6 +3399,21 @@ function refreshAllEditorsContent() {
     });
 }
 
+// מאזין לגלילה של הדף
+window.addEventListener('scroll', () => {
+    const nameInput = document.getElementById('studentName');
+    if (nameInput) {
+        const currentName = nameInput.value.trim();
+        const savedName = localStorage.getItem('student_name');
+
+        // אם יש שם בתיבה והוא שונה ממה ששמור כבר - נבצע רישום
+        if (currentName !== "" && currentName !== savedName) {
+            console.log("Saving name via scroll trigger...");
+            registerStudentOnServer(currentName);
+        }
+    }
+}, { passive: true }); // passive משפר ביצועי גלילה
+
 
 // הפעל את הבדיקה כל 10 שניות
 setInterval(checkCreativeStatus, 10000);
