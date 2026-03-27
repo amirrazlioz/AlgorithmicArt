@@ -3008,7 +3008,7 @@ function getTaskContent(id, isTeacher) {
     const contents = {
         'code1': {
             student: 
-`public static int[][] addFrame(int[][] image){
+`public static void addFrame(int[][] image){
     int height = image.length;
     int width = image[0].length;
 
@@ -3019,10 +3019,9 @@ function getTaskContent(id, isTeacher) {
 
         }
     }
-    return image;
 }`,
             teacher: 
-`public static int[][] addFrame(int[][] image){
+`public static void addFrame(int[][] image){
 	int height = image.length;
 	int width = image[0].length;
 	for (int i = 0; i < height; i++) {
@@ -3031,12 +3030,11 @@ function getTaskContent(id, isTeacher) {
 				image[i][j] = 1;  
 		}
 	}
-	return image;
 }`
         },
         'code2': {
             student: 
-`public static int[][] createDiagonal(int[][] image){
+`public static void createDiagonal(int[][] image){
 	int height = image.length;
 	int width = image[0].length;	
 	for (int i = 0; i < height; i++) {
@@ -3046,10 +3044,9 @@ function getTaskContent(id, isTeacher) {
 
 		}
 	}
-	return image;
 }`,
             teacher: 
-`public static int[][] createDiagonal(int[][] image){
+`public static void createDiagonal(int[][] image){
 	int height = image.length;
 	int width = image[0].length;
 	for (int i = 0; i < height; i++) {
@@ -3060,7 +3057,6 @@ function getTaskContent(id, isTeacher) {
 				image[i][j] = 10;      
 		}
 	}
-	return image;
 }`
         },
 		'code3': {
