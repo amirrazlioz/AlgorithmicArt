@@ -963,20 +963,28 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 					<div class="preview-side">
 						<canvas id="canvas1" width="280" height="280"></canvas>
 					</div>
-					
 					<div class="editor-side">
 						<div id="editor-code1" class="editor-container"></div>
 						<textarea id="code1" spellcheck="false" style="display:none;"></textarea>            
 						
-						<div class="editor-actions">
-							<button class="btn-run" onclick="runFrameCode();">
-								🚀 RUN
-							</button>
-							
-							<button class="reset-action-btn" onclick="resetTaskCode('code1')" title="איפוס קוד">
-								↺ איפוס
-							</button>
-						</div>
+<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+    
+    <button class="btn-run" onclick="runFrameCode(); gtag('event', 'run_code', {'level': '01'});" 
+            style="flex: 4; font-size: 18px; font-weight: bold;
+            background: linear-gradient(135deg, #10b981, #047857); border: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center; margin: 0;">
+        🚀 RUN
+    </button>
+    
+    <button onclick="resetTaskCode('code1')" title="איפוס קוד"
+            style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+            border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; min-width: 80px;">
+        ↺ איפוס
+    </button>
+    
+</div>
 					</div>
 
 				</div>
