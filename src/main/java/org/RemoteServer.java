@@ -150,6 +150,7 @@ public class RemoteServer {
 		final int[][][] resultHolder = new int[1][][];
 		final String[] logHolder = new String[1];
 		
+		/*
 		try {
 			String classCode = "package " + uniqueId + ";\n" +
 							   "public class " + className + " {\n" +
@@ -158,6 +159,16 @@ public class RemoteServer {
 							   "    }\n" +
 							   studentCode + "\n" +
 							   "}";
+		*/					   
+							   
+		try {					   
+			String classCode = "package " + uniqueId + ";\n" +
+                   "public class " + className + " {\n" +
+                   "    public static void run(int[][] image) {\n" + // שינוי ל-void
+                   "        " + wrapperMethodName + "(image);\n" +   // הסרת ה-return
+                   "    }\n" +
+                   studentCode + "\n" +
+                   "}";
 							   
 			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
 
@@ -191,7 +202,13 @@ public class RemoteServer {
 									System.setOut(newOut);
 									
 									// הרצת קוד התלמיד
-									resultHolder[0] = (int[][]) method.invoke(null, (Object) image);
+									// resultHolder[0] = (int[][]) method.invoke(null, (Object) image);
+									
+									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
+									method.invoke(null, (Object) image);
+
+									// 2. השמת המערך המקורי לתוך ה-resultHolder (הוא כבר מכיל את השינויים של התלמיד)
+									resultHolder[0] = image;
 									
 									System.out.flush();
 								} finally {
