@@ -890,6 +890,23 @@ textarea.code-hidden {
 
 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 
+
+.reset-btn {
+    background-color: #f44336; /* אדום עדין */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 10px;
+    transition: background 0.3s;
+}
+
+.reset-btn:hover {
+    background-color: #d32f2f;
+}
+
 </style>
 </head>
 <body>
@@ -963,6 +980,12 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 								box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; margin-top: 15px;">
 							🚀 RUN
 						</button>
+						
+						<div class="task-header">
+							<h3>משימה 1</h3>
+							<button onclick="resetTaskCode('code1')" class="reset-btn">איפוס קוד ↺</button>
+						</div>
+
 					</div>
 				</div>				
 
@@ -3308,64 +3331,6 @@ function setupJavaEditors() {
     if (typeof refreshReplicator === "function") refreshReplicator();
     if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
 }
-/*
-
-function setupJavaEditors() {
-    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
-    
-    // שליפת הסטטוס מה-Storage
-	const savedName = localStorage.getItem('student_name');
-	const isTeacher = savedName !== null && savedName.trim() === "מורה";
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const id = entry.target.dataset.editorId;
-                if (javaEditors[id]) {
-                    javaEditors[id].refresh();
-                }
-            }
-        });
-    }, { threshold: 0.1 });
-
-    codeIds.forEach(id => {
-        const textArea = document.getElementById(id);
-        const container = document.getElementById('editor-' + id);
-
-        if (textArea && container) {
-            
-            // --- הזרקת הקוד לפי סוג המשתמש ---
-            const customContent = getTaskContent(id, isTeacher);
-            if (customContent !== null) {
-                textArea.value = customContent;
-            }
-            // --------------------------------
-
-            javaEditors[id] = CodeMirror(container, {
-                value: textArea.value,
-                mode: "text/x-java",
-                theme: "dracula",
-                lineNumbers: true,
-                lineWrapping: true,
-                tabSize: 4
-            });
-
-            container.dataset.editorId = id;
-            observer.observe(container);
-
-            // סנכרון מהעורך חזרה ל-textarea כדי שה-Run יעבוד
-            javaEditors[id].on('change', (cm) => {
-                textArea.value = cm.getValue();
-            });
-
-            setTimeout(() => javaEditors[id].refresh(), 200);
-        }
-    });
-
-    if (typeof refreshReplicator === "function") refreshReplicator();
-    if (typeof refreshRectReplicator === "function") refreshRectReplicator();	
-}
-*/
 
 async function registerStudentOnServer(name) {
     if (!name || name.trim() === "") {
@@ -3454,29 +3419,6 @@ function getStudentId() {
     return uuid;
 }
 
-/*
-function refreshAllEditorsContent() {
-	const savedName = localStorage.getItem('student_name');
-	const isTeacher = savedName !== null && savedName.trim() === "מורה";
-    const codeIds = ['code1', 'code2', 'code3', 'code4', 'code5', 'code6', 'creative-code'];
-
-    codeIds.forEach(id => {
-        const customContent = getTaskContent(id, isTeacher);
-        if (customContent !== null) {
-            // עדכון ה-textarea
-            const textArea = document.getElementById(id);
-            if (textArea) textArea.value = customContent;
-
-            // עדכון ה-CodeMirror (החלק הוויזואלי)
-            if (javaEditors[id]) {
-                javaEditors[id].setValue(customContent);
-                javaEditors[id].refresh();
-            }
-        }
-    });
-}
-*/
-
 function refreshAllEditorsContent() {
     const savedName = localStorage.getItem('student_name');
     const isTeacher = savedName !== null && savedName.trim() === "מורה";
@@ -3503,6 +3445,23 @@ function refreshAllEditorsContent() {
             }
         }
     });
+}
+
+function resetTaskCode(id) {
+    if (confirm("האם אתה בטוח שברצונך לאפס את המשימה לקוד המקורי? כל השינויים שלך יימחקו.")) {
+        // 1. מחיקת השמירה מהזיכרון
+        localStorage.removeItem('saved_code_' + id);
+        
+        // 2. קבלת התוכן המקורי (לתלמיד)
+        const originalContent = getTaskContent(id, false);
+        
+        // 3. עדכון העורך וה-textarea ללא ריענון דף
+        if (window.javaEditors && window.javaEditors[id]) {
+            window.javaEditors[id].setValue(originalContent);
+            document.getElementById(id).value = originalContent;
+            window.javaEditors[id].refresh();
+        }
+    }
 }
 
 window.addEventListener('scroll', () => {
