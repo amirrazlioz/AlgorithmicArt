@@ -434,7 +434,8 @@ function exportToCSV() {
 
         // כתיבת שורת "מספר הרצות"
         csvContent += `"${name}","מספר הרצות",${runsData.join(",")},"",${totalRuns},"${status}"\n`;
-        csvContent += `"","","Rating",${ratingsData.join(",")},${studentAvg},"",""\n`;
+        // csvContent += `"","","Rating",${ratingsData.join(",")},${studentAvg},"",""\n`;
+		csvContent += `"","Rating",${ratingsData.join(",")},${studentAvg},"",""\n`;
     });
 
     // 4. הוספת שורת הממוצע הכיתתי מה-Footer
