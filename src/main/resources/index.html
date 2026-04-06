@@ -816,7 +816,7 @@ textarea.code-hidden {
 }
 
 #editor-creative-code {
-    height: 500px; 			 /* גובה העורך */
+    height: 800px; 			 /* גובה העורך */
     width: 100%;             /* רוחב מלא */
     text-align: left;        /* יישור קוד לשמאל */
     direction: ltr;          /* כתיבה משמאל לימין */
@@ -1447,7 +1447,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 			<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
 				<div id="editor-creative-code" class="editor-container"></div>
 					<textarea id="creative-code" spellcheck="false" style="display:none;">	</textarea>												
-					<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 80px;">
+					<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
 						<button class="btn-run" onclick="runCreativeCode(); gtag('event', 'run_code', {'level': '01'});" 
 								style="flex: 4; font-size: 18px; font-weight: bold;
 								background: linear-gradient(135deg, #10b981, #047857); border: none; 
@@ -1459,7 +1459,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 						<button onclick="resetTaskCode('creative-code')" title="איפוס קוד"
 								style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
 								border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
-								display: flex; align-items: center; justify-content: center; min-width: 80px;">
+								display: flex; align-items: center; justify-content: center; min-width: 50px;">
 							↺ איפוס
 						</button> 
 					</div>					
