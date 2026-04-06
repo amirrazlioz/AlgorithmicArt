@@ -401,8 +401,8 @@ function exportToCSV() {
     // שורת כותרות הטבלה
     // csvContent += `שם התלמיד,IP,סוג נתון,${levelHeaders.join(",")},ממוצע תלמיד,סה"כ,סטטוס\n`;
 	
-	csvContent += קוד התלמיד`, , סוג נתון  ${levelHeaders.join(",")},ממוצע תלמיד,סה"כ,סטטוס\n`;
-
+	csvContent += `סוג נתון ,קוד תלמיד,${levelHeaders.join(",")},ממוצע תלמיד,סה"כ,סטטוס\n`;
+	
     // 3. שליפת הנתונים מהטבלה הויזואלית בצורה חכמה או מה-Data
     // נשתמש ב-rows של ה-tbody כדי לעבור תלמיד-תלמיד
     const rows = Array.from(document.querySelectorAll("#students-table-body tr"));
