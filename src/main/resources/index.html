@@ -916,7 +916,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     <h1>🎨 ALGORITHMIC ART STUDIO</h1>
     <p>חוקרים את העולם הגרפי בעזרת מערכים דו מימדיים</p>
     <div class="student-name-container">
-        <label for="studentName">שם התלמיד/ה:</label>
+        <label for="studentName">קוד התלמיד/ה:</label>
         <input type="text" id="studentName" placeholder="הכנס שם כאן..." onchange="registerStudentOnServer(this.value)">
     </div>
 </header>
@@ -2712,7 +2712,7 @@ function generatePrintHTML(studentName, title, code, canvasImg, aiLog) {
                     <h1>${title}</h1>
                     <span>תאריך: ${new Date().toLocaleDateString('he-IL')}</span>
                 </div>
-                <div><b>שם התלמיד:</b> ${studentName}</div>
+                <div><b>קוד התלמיד/ה:</b> ${studentName}</div>
                 <span class="label">🖼️ התוצר הגרפי:</span>
                 <img src="${canvasImg}">
                 <span class="label">💻 הקוד שכתבתי:</span>
