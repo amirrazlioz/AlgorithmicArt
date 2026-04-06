@@ -443,7 +443,7 @@ function exportToCSV() {
     if (tfoot) {
         const footerCells = Array.from(tfoot.querySelectorAll("td"));
         // התא הראשון הוא "ממוצע כיתתי", השאר הם הערכים
-        let footerRow = `"ממוצע כיתתי","","Rating"`;
+        let footerRow = `"ממוצע כיתתי","Rating"`;
         for (let i = 1; i <= 7; i++) {
             footerRow += `,${footerCells[i]?.innerText || "-"}`;
         }
