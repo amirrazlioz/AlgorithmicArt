@@ -172,7 +172,7 @@
 						<th style="text-align:center;">Creative</th>
 						<th style="text-align:center; background:#f0f9ff;">ממוצע תלמיד ⭐</th>
 						<th style="text-align:center; background:#f1f5f9;">סה"כ</th>
-						<th>123סטטוס</th>
+						<th>סטטוס</th>
 					</tr>
 				</thead>
 				
@@ -399,7 +399,9 @@ function exportToCSV() {
     csvContent += `"מדד עניין כיתתי:","${avgRatingGlobal}"\n\n`;
 
     // שורת כותרות הטבלה
-    csvContent += `שם התלמיד,I סוג נתון,${levelHeaders.join(",")},ממוצע תלמיד,סה"כ,סטטוס\n`;
+    // csvContent += `שם התלמיד,I סוג נתון,${levelHeaders.join(",")},ממוצע תלמיד,סה"כ,סטטוס\n`;
+	
+	csvContent += `קוד התלמיד, סוג נתון,${levelHeaders.join(",")},ממוצע תלמיד,סה"כ \n`;
 
     // 3. שליפת הנתונים מהטבלה הויזואלית בצורה חכמה או מה-Data
     // נשתמש ב-rows של ה-tbody כדי לעבור תלמיד-תלמיד
