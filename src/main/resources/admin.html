@@ -421,7 +421,7 @@ function exportToCSV() {
         let runsData = [];
         let ratingsData = [];
 
-        for (let i = 3; i <= 9; i++) {
+        for (let i = 2; i <= 8; i++) {
             const divs = cells[i].querySelectorAll("div");
             if (divs.length >= 2) {
                 runsData.push(divs[0].innerText.trim());    // מספר הרצות
@@ -433,7 +433,7 @@ function exportToCSV() {
         }
 
         // כתיבת שורת "מספר הרצות"
-        csvContent += `"${name}","מספר הרצות",${runsData.join(",")},"",${totalRuns},"${status}"\n`;
+        csvContent += `"${name}","מספר הרצות",${runsData.join(",")},"",${totalRuns}\n`;
         // csvContent += `"","","Rating",${ratingsData.join(",")},${studentAvg},"",""\n`;
 		csvContent += `"","Rating",${ratingsData.join(",")},${studentAvg},"",""\n`;
     });
