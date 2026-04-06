@@ -162,7 +162,6 @@
 				<thead>
 					<tr>
 						<th>שם התלמיד</th>
-						<th>IP</th>
 						<th style="background:#f8fafc;">סוג נתון</th> 
 						<th style="text-align:center;">Level 1</th>
 						<th style="text-align:center;">Level 2</th>
@@ -302,7 +301,6 @@
                 ${statusDotHtml}
                 ${student.name || 'אורח'}
             </td>
-            <td style="font-family: monospace; font-size: 0.85em; color: #64748b;">${student.ip || '-'}</td>
             <td style="background:#f8fafc; font-weight: bold; color: #64748b; font-size: 0.8em;">
                 <div>מספר הרצות</div>
                 <div style="margin-top: 10px;">Rating</div>
@@ -401,7 +399,7 @@ function exportToCSV() {
     csvContent += `"מדד עניין כיתתי:","${avgRatingGlobal}"\n\n`;
 
     // שורת כותרות הטבלה
-    csvContent += `שם התלמיד,IP,סוג נתון,${levelHeaders.join(",")},ממוצע תלמיד,סה"כ,סטטוס\n`;
+    csvContent += `שם התלמיד,I סוג נתון,${levelHeaders.join(",")},ממוצע תלמיד,סה"כ,סטטוס\n`;
 
     // 3. שליפת הנתונים מהטבלה הויזואלית בצורה חכמה או מה-Data
     // נשתמש ב-rows של ה-tbody כדי לעבור תלמיד-תלמיד
@@ -415,7 +413,6 @@ function exportToCSV() {
 		const name = cells[0].innerText.replace(/[^\w\sא-ת]/g, '').trim();
 
        // const name = cells[0].querySelector("div")?.innerText || "אורח";
-        const ip = cells[1].querySelector("div")?.innerText || "";
         const studentAvg = cells[cells.length - 3].innerText; // עמודת ממוצע ⭐
         const totalRuns = cells[cells.length - 2].innerText; // עמודת סה"כ
         const status = cells[cells.length - 1].innerText;    // עמודת סטטוס
@@ -436,8 +433,7 @@ function exportToCSV() {
         }
 
         // כתיבת שורת "מספר הרצות"
-        csvContent += `"${name}","${ip}","מספר הרצות",${runsData.join(",")},"",${totalRuns},"${status}"\n`;
-        // כתיבת שורת "Rating" (שם ו-IP ריקים כדי שיהיה קריא)
+        csvContent += `"${name}","מספר הרצות",${runsData.join(",")},"",${totalRuns},"${status}"\n`;
         csvContent += `"","","Rating",${ratingsData.join(",")},${studentAvg},"",""\n`;
     });
 
