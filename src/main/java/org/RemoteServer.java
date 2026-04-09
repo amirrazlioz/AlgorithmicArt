@@ -139,6 +139,15 @@ public class RemoteServer {
         }
     }
 	
+	
+	private static void deleteDirectory(File dir) {
+		File[] files = dir.listFiles();
+		if (files != null) {
+			for (File f : files) f.delete();
+		}
+		dir.delete();
+	}
+	
 	private static JsonObject executeStudentCodeImage(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
 		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
 		String className = "DynamicClass_" + uniqueId;
@@ -625,13 +634,6 @@ private static JsonObject executeStudentCodeRepRec(String studentCode, int[][] i
     }
 }
 
-	private static void deleteDirectory(File dir) {
-		File[] files = dir.listFiles();
-		if (files != null) {
-			for (File f : files) f.delete();
-		}
-		dir.delete();
-	}
 
 	
 	private static void updateTaskInDB(String studentId, String taskName, String currentIp) {
