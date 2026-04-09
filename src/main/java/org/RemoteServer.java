@@ -322,96 +322,98 @@ public class RemoteServer {
 		}
 	}
 
-	private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][] image, int r, int c, int count, String wrapperMethodName) throws Exception {		
-		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
-		String className = "DynamicClass_" + uniqueId;
-		File requestDir = new File("temp_build/" + uniqueId);
-		if (!requestDir.exists()) requestDir.mkdirs();
-		
-		File javaFile = new File(requestDir, className + ".java");
-		
-		final int[][][] resultHolder = new int[1][][];
-		final String[] logHolder = new String[1];
-		
-		
-		try {
-			String classCode = "package " + uniqueId + ";\n" +
-                   "public class " + className + " {\n" +
-				   "    public static void run(int[][] image, int r, int c, int count) {\n" +
-                   "        " + wrapperMethodName + "(image, r, c, count);\n" +   // הסרת ה-return
-                   "    }\n" +
-                   studentCode + "\n" +
-                   "}";
-							   
-							   
-			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
+private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][] image, int r, int c, int count, String wrapperMethodName) throws Exception {		
+    String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
+    String className = "DynamicClass_" + uniqueId;
+    File requestDir = new File("temp_build/" + uniqueId);
+    if (!requestDir.exists()) requestDir.mkdirs();
+    
+    File javaFile = new File(requestDir, className + ".java");
+    
+    final int[][][] resultHolder = new int[1][][];
+    final String[] logHolder = new String[1];
+    
+    try {
+        String classCode = "package " + uniqueId + ";\n" +
+               "public class " + className + " {\n" +
+               "    public static void run(int[][] image, int r, int c, int count) {\n" +
+               "        " + wrapperMethodName + "(image, r, c, count);\n" +
+               "    }\n" +
+               studentCode + "\n" +
+               "}";
+                           
+        Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
 
-			ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
-			pb.redirectErrorStream(true);
-			Process compile = pb.start();
-			
-			StringBuilder compileOutput = new StringBuilder();
-			try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
-				String line;
-				while ((line = reader.readLine()) != null) compileOutput.append(line).append("\n");
-			}
+        ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
+        pb.redirectErrorStream(true);
+        Process compile = pb.start();
+        
+        StringBuilder compileOutput = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) compileOutput.append(line).append("\n");
+        }
 
-			if (compile.waitFor() != 0) {
-				throw new Exception("Compilation failed:\n" + compileOutput.toString());
-			}
+        if (compile.waitFor() != 0) {
+            throw new Exception("Compilation failed:\n" + compileOutput.toString());
+        }
 
-			URL[] urls = { requestDir.toURI().toURL() };
-			try (URLClassLoader loader = new URLClassLoader(urls)) {
-				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
-				// הגדרת הפרמטרים של המתודה: מערך דו-מימדי ושלושה אינטים
-				Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class);
+        URL[] urls = { requestDir.toURI().toURL() };
+        try (URLClassLoader loader = new URLClassLoader(urls)) {
+            Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
+            Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class);
 
-				ExecutorService executor = Executors.newSingleThreadExecutor();
-				try {
-					Future<?> future = executor.submit(() -> {
-						try {
-							synchronized (System.out) {
-								PrintStream originalOut = System.out;
-								ByteArrayOutputStream baos = new ByteArrayOutputStream();
-								try (PrintStream newOut = new PrintStream(baos)) {
-									System.setOut(newOut);
-																		
-									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
-									method.invoke(null, (Object) image, r, c, count);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
+                Future<?> future = executor.submit(() -> {
+                    PrintStream originalOut = System.out;
+                    try {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        try (PrintStream newOut = new PrintStream(baos)) {
+                            System.setOut(newOut);
+                                                                
+                            // הרצת קוד התלמיד
+                            method.invoke(null, (Object) image, r, c, count);
 
-									// 2. השמת המערך המקורי לתוך ה-resultHolder (הוא כבר מכיל את השינויים של התלמיד)
-									resultHolder[0] = image;
-									
-									System.out.flush();
-								} finally {
-									System.setOut(originalOut);
-								}
-								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
-							}
-						} catch (Exception e) {
-							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
-						}
-					});
+                            resultHolder[0] = image;
+                            System.out.flush();
+                        }
+                        logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        // קילוף השגיאה כדי להציג את הסיבה האמיתית (למשל OutOfBounds)
+                        Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
+                        
+                        // שימוש ב-RuntimeException כדי שה-Build יעבור (שגיאת שורה 214 המפורסמת)
+                        throw new RuntimeException(cause != null ? cause.toString() : e.toString());
+                    } finally {
+                        System.setOut(originalOut);
+                    }
+                });
 
-					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
-					
-				} catch (java.util.concurrent.TimeoutException e) {
-					throw new Exception("Code execution timed out! (Possible infinite loop or very slow code)");
-				} finally {
-					executor.shutdownNow(); // עצירת ה-Thread במידה וחרג מהזמן
-				}
-			}
+                future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                
+            } catch (ExecutionException e) {
+                // חילוץ השגיאה שזרקנו מה-RuntimeException למעלה
+                Throwable realError = (e.getCause() != null) ? e.getCause() : e;
+                throw new Exception(realError.getMessage());
+            } catch (java.util.concurrent.TimeoutException e) {
+                throw new Exception("Code execution timed out! (Possible infinite loop)");
+            } finally {
+                executor.shutdownNow();
+            }
+        }
 
-			JsonObject result = new JsonObject();
-			result.add("image", new Gson().toJsonTree(resultHolder[0]));
-			result.addProperty("consoleOutput", logHolder[0]);
-			return result;
+        JsonObject result = new JsonObject();
+        result.add("image", new Gson().toJsonTree(resultHolder[0]));
+        result.addProperty("consoleOutput", logHolder[0]);
+        return result;
 
-		} finally {
-			deleteDirectory(requestDir);
-		}
-	}
-/*
+    } finally {
+        deleteDirectory(requestDir);
+    }
+}
+
+
 	private static JsonObject executeStudentCodeRepRec(String studentCode, int[][] image, int r, int c, int rCount, int cCount, String wrapperMethodName) throws Exception {		
 		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
 		String className = "DynamicClass_" + uniqueId;
@@ -425,13 +427,12 @@ public class RemoteServer {
 				
 		try {
 			String classCode = "package " + uniqueId + ";\n" +
-                   "public class " + className + " {\n" +
+				   "public class " + className + " {\n" +
 				   "    public static void run(int[][] image, int r, int c, int rCount, int cCount) {\n" +
-                   "        " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +   // הסרת ה-return
-                   "    }\n" +
-                   studentCode + "\n" +
-                   "}";
-							   
+				   "        " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +
+				   "    }\n" +
+				   studentCode + "\n" +
+				   "}";
 							   
 			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
 
@@ -457,56 +458,40 @@ public class RemoteServer {
 				ExecutorService executor = Executors.newSingleThreadExecutor();
 				try {
 					Future<?> future = executor.submit(() -> {
+						PrintStream originalOut = System.out;
 						try {
-							synchronized (System.out) {
-								PrintStream originalOut = System.out;
-								ByteArrayOutputStream baos = new ByteArrayOutputStream();
-								try (PrintStream newOut = new PrintStream(baos)) {
-									System.setOut(newOut);									
-									
-									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
-									method.invoke(null, (Object) image, r, c, rCount, cCount);
+							ByteArrayOutputStream baos = new ByteArrayOutputStream();
+							try (PrintStream newOut = new PrintStream(baos)) {
+								System.setOut(newOut);                                    
+								
+								// הרצת קוד התלמיד
+								method.invoke(null, (Object) image, r, c, rCount, cCount);
 
-									// 2. השמת המערך המקורי לתוך ה-resultHolder (הוא כבר מכיל את השינויים של התלמיד)
-									resultHolder[0] = image;
-									
-									System.out.flush();
-								} finally {
-									System.setOut(originalOut);
-								}
-								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+								resultHolder[0] = image;
+								System.out.flush();
 							}
+							logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 						} catch (Exception e) {
-							//throw new RuntimeException("Amir Database connection failed", e.toString());
+							// קילוף השגיאה כדי להציג OutOfBounds במקום InvocationTarget
+							Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
 							
-							// throw new RuntimeException(e.getMessage() != null ? e.getMessage() : e.toString());
-							
-							String message = (e.getMessage() != null) ? e.getMessage() : e.toString();
-
-							throw new RuntimeException("Amir DB error: " + message, e);
-							
+							// שימוש ב-RuntimeException פותר את שגיאת ה-Build (שורה 214)
+							throw new RuntimeException(cause != null ? cause.toString() : e.toString());
+						} finally {
+							System.setOut(originalOut);
 						}
 					});
 
-					// future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
 					
-					
-					try {
-						future.get(5, java.util.concurrent.TimeUnit.SECONDS);
-
-					} catch (java.util.concurrent.ExecutionException e) {
-						Throwable cause = e.getCause();
-
-						String message = (cause.getMessage() != null)
-								? cause.getMessage()
-								: cause.toString();
-
-						throw new Exception("Student code error: " + message, cause);					
-					
+				} catch (ExecutionException e) {
+					// כאן אנחנו מחלצים את השגיאה שזרקנו מה-RuntimeException למעלה
+					Throwable realError = (e.getCause() != null) ? e.getCause() : e;
+					throw new Exception(realError.getMessage());
 				} catch (java.util.concurrent.TimeoutException e) {
-					throw new Exception("Code execution timed out! (Possible infinite loop in rectangle logic)");
+					throw new Exception("Code execution timed out! (Possible infinite loop)");
 				} finally {
-					executor.shutdownNow(); // עצירת ה-Thread מיד בסיום או בטיימאאוט
+					executor.shutdownNow();
 				}
 			}
 
@@ -519,106 +504,6 @@ public class RemoteServer {
 			deleteDirectory(requestDir);
 		}
 	}
-
-	private static void deleteDirectory(File dir) {
-		File[] files = dir.listFiles();
-		if (files != null) {
-			for (File f : files) f.delete();
-		}
-		dir.delete();
-	}
-*/
-
-	private static JsonObject executeStudentCodeRepRec(String studentCode, int[][] image, int r, int c, int rCount, int cCount, String wrapperMethodName) throws Exception {		
-    String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
-    String className = "DynamicClass_" + uniqueId;
-    File requestDir = new File("temp_build/" + uniqueId);
-    if (!requestDir.exists()) requestDir.mkdirs();
-    
-    File javaFile = new File(requestDir, className + ".java");
-    
-    final int[][][] resultHolder = new int[1][][];
-    final String[] logHolder = new String[1];
-            
-    try {
-        String classCode = "package " + uniqueId + ";\n" +
-               "public class " + className + " {\n" +
-               "    public static void run(int[][] image, int r, int c, int rCount, int cCount) {\n" +
-               "        " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +
-               "    }\n" +
-               studentCode + "\n" +
-               "}";
-                           
-        Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
-
-        ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
-        pb.redirectErrorStream(true);
-        Process compile = pb.start();
-        
-        StringBuilder compileOutput = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) compileOutput.append(line).append("\n");
-        }
-
-        if (compile.waitFor() != 0) {
-            throw new Exception("Compilation failed:\n" + compileOutput.toString());
-        }
-
-        URL[] urls = { requestDir.toURI().toURL() };
-        try (URLClassLoader loader = new URLClassLoader(urls)) {
-            Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
-            Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class, int.class);
-
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            try {
-                Future<?> future = executor.submit(() -> {
-                    PrintStream originalOut = System.out;
-                    try {
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        try (PrintStream newOut = new PrintStream(baos)) {
-                            System.setOut(newOut);                                    
-                            
-                            // הרצת קוד התלמיד
-                            method.invoke(null, (Object) image, r, c, rCount, cCount);
-
-                            resultHolder[0] = image;
-                            System.out.flush();
-                        }
-                        logHolder[0] = baos.toString(StandardCharsets.UTF_8);
-                    } catch (Exception e) {
-                        // קילוף השגיאה כדי להציג OutOfBounds במקום InvocationTarget
-                        Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
-                        
-                        // שימוש ב-RuntimeException פותר את שגיאת ה-Build (שורה 214)
-                        throw new RuntimeException(cause != null ? cause.toString() : e.toString());
-                    } finally {
-                        System.setOut(originalOut);
-                    }
-                });
-
-                future.get(5, java.util.concurrent.TimeUnit.SECONDS);
-                
-            } catch (ExecutionException e) {
-                // כאן אנחנו מחלצים את השגיאה שזרקנו מה-RuntimeException למעלה
-                Throwable realError = (e.getCause() != null) ? e.getCause() : e;
-                throw new Exception(realError.getMessage());
-            } catch (java.util.concurrent.TimeoutException e) {
-                throw new Exception("Code execution timed out! (Possible infinite loop)");
-            } finally {
-                executor.shutdownNow();
-            }
-        }
-
-        JsonObject result = new JsonObject();
-        result.add("image", new Gson().toJsonTree(resultHolder[0]));
-        result.addProperty("consoleOutput", logHolder[0]);
-        return result;
-
-    } finally {
-        deleteDirectory(requestDir);
-    }
-}
 	
 	private static void updateTaskInDB(String studentId, String taskName, String currentIp) {
 		try (Connection conn = getConnection()) {
