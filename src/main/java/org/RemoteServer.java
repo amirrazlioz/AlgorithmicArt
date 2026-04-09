@@ -258,7 +258,7 @@ public class RemoteServer {
 							   "        return " + wrapperMethodName + "(image);\n" +
 							   "    }\n" +
 							   studentCode + "\n" +
-							   "}";           
+							   "}";            
 							   
 			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
 
@@ -284,32 +284,39 @@ public class RemoteServer {
 				ExecutorService executor = Executors.newSingleThreadExecutor();
 				try {
 					Future<?> future = executor.submit(() -> {
+						PrintStream originalOut = System.out;
 						try {
-							synchronized (System.out) {
-								PrintStream originalOut = System.out;
-								ByteArrayOutputStream baos = new ByteArrayOutputStream();
-								try (PrintStream newOut = new PrintStream(baos)) {
-									System.setOut(newOut);
-									
-									resultHolder[0] = (Number) method.invoke(null, (Object) image);
-									
-									System.out.flush();
-								} finally {
-									System.setOut(originalOut);
-								}
-								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+							ByteArrayOutputStream baos = new ByteArrayOutputStream();
+							try (PrintStream newOut = new PrintStream(baos)) {
+								System.setOut(newOut);
+								
+								// הרצת קוד התלמיד וקבלת המספר החוזר
+								resultHolder[0] = (Number) method.invoke(null, (Object) image);
+								
+								System.out.flush();
 							}
+							logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 						} catch (Exception e) {
-							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
+							// חילוץ השגיאה האמיתית (למשל OutOfBounds)
+							Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
+							
+							// זריקה כ-RuntimeException כדי שה-Build יעבור בהצלחה
+							throw new RuntimeException(cause != null ? cause.toString() : e.toString());
+						} finally {
+							System.setOut(originalOut);
 						}
 					});
 
 					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
 					
+				} catch (ExecutionException e) {
+					// שליפת הודעת השגיאה המקורית עבור התלמיד
+					Throwable realError = (e.getCause() != null) ? e.getCause() : e;
+					throw new Exception(realError.getMessage());
 				} catch (java.util.concurrent.TimeoutException e) {
 					throw new Exception("Code execution timed out! (Possible infinite loop)");
 				} finally {
-					executor.shutdownNow(); // עצירת ה-Thread של התלמיד
+					executor.shutdownNow(); 
 				}
 			}
 
