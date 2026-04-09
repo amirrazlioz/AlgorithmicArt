@@ -159,15 +159,15 @@ public class RemoteServer {
 		
 		final int[][][] resultHolder = new int[1][][];
 		final String[] logHolder = new String[1];
-			   
-		try {					   
+			
+		try {                    
 			String classCode = "package " + uniqueId + ";\n" +
-                   "public class " + className + " {\n" +
-                   "    public static void run(int[][] image) {\n" + // שינוי ל-void
-                   "        " + wrapperMethodName + "(image);\n" +   // הסרת ה-return
-                   "    }\n" +
-                   studentCode + "\n" +
-                   "}";
+				   "public class " + className + " {\n" +
+				   "    public static void run(int[][] image) {\n" + 
+				   "        " + wrapperMethodName + "(image);\n" +
+				   "    }\n" +
+				   studentCode + "\n" +
+				   "}";
 							   
 			Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
 
@@ -193,35 +193,36 @@ public class RemoteServer {
 				ExecutorService executor = Executors.newSingleThreadExecutor();
 				try {
 					Future<?> future = executor.submit(() -> {
+						PrintStream originalOut = System.out;
 						try {
-							synchronized (System.out) {
-								PrintStream originalOut = System.out;
-								ByteArrayOutputStream baos = new ByteArrayOutputStream();
-								try (PrintStream newOut = new PrintStream(baos)) {
-									System.setOut(newOut);
-																		
-									// 1. הרצת קוד התלמיד (מתעלמים מהערך החוזר של ה-invoke)
-									method.invoke(null, (Object) image);
+							ByteArrayOutputStream baos = new ByteArrayOutputStream();
+							try (PrintStream newOut = new PrintStream(baos)) {
+								System.setOut(newOut);
+																	
+								// הרצת קוד התלמיד
+								method.invoke(null, (Object) image);
 
-									// 2. השמת המערך המקורי לתוך ה-resultHolder (הוא כבר מכיל את השינויים של התלמיד)
-									resultHolder[0] = image;
-									
-									System.out.flush();
-								} finally {
-									System.setOut(originalOut);
-								}
-								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+								resultHolder[0] = image;
+								System.out.flush();
 							}
-						//} catch (Exception e) {
-						//	throw new RuntimeException(e);
-						//}
+							logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 						} catch (Exception e) {
-							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
+							// חילוץ השגיאה האמיתית מתוך ה-Reflection (קילוף ה-InvocationTargetException)
+							Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
+							
+							// זריקת השגיאה כ-RuntimeException כדי למנוע שגיאת קומפילציה של השרת
+							throw new RuntimeException(cause != null ? cause.toString() : e.toString());
+						} finally {
+							System.setOut(originalOut);
 						}
 					});
 
 					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
 					
+				} catch (ExecutionException e) {
+					// חילוץ ההודעה המקורית מה-Future
+					Throwable realError = (e.getCause() != null) ? e.getCause() : e;
+					throw new Exception(realError.getMessage());
 				} catch (java.util.concurrent.TimeoutException e) {
 					throw new Exception("Code execution timed out! (Possible infinite loop)");
 				} finally {
