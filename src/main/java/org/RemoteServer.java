@@ -295,7 +295,7 @@ public class RemoteServer {
 								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 							}
 						} catch (Exception e) {
-							throw new RuntimeException(e);
+							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
 						}
 					});
 
@@ -385,7 +385,7 @@ public class RemoteServer {
 								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 							}
 						} catch (Exception e) {
-							throw new RuntimeException(e);
+							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
 						}
 					});
 
@@ -473,7 +473,7 @@ public class RemoteServer {
 								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 							}
 						} catch (Exception e) {
-							throw new RuntimeException(e);
+							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
 						}
 					});
 
