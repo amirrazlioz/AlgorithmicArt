@@ -473,7 +473,7 @@ public class RemoteServer {
 								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 							}
 						} catch (Exception e) {
-							throw new RuntimeException("Amir Database connection failed", e , e.toString());
+							throw new RuntimeException("Amir Database connection failed", e.toString());
 							
 						}
 					});
