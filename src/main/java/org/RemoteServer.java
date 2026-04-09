@@ -205,13 +205,15 @@ public class RemoteServer {
 						//} catch (Exception e) {
 						//	throw new RuntimeException(e);
 						//}
-						
 						} catch (Exception e) {
-							Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
-							// שימוש ב-RuntimeException במקום Exception
-							throw new RuntimeException(cause != null ? cause.toString() : e.toString());
+							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
 						}
-
+						
+						//} catch (Exception e) {
+						//	Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
+							// שימוש ב-RuntimeException במקום Exception
+						//	throw new RuntimeException(cause != null ? cause.toString() : e.toString());
+						//}
 					});
 
 					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
