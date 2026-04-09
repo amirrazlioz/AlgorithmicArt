@@ -208,12 +208,6 @@ public class RemoteServer {
 						} catch (Exception e) {
 							throw new RuntimeException("Database connection failed: " + e.getMessage(), e);
 						}
-						
-						//} catch (Exception e) {
-						//	Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
-							// שימוש ב-RuntimeException במקום Exception
-						//	throw new RuntimeException(cause != null ? cause.toString() : e.toString());
-						//}
 					});
 
 					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
@@ -407,7 +401,7 @@ public class RemoteServer {
 			deleteDirectory(requestDir);
 		}
 	}
-
+/*
 	private static JsonObject executeStudentCodeRepRec(String studentCode, int[][] image, int r, int c, int rCount, int cCount, String wrapperMethodName) throws Exception {		
 		String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");	
 		String className = "DynamicClass_" + uniqueId;
@@ -484,7 +478,20 @@ public class RemoteServer {
 						}
 					});
 
-					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+					// future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+					
+					
+					try {
+						future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
+					} catch (java.util.concurrent.ExecutionException e) {
+						Throwable cause = e.getCause();
+
+						String message = (cause.getMessage() != null)
+								? cause.getMessage()
+								: cause.toString();
+
+						throw new Exception("Student code error: " + message, cause);					
 					
 				} catch (java.util.concurrent.TimeoutException e) {
 					throw new Exception("Code execution timed out! (Possible infinite loop in rectangle logic)");
@@ -510,6 +517,114 @@ public class RemoteServer {
 		}
 		dir.delete();
 	}
+*/
+
+private static JsonObject executeStudentCodeRepRec(String studentCode, int[][] image,
+                                                   int r, int c, int rCount, int cCount,
+                                                   String wrapperMethodName) throws Exception {
+
+    String uniqueId = "u" + java.util.UUID.randomUUID().toString().replace("-", "");
+    String className = "DynamicClass_" + uniqueId;
+    File requestDir = new File("temp_build/" + uniqueId);
+    if (!requestDir.exists()) requestDir.mkdirs();
+
+    File javaFile = new File(requestDir, className + ".java");
+
+    final int[][][] resultHolder = new int[1][][];
+    final String[] logHolder = new String[1];
+
+    try {
+        String classCode =
+                "package " + uniqueId + ";\n" +
+                "public class " + className + " {\n" +
+                "    public static void run(int[][] image, int r, int c, int rCount, int cCount) {\n" +
+                "        " + wrapperMethodName + "(image, r, c, rCount, cCount);\n" +
+                "    }\n" +
+                studentCode + "\n" +
+                "}";
+
+        Files.write(javaFile.toPath(), classCode.getBytes(StandardCharsets.UTF_8));
+
+        ProcessBuilder pb = new ProcessBuilder("javac", "-d", requestDir.getPath(), javaFile.getPath());
+        pb.redirectErrorStream(true);
+        Process compile = pb.start();
+
+        StringBuilder compileOutput = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(compile.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                compileOutput.append(line).append("\n");
+            }
+        }
+
+        if (compile.waitFor() != 0) {
+            throw new Exception("Compilation failed:\n" + compileOutput);
+        }
+
+        URL[] urls = { requestDir.toURI().toURL() };
+
+        try (URLClassLoader loader = new URLClassLoader(urls)) {
+            Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
+            Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class, int.class);
+
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+
+            try {
+                Future<?> future = executor.submit(() -> {
+                    try {
+                        synchronized (System.out) {
+                            PrintStream originalOut = System.out;
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                            try (PrintStream newOut = new PrintStream(baos)) {
+                                System.setOut(newOut);
+
+                                method.invoke(null, (Object) image, r, c, rCount, cCount);
+                                resultHolder[0] = image;
+
+                                System.out.flush();
+                            } finally {
+                                System.setOut(originalOut);
+                            }
+
+                            logHolder[0] = baos.toString(StandardCharsets.UTF_8);
+                        }
+                    } catch (Exception e) {
+                        String message = (e.getMessage() != null) ? e.getMessage() : e.toString();
+                        throw new RuntimeException("Student runtime error: " + message, e);
+                    }
+                });
+
+                try {
+                    future.get(5, TimeUnit.SECONDS);
+
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    String message = (cause.getMessage() != null)
+                            ? cause.getMessage()
+                            : cause.toString();
+
+                    throw new Exception("Student code error: " + message, cause);
+
+                } catch (TimeoutException e) {
+                    throw new Exception("Code execution timed out! (Possible infinite loop in rectangle logic)");
+                }
+
+            } finally {
+                executor.shutdownNow();
+            }
+        }
+
+        JsonObject result = new JsonObject();
+        result.add("image", new Gson().toJsonTree(resultHolder[0]));
+        result.addProperty("consoleOutput", logHolder[0]);
+        return result;
+
+    } finally {
+        deleteDirectory(requestDir);
+    }
+}
+
 	
 	private static void updateTaskInDB(String studentId, String taskName, String currentIp) {
 		try (Connection conn = getConnection()) {
