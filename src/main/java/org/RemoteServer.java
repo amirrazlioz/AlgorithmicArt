@@ -207,11 +207,9 @@ public class RemoteServer {
 						//}
 						
 						} catch (Exception e) {
-							Throwable cause = e;
-							if (e instanceof java.lang.reflect.InvocationTargetException) {
-								cause = ((java.lang.reflect.InvocationTargetException) e).getCause();
-							}
-							throw new Exception(cause.getMessage() != null ? cause.toString() : cause.getClass().getName());
+							Throwable cause = (e instanceof java.lang.reflect.InvocationTargetException) ? e.getCause() : e;
+							// שימוש ב-RuntimeException במקום Exception
+							throw new RuntimeException(cause != null ? cause.toString() : e.toString());
 						}
 
 					});
