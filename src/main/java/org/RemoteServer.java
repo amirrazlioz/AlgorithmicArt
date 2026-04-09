@@ -202,21 +202,10 @@ public class RemoteServer {
 								}
 								logHolder[0] = baos.toString(StandardCharsets.UTF_8);
 							}
-					//	} catch (Exception e) {
-					//		Throwable cause = e;
-							// אם זו שגיאת עטיפה של Reflection, נלך לשגיאה הפנימית
-					//		if (e instanceof java.lang.reflect.InvocationTargetException) {
-					//			cause = ((java.lang.reflect.InvocationTargetException) e).getCause();
-					//		}
-					//		throw new Exception(cause.getMessage() != null ? cause.toString() : cause.getClass().getName());
-					//	}
-						
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
-						
-					}
-					);
+					});
 
 					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
 					
