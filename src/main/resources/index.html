@@ -3064,7 +3064,7 @@ function getTaskContent(id, isTeacher) {
 		for (int j = 0; j < width; j++) {
 			if ( i==j)
 				image[i][j] = 1; 
-			if ( i==15-j)
+			if ( i== width - 1 - j)
 				image[i][j] = 10;      
 		}
 	}
@@ -3119,7 +3119,7 @@ function getTaskContent(id, isTeacher) {
 
 	for (int i = 0; i < size ; i++) {
 		for (int j = 0; j < size ; j++) {
-			if ( i == 15-j && image[i][j] < min)
+			if ( i == size - 1 -j && image[i][j] < min)
 				min= image[i][j];  
 		}
 	}
@@ -3138,7 +3138,7 @@ function getTaskContent(id, isTeacher) {
 	int colorToCopy = image[row][col];
 	int width = image[0].length;
 	for (int j = 0; j < count; j++){
-		if ( j + col <= 15 )
+		if ( j + col < width )
 			image[row][j+col]= colorToCopy ;  
 	}        
 }`
@@ -3156,8 +3156,8 @@ function getTaskContent(id, isTeacher) {
 	int width = image[0].length;
 	for (int i = 0; i < rowsCount; i++) {
 		for (int j = 0; j < colsCount; j++) {
-			if ( j + col <= 15 && i + row <= 15)
-				image[i+row][j+col]=colorToCopy ;  
+			if ( j + col < width && i + row < width)
+				image[i+row][j+col] = colorToCopy ;  
 		}
 	} 
 }`
