@@ -27,11 +27,7 @@ import java.util.stream.Stream;
 
 public class RemoteServer {
 	
-	// private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool(20);
 	private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(20);
-	// private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	// ExecutorService studentExecutor = Executors.newFixedThreadPool(50);
-	 
 	private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
     private static final AtomicInteger totalRequestsCounter = new AtomicInteger(0);
     private static final Map<String, Long> lastSeenMap = new ConcurrentHashMap<>();
@@ -45,9 +41,7 @@ public class RemoteServer {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         // שימוש ב-Thread Pool לביצועים
-        // server.setExecutor(Executors.newFixedThreadPool(20));
 		server.setExecutor(Executors.newFixedThreadPool(20));
-		// server.setExecutor(EXECUTOR);
 
         // --- נתיב 1: דף הבית (index.html) ---
         server.createContext("/", exchange -> {
