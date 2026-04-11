@@ -21,9 +21,17 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.lang.reflect.Method;
+import java.nio.file.*;
+import java.io.IOException;
+import java.util.stream.Stream;
 
 public class RemoteServer {
 	
+	// private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool(20);
+	private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(20);
+	// private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	// ExecutorService studentExecutor = Executors.newFixedThreadPool(50);
+	 
 	private static final List<String> onlineUsers = new CopyOnWriteArrayList<>();
     private static final AtomicInteger totalRequestsCounter = new AtomicInteger(0);
     private static final Map<String, Long> lastSeenMap = new ConcurrentHashMap<>();
@@ -37,7 +45,9 @@ public class RemoteServer {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         // שימוש ב-Thread Pool לביצועים
-        server.setExecutor(Executors.newFixedThreadPool(20));
+        // server.setExecutor(Executors.newFixedThreadPool(20));
+		server.setExecutor(Executors.newFixedThreadPool(20));
+		// server.setExecutor(EXECUTOR);
 
         // --- נתיב 1: דף הבית (index.html) ---
         server.createContext("/", exchange -> {
@@ -140,13 +150,39 @@ public class RemoteServer {
     }
 	
 	
-	
 	private static void deleteDirectory(File dir) {
-		File[] files = dir.listFiles();
-		if (files != null) {
-			for (File f : files) f.delete();
+		if (dir == null || !dir.exists()) return;
+
+		Path root = dir.toPath();
+
+		// מחיקה של כל הקבצים
+		try (Stream<Path> paths = Files.walk(root)) {
+			paths.sorted(Comparator.reverseOrder())
+				 .forEach(p -> {
+					 try {
+						 Files.deleteIfExists(p);
+					 } catch (IOException e) {
+						 System.err.println("Failed deleting: " + p + " -> " + e.getMessage());
+					 }
+				 });
+		} catch (IOException e) {
+			System.err.println("Walk error: " + e.getMessage());
 		}
-		dir.delete();
+
+		// ניסיון מחיקה נוסף לשורש
+		try {
+			Files.deleteIfExists(root);
+		} catch (IOException e) {
+			System.err.println("Root delete failed: " + root + " -> " + e.getMessage());
+		}
+
+		// retry קטן ל-lockים (Windows / JVM delay)
+		for (int i = 0; i < 3 && root.toFile().exists(); i++) {
+			try {
+				Thread.sleep(100);
+				Files.deleteIfExists(root);
+			} catch (Exception ignored) {}
+		}
 	}
 	
 	private static JsonObject executeStudentCodeImage(String studentCode, int[][] image, String wrapperMethodName) throws Exception {		
@@ -190,9 +226,11 @@ public class RemoteServer {
 				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
 				Method method = cls.getMethod("run", int[][].class);
 
-				ExecutorService executor = Executors.newSingleThreadExecutor();
+				// ExecutorService executor = Executors.newSingleThreadExecutor();
+				Future<?> future = null;
+
 				try {
-					Future<?> future = executor.submit(() -> {
+					future = EXECUTOR.submit(() -> {
 						PrintStream originalOut = System.out;
 						try {
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -217,17 +255,24 @@ public class RemoteServer {
 						}
 					});
 
-					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
-					
+					future.get(5, java.util.concurrent.TimeUnit.SECONDS);			
+				
 				} catch (ExecutionException e) {
-					// חילוץ ההודעה המקורית מה-Future
+					try {
+						future.cancel(true);
+					} catch (Exception ignore) {}
+
 					Throwable realError = (e.getCause() != null) ? e.getCause() : e;
-					throw new Exception(realError.getMessage());
-				} catch (java.util.concurrent.TimeoutException e) {
-					throw new Exception("Code execution timed out! (Possible infinite loop)");
-				} finally {
-					executor.shutdownNow(); 
+					throw new Exception(realError);
+
+				} catch (TimeoutException e) {
+					try {
+						future.cancel(true);
+					} catch (Exception ignore) {}
+
+					throw new Exception("Code execution timed out! (Possible infinite loop)", e);
 				}
+
 			}
 
 			JsonObject result = new JsonObject();
@@ -281,9 +326,10 @@ public class RemoteServer {
 				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
 				Method method = cls.getMethod("run", int[][].class);
 
-				ExecutorService executor = Executors.newSingleThreadExecutor();
-				try {
-					Future<?> future = executor.submit(() -> {
+				//ExecutorService executor = Executors.newSingleThreadExecutor();
+					Future<?> future = null;
+					try {
+						future = EXECUTOR.submit(() -> {
 						PrintStream originalOut = System.out;
 						try {
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -310,13 +356,19 @@ public class RemoteServer {
 					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
 					
 				} catch (ExecutionException e) {
-					// שליפת הודעת השגיאה המקורית עבור התלמיד
+					try {
+						future.cancel(true);
+					} catch (Exception ignore) {}
+
 					Throwable realError = (e.getCause() != null) ? e.getCause() : e;
-					throw new Exception(realError.getMessage());
-				} catch (java.util.concurrent.TimeoutException e) {
-					throw new Exception("Code execution timed out! (Possible infinite loop)");
-				} finally {
-					executor.shutdownNow(); 
+					throw new Exception(realError);
+
+				} catch (TimeoutException e) {
+					try {
+						future.cancel(true);
+					} catch (Exception ignore) {}
+
+					throw new Exception("Code execution timed out! (Possible infinite loop)", e);
 				}
 			}
 
@@ -371,9 +423,10 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
             Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
             Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class);
 
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            try {
-                Future<?> future = executor.submit(() -> {
+           // ExecutorService executor = Executors.newSingleThreadExecutor();
+				Future<?> future = null;
+				try {
+					future = EXECUTOR.submit(() -> {
                     PrintStream originalOut = System.out;
                     try {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -400,15 +453,21 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 
                 future.get(5, java.util.concurrent.TimeUnit.SECONDS);
                 
-            } catch (ExecutionException e) {
-                // חילוץ השגיאה שזרקנו מה-RuntimeException למעלה
-                Throwable realError = (e.getCause() != null) ? e.getCause() : e;
-                throw new Exception(realError.getMessage());
-            } catch (java.util.concurrent.TimeoutException e) {
-                throw new Exception("Code execution timed out! (Possible infinite loop)");
-            } finally {
-                executor.shutdownNow();
-            }
+			} catch (ExecutionException e) {
+				try {
+					future.cancel(true);
+				} catch (Exception ignore) {}
+
+				Throwable realError = (e.getCause() != null) ? e.getCause() : e;
+				throw new Exception(realError);
+
+			} catch (TimeoutException e) {
+				try {
+					future.cancel(true);
+				} catch (Exception ignore) {}
+
+				throw new Exception("Code execution timed out! (Possible infinite loop)", e);
+			} 
         }
 
         JsonObject result = new JsonObject();
@@ -463,9 +522,10 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				Class<?> cls = Class.forName(uniqueId + "." + className, true, loader);
 				Method method = cls.getMethod("run", int[][].class, int.class, int.class, int.class, int.class);
 
-				ExecutorService executor = Executors.newSingleThreadExecutor();
+				// ExecutorService executor = Executors.newSingleThreadExecutor();
+				Future<?> future = null;
 				try {
-					Future<?> future = executor.submit(() -> {
+					future = EXECUTOR.submit(() -> {
 						PrintStream originalOut = System.out;
 						try {
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -493,13 +553,19 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 					future.get(5, java.util.concurrent.TimeUnit.SECONDS);
 					
 				} catch (ExecutionException e) {
-					// כאן אנחנו מחלצים את השגיאה שזרקנו מה-RuntimeException למעלה
+					try {
+						future.cancel(true);
+					} catch (Exception ignore) {}
+
 					Throwable realError = (e.getCause() != null) ? e.getCause() : e;
-					throw new Exception(realError.getMessage());
-				} catch (java.util.concurrent.TimeoutException e) {
-					throw new Exception("Code execution timed out! (Possible infinite loop)");
-				} finally {
-					executor.shutdownNow();
+					throw new Exception(realError);
+
+				} catch (TimeoutException e) {
+					try {
+						future.cancel(true);
+					} catch (Exception ignore) {}
+
+					throw new Exception("Code execution timed out! (Possible infinite loop)", e);
 				}
 			}
 
@@ -615,7 +681,7 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(b);
 				}
-			} finally {
+			}finally {
 				t.close();
 			}
 		}
@@ -682,7 +748,7 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(b);
 				}
-			} finally {
+			}finally {
 				t.close();
 			}
 		}
@@ -749,7 +815,7 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(b);
 				}
-			} finally {
+			}finally {
 				t.close();
 			}
 		}
@@ -817,7 +883,7 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(b);
 				}
-			} finally {
+			}finally {
 				t.close();
 			}
 		}
@@ -898,7 +964,7 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(b);
 				}
-			} finally {
+			}finally {
 				t.close();
 			}
 		}
@@ -980,12 +1046,12 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(b);
 				}
-			} finally {
+			}finally {
 				t.close();
 			}
 		}
 	}
-
+	
 	static class RunCreative implements HttpHandler {
 		public void handle(HttpExchange t) throws IOException {
 			// 1. הגדרות Header רגילות (CORS)
@@ -1047,9 +1113,9 @@ private static JsonObject executeStudentCodeRepPixel(String studentCode, int[][]
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(b);
 				}
-			} finally {
+			}finally {
 				t.close();
-			}
+			}			
 		}
 	}
 	
