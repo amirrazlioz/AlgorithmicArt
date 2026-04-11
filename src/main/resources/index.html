@@ -2880,12 +2880,16 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // פונקציית המשוב עם הזרקת הנתונים ל-Section 2
 function goToFeedback() {
     // 1. הגדרת ה-ID של השדה בטופס (המספר ששמרת בהערה)
-    const fieldId = "entry.1965439981"; 
+    const fieldId = "entry.1965439981";
     
     // 2. הכנת ה-Log כטקסט אחד ארוך
-    const fullLog = activityLog.length > 0 ? activityLog.join('\n') : "No actions recorded";
+    //const fullLog = activityLog.length > 0 ? activityLog.join('\n') : "No actions recorded";
 	
-	const creativeFullLog = creativeActivityLog.length > 0 ? creativeActivityLog.join('\n') : "No actions recorded"; 
+	const fullLog = activityLog.length > 0 ? activityLog.slice(-15).join('\n') : "No actions recorded";
+
+	const creativeFullLog = creativeActivityLog.length > 0 ? creativeActivityLog.slice(-15).join('\n') : "No actions recorded";
+	
+	//const creativeFullLog = creativeActivityLog.length > 0 ? creativeActivityLog.join('\n') : "No actions recorded"; 
     
     let baseUrl = "";
 
