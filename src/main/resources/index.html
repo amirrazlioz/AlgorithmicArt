@@ -1231,15 +1231,18 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 			</section>
 
 
-			<section class="challenge-card printable">
+			<section class="challenge-card printable">			
 				<div class="task-desc">
 					<h2 style="margin:0; color: var(--accent-secondary);">LEVEL 05: המדפסת (Pixel Replicator)</h2>
-					<b>המשימה:</b> העתקת פיקסל באותו צבע לאורך השורה על פי מספר הפיקסלים המבוקש
-					<b>ממש\י את הפעולה : replicatePixel</b>
+					<b>המשימה:</b> צביעת שורה החל מהמיקום (row, col). 
 					<br>
-					השתמשו בלולאה שמתחילה מהעמודה `col` ורצה `count` פעמים ימינה. 
-					<b>שימו לב:</b> אל תחרגו מגבולות השורה (מערך באורך 16).
-				</div>
+					השתמשו בצבע של הפיקסל הנמצא בנקודת המוצא (row, col). 
+					<br>
+					השתמשו בלולאה המתחילה בעמודה col  ורצה count  פעמים ימינה (באותה השורה). 
+					<br>
+					<b>ממש\י את הפעולה : replicatePixel</b> שימו לב לא לחרוג מגבולות המערך. 
+				</div>	
+					
 				<div class="workspace">
 					<div class="preview-side">
 						<canvas id="canvas5" width="280" height="280"></canvas>
