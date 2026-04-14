@@ -3148,8 +3148,11 @@ function getTaskContent(id, isTeacher) {
 	int colorToCopy = image[row][col];
 	int width = image[0].length;
 	for (int j = 0; j < count; j++){
-		if ( j + col < width )
-			image[row][j+col]= colorToCopy ;  
+		if ( j + col < width ){
+            System.out.print("i : " + (row) );
+			System.out.println(" , j : " + (j+col));
+			image[row][j+col]= colorToCopy ; 
+        }  
 	}        
 }`
         },
