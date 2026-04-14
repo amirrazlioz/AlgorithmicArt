@@ -3074,8 +3074,11 @@ function getTaskContent(id, isTeacher) {
 		for (int j = 0; j < width; j++) {
 			if ( i==j)
 				image[i][j] = 1; 
-			if ( i== width - 1 - j)
-				image[i][j] = 10;      
+			if ( i== width - 1 - j){
+				image[i][j] = 10; 
+          		System.out.print("i : " + (i) );
+				System.out.println(" , j : " + (j));
+            }     
 		}
 	}
 }`
