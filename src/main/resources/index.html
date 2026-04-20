@@ -1530,7 +1530,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 				<div class="challenge-card printable" style="width: 100%;">
 					<div class="ai-reflection-container printable">
 					<label for="ai-chat-log">🤖 תיעוד שיחה עם כלי AI (העתקת הטקסט):</label>
-					<textarea id="ai-chat-log" placeholder="הדבק כאן את השאלות ששאלת את ה-ChatGPT ואת התשובות שקיבלת..."></textarea>
+					<textarea id="ai-chat-log" placeholder="הדבקו כאן את השאלות ששאלתם את ה-ChatGPT ואת התשובות שקיבלתם..."></textarea>
 					</div>
 				</div>
 			
@@ -2892,7 +2892,8 @@ function goToFeedback() {
 		baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSd1pfRs6vIL7hFEGDe2j3kjKnhKV-f89rbBsdCD_wIAreVHtQ/viewform";
     } else if (creativePage && creativePage.classList.contains('active')) {
         // קישור מלא לטופס "דף יצירתי" (תחליף כאן לקישור הארוך של הטופס השני)
-		creativeBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
+		// creativeBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
+		creativeBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSd1pfRs6vIL7hFEGDe2j3kjKnhKV-f89rbBsdCD_wIAreVHtQ/viewform";
     }
 
     if (baseUrl) {
