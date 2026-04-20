@@ -1409,156 +1409,156 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 			</div>
 		</div>
 
-	<section class="challenge-card printable">
-	
-		<div style="text-align: center; padding: 15px 25px; background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color);">
-			<h2 style="margin:0; color: var(--accent-secondary);">סימפוניה של פיקסלים  - לוח ציור אלגוריתמי (256x256) </h2>
-		</div>
-		<div class="challenge-card" style="padding: 15px 25px; background: rgba(168, 85, 247, 0.1); border-bottom: 1px solid var(--border-color);">
-			<h2 style="margin:0; color: var(--accent-primary); text-align: right;">🤖 הכנת הנחיה (Prompt) ל-AI</h2>
-		</div>
+		<section class="challenge-card printable">
 		
-		<div style="padding: 30px;">
-
-			<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
-					<b> המשימה :</b>  צרו תמונה גרפית משלכם 
-			</p>
-			<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
-					דמיינו לכם תמונה שתרצו ליצור
-			</p>
-			<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
-					העזרו בכלי AI כמו ChatGPT על מנת לכתוב את הפעולה <b>createImage</b> אשר תיצור את התמונה שתרצו
-			</p>
-			<p style="text-align: right; color: #94a3b8; margin-bottom: 15px;">
-					ערכו את הטקסט למטה, העתיקו אותו, ושלחו ל-ChatGPT יחד עם תמונת הפלטה:
-			</p>
-				
-			<textarea id="ai-prompt" dir="rtl" 
-					style="width: 100%; height: 200px; background: #0f172a; color: #f8fafc; 
-						   border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; 
-						   font-family: 'Assistant', sans-serif; resize: vertical; text-align: right; 
-						   line-height: 1.6; unicode-bidi: plaintext; outline: none;">
-
-			</textarea>
-			
-			<div style="text-align: center; margin-top: 25px;">    
-					<button class="btn-run" onclick="copyAiPrompt() ; gtag('event', 'copy_ai_prompt', {'level': '01'});" 
-					style="padding: 15px 60px; font-size: 18px; width: auto; display: inline-block;">
-					📋 העתקו הנחיה מעודכנת ללוח
-					</button>				
+			<div style="text-align: center; padding: 15px 25px; background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color);">
+				<h2 style="margin:0; color: var(--accent-secondary);">סימפוניה של פיקסלים  - לוח ציור אלגוריתמי (256x256) </h2>
+			</div>
+			<div class="challenge-card" style="padding: 15px 25px; background: rgba(168, 85, 247, 0.1); border-bottom: 1px solid var(--border-color);">
+				<h2 style="margin:0; color: var(--accent-primary); text-align: right;">🤖 הכנת הנחיה (Prompt) ל-AI</h2>
 			</div>
 			
-		</div>
+			<div style="padding: 30px;">
 
-		<div class="task-desc">
-	💡 		<b>איך זה עובד?</b> כל תא במערך מייצג פיקסל על המסך. 
-			כשאנחנו משנים ערך בתוך המערך הדו-מימדי, אנחנו בעצם "צובעים" נקודה בציור שלנו.
-			
-			<div style="text-align: center; margin-top: 15px;">    
-			<br>
-			<b>ממשו את הפעולה : createImage</b>
-			<br>
-			</div>
-		</div>
+				<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
+						<b> המשימה :</b>  צרו תמונה גרפית משלכם 
+				</p>
+				<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
+						דמיינו לכם תמונה שתרצו ליצור
+				</p>
+				<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
+						העזרו בכלי AI כמו ChatGPT על מנת לכתוב את הפעולה <b>createImage</b> אשר תיצור את התמונה שתרצו
+				</p>
+				<p style="text-align: right; color: #94a3b8; margin-bottom: 15px;">
+						ערכו את הטקסט למטה, העתיקו אותו, ושלחו ל-ChatGPT יחד עם תמונת הפלטה:
+				</p>
+					
+				<textarea id="ai-prompt" dir="rtl" 
+						style="width: 100%; height: 200px; background: #0f172a; color: #f8fafc; 
+							   border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; 
+							   font-family: 'Assistant', sans-serif; resize: vertical; text-align: right; 
+							   line-height: 1.6; unicode-bidi: plaintext; outline: none;">
+
+				</textarea>
 				
-		<div class="workspace" style="flex-direction: column; align-items: center;">
-			<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
-				<div id="editor-creative-code" class="editor-container"></div>
-					<textarea id="creative-code" spellcheck="false" style="display:none;">	</textarea>												
-					<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
-						<button class="btn-run" onclick="runCreativeCode(); gtag('event', 'run_code', {'level': '01'});" 
-								style="flex: 4; font-size: 18px; font-weight: bold;
-								background: linear-gradient(135deg, #10b981, #047857); border: none; 
-								box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
-								display: flex; align-items: center; justify-content: center; margin: 0;">
-							🚀 RUN ART
-						</button>
+				<div style="text-align: center; margin-top: 25px;">    
+						<button class="btn-run" onclick="copyAiPrompt() ; gtag('event', 'copy_ai_prompt', {'level': '01'});" 
+						style="padding: 15px 60px; font-size: 18px; width: auto; display: inline-block;">
+						📋 העתקו הנחיה מעודכנת ללוח
+						</button>				
+				</div>
+				
+			</div>
+
+			<div class="task-desc">
+		💡 		<b>איך זה עובד?</b> כל תא במערך מייצג פיקסל על המסך. 
+				כשאנחנו משנים ערך בתוך המערך הדו-מימדי, אנחנו בעצם "צובעים" נקודה בציור שלנו.
+				
+				<div style="text-align: center; margin-top: 15px;">    
+				<br>
+				<b>ממשו את הפעולה : createImage</b>
+				<br>
+				</div>
+			</div>
+					
+			<div class="workspace" style="flex-direction: column; align-items: center;">
+				<div class="editor-side" style="width: 100%; border-left: none; border-bottom: 1px solid var(--border-color);">
+					<div id="editor-creative-code" class="editor-container"></div>
+						<textarea id="creative-code" spellcheck="false" style="display:none;">	</textarea>												
+						<div class="editor-actions" style="display: flex; align-items: stretch; gap: 15px; margin-top: 15px; height: 50px;">
+							<button class="btn-run" onclick="runCreativeCode(); gtag('event', 'run_code', {'level': '01'});" 
+									style="flex: 4; font-size: 18px; font-weight: bold;
+									background: linear-gradient(135deg, #10b981, #047857); border: none; 
+									box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; cursor: pointer; color: white; border-radius: 5px;
+									display: flex; align-items: center; justify-content: center; margin: 0;">
+								🚀 RUN ART
+							</button>
+							
+							<button onclick="resetTaskCode('creative-code')" title="איפוס קוד"
+									style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
+									border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
+									display: flex; align-items: center; justify-content: center; min-width: 50px;">
+								↺ איפוס
+							</button> 
+						</div>					
 						
-						<button onclick="resetTaskCode('creative-code')" title="איפוס קוד"
-								style="flex: 0.8; background: transparent; border: 1px solid #444; color: #858585; 
-								border-radius: 5px; cursor: pointer; transition: all 0.2s; font-size: 14px;
-								display: flex; align-items: center; justify-content: center; min-width: 50px;">
-							↺ איפוס
-						</button> 
-					</div>					
+					</div>
+				</div>
+				<div class="console-container">
+					<div class="console-header">
+					<span>Console Output</span>
+					<button onclick="clearCurrentConsoleCreative(this)" style="background:none; border:none; color:#888; cursor:pointer; font-size:10px;">Clear [x]</button>
+					</div>
+					<div id="console-log-creative" class="console-log">... ממתין להרצת קוד</div>
+				</div>
+				
+				<div class="preview-side" style="width: 100%; padding: 20px 0;">
+					<canvas id="creativeCanvas" width="480" height="480"></canvas>
+				</div>
+
+				<div style="width: 1000px; padding: 20px;">
+					<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
+							<b> האם נוצרה התמונה שרציתם ?</b>   
+					</p>
+					<p style="text-align: right; color: #94a3b8; margin-bottom: 15px;">
+							 על מנת לדייק את יצירת התמונה שרציתם – חיזרו על הפעולה עד לקבלת התמונה הרצויה כתבו  שוב פרומפט ל ChatGPT
+					</p>
+					<p style="text-align: right; color: #94a3b8; margin-bottom: 15px;">
+							 תמצאו משהו שתרצו לשנות בתמונה ותנסו לשנות את בקוד
+					</p>
 					
 				</div>
-			</div>
-			<div class="console-container">
-				<div class="console-header">
-				<span>Console Output</span>
-				<button onclick="clearCurrentConsoleCreative(this)" style="background:none; border:none; color:#888; cursor:pointer; font-size:10px;">Clear [x]</button>
-				</div>
-				<div id="console-log-creative" class="console-log">... ממתין להרצת קוד</div>
-			</div>
-			
-			<div class="preview-side" style="width: 100%; padding: 20px 0;">
-				<canvas id="creativeCanvas" width="480" height="480"></canvas>
-			</div>
-
-			<div style="width: 1000px; padding: 20px;">
-				<p style="text-align: right; color: #94a3b8; margin-bottom: 10px;">
-						<b> האם נוצרה התמונה שרציתם ?</b>   
-				</p>
-				<p style="text-align: right; color: #94a3b8; margin-bottom: 15px;">
-						 על מנת לדייק את יצירת התמונה שרציתם – חיזרו על הפעולה עד לקבלת התמונה הרצויה כתבו  שוב פרומפט ל ChatGPT
-				</p>
-				<p style="text-align: right; color: #94a3b8; margin-bottom: 15px;">
-						 תמצאו משהו שתרצו לשנות בתמונה ותנסו לשנות את בקוד
-				</p>
+							
+				<button class="btn-run" onclick="toggleCreativeGrid() ; gtag('event', 'toggle_grid', {'level': '01'});" 
+					style="padding: 10px 40px; font-size: 18px; min-width: 90px; flex: 1; 
+						   background: linear-gradient(135deg, #a855f7, #6b21a8); border: none; 
+						   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
+					🌐 GRID ON/OFF
+				</button>
 				
-			</div>
-						
-			<button class="btn-run" onclick="toggleCreativeGrid() ; gtag('event', 'toggle_grid', {'level': '01'});" 
-				style="padding: 10px 40px; font-size: 18px; min-width: 90px; flex: 1; 
-					   background: linear-gradient(135deg, #a855f7, #6b21a8); border: none; 
-					   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-				🌐 GRID ON/OFF
-			</button>
+				<button class="btn-run" onclick="saveAsImage() ; gtag('event', 'save_image', {'level': '01'});" 
+					style="padding: 10px 40px; font-size: 18px; min-width: 90px; flex: 1; 
+						   background: linear-gradient(135deg, #10b981, #047857); border: none; 
+						   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
+					📸 שמור תמונה
+				</button>
+				
+
 			
-			<button class="btn-run" onclick="saveAsImage() ; gtag('event', 'save_image', {'level': '01'});" 
-				style="padding: 10px 40px; font-size: 18px; min-width: 90px; flex: 1; 
-					   background: linear-gradient(135deg, #10b981, #047857); border: none; 
-					   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-				📸 שמרו תמונה
-			</button>
-			
-			</div>
 		
-	
-			<div class="challenge-card printable" style="width: 100%;">
-				<div class="ai-reflection-container printable">
-				<label for="ai-chat-log">🤖 תיעוד שיחה עם כלי AI (העתקת הטקסט):</label>
-				<textarea id="ai-chat-log" placeholder="הדבק כאן את השאלות ששאלת את ה-ChatGPT ואת התשובות שקיבלת..."></textarea>
+				<div class="challenge-card printable" style="width: 100%;">
+					<div class="ai-reflection-container printable">
+					<label for="ai-chat-log">🤖 תיעוד שיחה עם כלי AI (העתקת הטקסט):</label>
+					<textarea id="ai-chat-log" placeholder="הדבק כאן את השאלות ששאלת את ה-ChatGPT ואת התשובות שקיבלת..."></textarea>
+					</div>
+				</div>
+			
+			
+		
+			<div class="rating-section" "no-print" >
+				<div class="rating-title">כמה עניינה אותכם המשימה?</div>
+					<div class="rating-wrapper">
+						<span class="rating-label">במידה מועטה</span>
+						<div class="rating-options" data-challenge="55">
+							<button type="button" class="rating-circle" onclick="rateTask(this, 1)">1</button>
+							<button type="button" class="rating-circle" onclick="rateTask(this, 2)">2</button>
+							<button type="button" class="rating-circle" onclick="rateTask(this, 3)">3</button>
+							<button type="button" class="rating-circle" onclick="rateTask(this, 4)">4</button>
+							<button type="button" class="rating-circle" onclick="rateTask(this, 5)">5</button>
+						</div>
+					<span class="rating-label">במידה רבה</span>
 				</div>
 			</div>
-		
-		
-	
-		<div class="rating-section" "no-print" >
-			<div class="rating-title">כמה עניינה אותכם המשימה?</div>
-				<div class="rating-wrapper">
-					<span class="rating-label">במידה מועטה</span>
-					<div class="rating-options" data-challenge="55">
-						<button type="button" class="rating-circle" onclick="rateTask(this, 1)">1</button>
-						<button type="button" class="rating-circle" onclick="rateTask(this, 2)">2</button>
-						<button type="button" class="rating-circle" onclick="rateTask(this, 3)">3</button>
-						<button type="button" class="rating-circle" onclick="rateTask(this, 4)">4</button>
-						<button type="button" class="rating-circle" onclick="rateTask(this, 5)">5</button>
-					</div>
-				<span class="rating-label">במידה רבה</span>
+			
+			<div style="text-align: center; margin: 50px 0;">	
+			<button class="btn-run" onclick="printCreativePage() ; gtag('event', 'save_creative_pdf', {'level': '01'});" 
+			style="padding: 15px 90px; font-size: 20px; width: auto; 
+				   background: linear-gradient(135deg, #10b981, #047857); border: none; 
+				   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
+			💾 שמור את כל המשימה ל-PDF
+			</button>
 			</div>
-		</div>
-		
-		<div style="text-align: center; margin: 50px 0;">	
-		<button class="btn-run" onclick="printCreativePage() ; gtag('event', 'save_creative_pdf', {'level': '01'});" 
-		style="padding: 15px 90px; font-size: 20px; width: auto; 
-			   background: linear-gradient(135deg, #10b981, #047857); border: none; 
-			   box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;">
-		💾 שמור את כל המשימה ל-PDF
-		</button>
-		</div>
-	</section>
+		</section>
 				
 	</div>
     <div style="text-align: center; margin: 50px 0;" class="reflection" >	
