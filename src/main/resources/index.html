@@ -3066,11 +3066,9 @@ function getTaskContent(id, isTeacher) {
 	int max = ???;
 	int size = image.length;
 	for (...) {
-		for (...) {
 
 			// TODO: בדיקה ועדכון max
 
-		}
 	}	
 	return max ;
 }`,
@@ -3080,9 +3078,9 @@ function getTaskContent(id, isTeacher) {
 	int size = image.length;
 
 	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == j && image[i][j] > max )
-				max = image[i][j];  
+		if ( image[i][i] > max ){
+			max = image[i][i]; 
+			System.out.println(" max : " + max ); 				
 		}
 	}
 	return max ;
@@ -3094,11 +3092,9 @@ function getTaskContent(id, isTeacher) {
 	int min = ???; 
 	int size = image.length;
 	for (...) {
-		for (...) {
 
 			// TODO: בדיקה ועדכון min
 
-		}
 	}	
 	return min;
 }`,
@@ -3108,10 +3104,10 @@ function getTaskContent(id, isTeacher) {
 	int size = image.length;
 
 	for (int i = 0; i < size ; i++) {
-		for (int j = 0; j < size ; j++) {
-			if ( i == size - 1 -j && image[i][j] < min)
-				min= image[i][j];  
-		}
+		if ( image[i][size - 1 - i ] < min){
+			min = image[i][size - 1 - i];
+            System.out.println(" min : " + min ); 
+        }
 	}
 	return min;
 }`
