@@ -3040,14 +3040,15 @@ function getTaskContent(id, isTeacher) {
         },
         'code2': {
             student: 
-`public static void createDiagonal(int[][] image){
+`public static int[][] createDiagonal(int[][] image){
 	int height = image.length;
 	int width = image[0].length;	
 	for (int i = 0; i < height; i++) {
-	
+
 			// TODO: תנאי לאלכסונים
 
 	}
+	return image;
 }`,
             teacher: 
 `public static void createDiagonal(int[][] image){
