@@ -3044,11 +3044,9 @@ function getTaskContent(id, isTeacher) {
 	int height = image.length;
 	int width = image[0].length;	
 	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
 
 			// TODO: תנאי לאלכסונים
 
-		}
 	}
 }`,
             teacher: 
@@ -3056,15 +3054,9 @@ function getTaskContent(id, isTeacher) {
 	int height = image.length;
 	int width = image[0].length;
 	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			if ( i==j)
-				image[i][j] = 1; 
-			if ( i== width - 1 - j){
-				image[i][j] = 10; 
-          		System.out.print("i : " + (i) );
-				System.out.println(" , j : " + (j));
-            }     
-		}
+		image[i][i] = 1; 
+		image[i][width - 1 - i] = 10; 
+        System.out.println(" i : " + (i) );     
 	}
 }`
         },
