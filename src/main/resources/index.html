@@ -2725,317 +2725,136 @@ function generatePrintHTML(studentName, title, code, canvasImg, aiLog) {
 
 // 2. פונקציה להדפסת דף היצירה (Creative Page)
 function printCreativePage() {
-
-    console.log("printCreativePage התחילה");
-
-    // =========================
-    // 1. איסוף הנתונים
-    // =========================
-
-    const studentName =
-        document.getElementById('studentName')?.value || "לא הוכנס שם";
-
-    const creativeCode =
-        document.getElementById('creative-code')?.value ||
-        "// לא נכתב קוד";
-
-    const aiLog =
-        document.getElementById('ai-chat-log')?.value ||
-        "אין תיעוד שיחה עם AI";
-
-    const codeExpElement =
-        document.getElementById('code-exp-log');
-
-    const codeExp =
-        codeExpElement
-            ? (codeExpElement.tagName === 'TEXTAREA'
-                ? codeExpElement.value
-                : codeExpElement.innerText)
-            : "אין הסבר";
-
-    // =========================
-    // 2. צילום הקנבס
-    // =========================
-
-    const canvas =
-        document.getElementById('creativeCanvas');
-
-    if (!canvas) {
-        alert("לא נמצא לוח הציור (creativeCanvas)");
-        return;
+    // 1. דואגים שתוכן עורכי הקוד (CodeMirror / Textarea) שעל הדף יישמר בפוזיציה נכונה
+    if (typeof javaEditors !== 'undefined') {
+        for (let id in javaEditors) {
+            const ta = document.getElementById(id);
+            if (ta) {
+                ta.value = javaEditors[id].getValue();
+            }
+        }
     }
 
-    let imageData;
+    // 2. נדאג שתיבות הטקסט (textarea) ייראו בהדפסה
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(ta => {
+        ta.setAttribute('data-value', ta.value);
+        // יצירת אלמנט זמני שייראה בלבד בהדפסה
+        let printDiv = ta.parentElement.querySelector('.print-code');
+        if (!printDiv) {
+            printDiv = document.createElement('pre');
+            printDiv.className = 'print-code';
+            ta.parentElement.appendChild(printDiv);
+        }
+        printDiv.textContent = ta.value;
+    });
 
+    // 3. עדכון כותרת המסמך ופתיחת חלון ההדפסה
+    const studentName = document.getElementById('studentName')?.value || "תלמיד";
+    document.title = "סיכום פעילות אתגר קוד - יצירה חופשית - " + studentName;
+    
+    window.print();
+    
+    // 4. רישום פעילויות ודיווח לאנליטיקס
+    recordAction("Level End", "הדפסת PDF - דף יצירתי");
+    
+    if (typeof gtag === 'function') {
+        gtag('event', 'generate_report', {
+            'student_name': studentName,
+            'page_type': 'creative'
+        });
+    }
+}
+
+/*
+function printCreativePage() {
+	
+    // 1. שליפת נתונים - שימוש ב-IDs הנכונים וב-value עבור תיבות טקסט
+    const studentName = document.getElementById('studentName')?.value || "לא הוכנס שם";
+    const creativeCode = document.getElementById('creative-code')?.value || "// לא נכתב קוד";
+    
+    // כאן התיקון: שואבים מהתיבה שבה התלמיד הכין את ההנחיה ל-AI
+    const aiLog = document.getElementById('ai-chat-log')?.value || "אין תיעוד להנחיית AI";
+    
+    const canvas = document.getElementById('creativeCanvas');
+    
+    // כאן התיקון: במידה וזו תיבת טקסט (textarea), משתמשים ב-value
+    const codeExpElement = document.getElementById('code-exp-log');
+    const CodeExp = (codeExpElement?.tagName === 'TEXTAREA' ? codeExpElement.value : codeExpElement?.innerHTML) || "אין הסבר";
+    
+    // 2. צילום הקנבס
+    let imageData = "";
     try {
         imageData = canvas.toDataURL("image/png");
+    } catch (e) {
+        console.error("קנבס לא זמין לצילום");
     }
-    catch (error) {
-        console.error("Canvas error:", error);
-        alert("לא ניתן לצלם את התוצר הגרפי.");
-        return;
-    }
+	
+	// שליחת אירוע לגוגל אנליטיקס
+    gtag('event', 'generate_creative_pdf', {
+        'student_name': document.getElementById('studentName').value || 'anonymous',
+        'page_type': 'creative_free_style'
+    });
 
-    // =========================
-    // 3. יצירת אזור זמני ל-PDF
-    // =========================
+    // 3. בניית ה-HTML עם מעברי דף
+    const printHtml = `
+        <html dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+                body { font-family: 'Assistant', sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; background: white; }
+                .header { text-align: center; border-bottom: 3px solid #a855f7; padding-bottom: 15px; margin-bottom: 30px; }
+                .section { margin-bottom: 30px; }
+                .section-title { font-size: 1.3rem; font-weight: bold; color: #7c3aed; border-right: 5px solid #a855f7; padding-right: 12px; margin-bottom: 15px; }
+                
+                .new-page { 
+                    break-before: page; 
+                    padding-top: 40px; 
+                }
 
-    const pdfContainer = document.createElement('div');
-
-    pdfContainer.style.position = 'fixed';
-    pdfContainer.style.left = '-10000px';
-    pdfContainer.style.top = '0';
-    pdfContainer.style.width = '794px';
-    pdfContainer.style.background = 'white';
-    pdfContainer.style.color = '#1e293b';
-    pdfContainer.style.padding = '40px';
-    pdfContainer.style.boxSizing = 'border-box';
-    pdfContainer.style.direction = 'rtl';
-    pdfContainer.style.fontFamily = 'Arial, sans-serif';
-
-    pdfContainer.innerHTML = `
-
-        <!-- עמוד 1 -->
-
-        <div style="
-            text-align:center;
-            border-bottom:3px solid #a855f7;
-            padding-bottom:20px;
-            margin-bottom:30px;
-        ">
-
-            <h1 style="
-                color:#7c3aed;
-                margin:0 0 10px 0;
-                font-size:28px;
-            ">
-                סיכום יצירה אלגוריתמית
-            </h1>
-
-            <div style="font-size:18px;">
-                תלמיד/ה:
-                <strong>${escapeHTML(studentName)}</strong>
+                .canvas-img { display: block; margin: 0 auto; max-width: 400px; border: 2px solid #334155; border-radius: 12px; }
+                pre { background: #f1f5f9; padding: 20px; border-radius: 10px; font-family: monospace; direction: ltr; white-space: pre-wrap; border: 1px solid #cbd5e1; }
+                .ai-log-box { background: #fdf4ff; padding: 15px; border-radius: 10px; border: 1px solid #fae8ff; white-space: pre-wrap; }
+                footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #64748b; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>סיכום יצירה אלגוריתמית</h1>
+                <p>תלמיד/ה: <strong>${studentName}</strong></p>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">התוצר הסופי</div>
+                <img src="${imageData}" class="canvas-img">
             </div>
 
-            <div style="
-                margin-top:8px;
-                color:#64748b;
-            ">
-                ${new Date().toLocaleDateString('he-IL')}
+            <div class="section new-page">
+                <div class="section-title">הקוד שכתבתי</div>
+                <pre>${creativeCode}</pre>
             </div>
 
-        </div>
-
-
-        <div style="margin-bottom:30px;">
-
-            <h2 style="
-                color:#7c3aed;
-                border-right:5px solid #a855f7;
-                padding-right:12px;
-            ">
-                🎨 התוצר הסופי
-            </h2>
-
-            <div style="text-align:center; margin-top:25px;">
-
-                <img
-                    src="${imageData}"
-                    style="
-                        max-width:500px;
-                        max-height:500px;
-                        border:2px solid #334155;
-                        border-radius:12px;
-                    "
-                >
-
+            <div class="section new-page">
+                <div class="section-title"> תיעוד שיחה עם כלי AI (Prompt)</div>
+                <div class="ai-log-box">${aiLog}</div>
+            </div>
+            
+            <div class="section new-page">
+                <div class="section-title">הסבר הקוד</div>
+                <div class="ai-log-box">${CodeExp}</div>
             </div>
 
-        </div>
-
-
-        <!-- עמוד 2 -->
-
-        <div style="
-            page-break-before:always;
-            padding-top:20px;
-        ">
-
-            <h2 style="
-                color:#7c3aed;
-                border-right:5px solid #a855f7;
-                padding-right:12px;
-            ">
-                💻 הקוד שכתבתי
-            </h2>
-
-            <pre style="
-                direction:ltr;
-                text-align:left;
-                white-space:pre-wrap;
-                background:#f1f5f9;
-                border:1px solid #cbd5e1;
-                border-radius:10px;
-                padding:20px;
-                font-family:monospace;
-                font-size:13px;
-                line-height:1.5;
-            ">${escapeHTML(creativeCode)}</pre>
-
-        </div>
-
-
-        <!-- עמוד 3 -->
-
-        <div style="
-            page-break-before:always;
-            padding-top:20px;
-        ">
-
-            <h2 style="
-                color:#7c3aed;
-                border-right:5px solid #a855f7;
-                padding-right:12px;
-            ">
-                🤖 תיעוד שיחה עם כלי AI
-            </h2>
-
-            <div style="
-                white-space:pre-wrap;
-                background:#fdf4ff;
-                border:1px solid #e9d5ff;
-                border-radius:10px;
-                padding:20px;
-                font-size:14px;
-                line-height:1.6;
-            ">${escapeHTML(aiLog)}</div>
-
-        </div>
-
-
-        <!-- עמוד 4 -->
-
-        <div style="
-            page-break-before:always;
-            padding-top:20px;
-        ">
-
-            <h2 style="
-                color:#7c3aed;
-                border-right:5px solid #a855f7;
-                padding-right:12px;
-            ">
-                📝 הסבר הקוד
-            </h2>
-
-            <div style="
-                white-space:pre-wrap;
-                background:#f8fafc;
-                border:1px solid #cbd5e1;
-                border-radius:10px;
-                padding:20px;
-                font-size:14px;
-                line-height:1.6;
-            ">${escapeHTML(codeExp)}</div>
-
-        </div>
-
+            <footer>נוצר ב-Algorithmic Art Studio</footer>
+        </body>
+        </html>
     `;
 
-    document.body.appendChild(pdfContainer);
-
-    console.log("PDF container נוצר");
-
-    // =========================
-    // 4. יצירת PDF
-    // =========================
-
-    const options = {
-
-        margin: 10,
-
-        filename:
-            `סיכום_יצירה_${studentName}.pdf`,
-
-        image: {
-            type: 'jpeg',
-            quality: 0.98
-        },
-
-        html2canvas: {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: '#ffffff'
-        },
-
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-        },
-
-        pagebreak: {
-            mode: ['css', 'legacy']
-        }
-
-    };
-
-    console.log("מתחיל ליצור PDF");
-
-    html2pdf()
-        .set(options)
-        .from(pdfContainer)
-        .save()
-        .then(() => {
-
-            console.log("PDF נוצר בהצלחה");
-
-            document.body.removeChild(pdfContainer);
-
-            // Google Analytics
-            if (typeof gtag === 'function') {
-                gtag('event', 'generate_creative_pdf', {
-                    'student_name': studentName,
-                    'page_type': 'creative_free_style'
-                });
-            }
-
-        })
-        .catch(error => {
-
-            console.error("PDF ERROR:", error);
-
-            alert(
-                "אירעה שגיאה ביצירת ה-PDF.\n\n" +
-                error.message
-            );
-
-            if (document.body.contains(pdfContainer)) {
-                document.body.removeChild(pdfContainer);
-            }
-
-        });
+    executePrint(printHtml);
 }
-
-
-// ========================================
-// מניעת שבירת HTML כאשר יש < > & וכו'
-// ========================================
-
-function escapeHTML(text) {
-
-    if (!text) return "";
-
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+*/
 
 // פונקציית ביצוע ההדפסה ב-Iframe
-/*
 function executePrint(html) {
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'position:fixed; right:100%; bottom:100%; width:0; height:0; border:none;';
@@ -3051,46 +2870,6 @@ function executePrint(html) {
     }, 500);
 }
 
-function executePrint(html) {
-
-    const studentName =
-        document.getElementById('studentName')?.value || "תלמיד";
-
-    const originalTitle = document.title;
-    document.title = "סיכום פעילות יצירה - " + studentName;
-
-    // יצירת חלון הדפסה חדש
-    const printWindow = window.open('', '_blank');
-
-    if (!printWindow) {
-        alert("הדפדפן חסם את חלון ההדפסה. אנא אפשר חלונות קופצים לאתר.");
-        document.title = originalTitle;
-        return;
-    }
-
-    // כתיבת תוכן ה-PDF לחלון החדש
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
-
-    // המתנה לטעינת התוכן והתמונה
-    printWindow.onload = function () {
-
-        setTimeout(() => {
-
-            printWindow.focus();
-            printWindow.print();
-
-            // סגירת החלון לאחר ההדפסה
-            setTimeout(() => {
-                printWindow.close();
-                document.title = originalTitle;
-            }, 1000);
-
-        }, 500);
-    };
-}
-*/
 // פונקציית שמירה ל-JPEG
 function saveAsImage() {
     // מציאת הקנבס של הקריאייטיב
