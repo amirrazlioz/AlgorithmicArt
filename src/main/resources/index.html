@@ -2828,38 +2828,43 @@ function executePrint(html) {
 }
 */
 function executePrint(html) {
-    // 1. יצירת iframe נסתר
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed; right:100%; bottom:100%; width:0; height:0; border:none;';
-    document.body.appendChild(iframe);
 
-    // 2. עדכון כותרת הדף (משפיע על שם קובץ ה-PDF שיישמר)
-    const studentName = document.getElementById('studentName')?.value || "תלמיד";
+    const studentName =
+        document.getElementById('studentName')?.value || "תלמיד";
+
     const originalTitle = document.title;
     document.title = "סיכום פעילות יצירה - " + studentName;
 
-    const doc = iframe.contentWindow.document;
-    
-    // 3. אירוע שירוץ רק לאחר שכל המשאבים והתמונות ב-iframe נטענו במלואם
-    iframe.onload = function() {
-        setTimeout(() => {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            
-            // החזרת כותרת הדף המקורית והסרת ה-iframe לאחר סגירת הדיאלוג
-            setTimeout(() => {
-                document.title = originalTitle;
-                if (document.body.contains(iframe)) {
-                    document.body.removeChild(iframe);
-                }
-            }, 1000);
-        }, 300);
-    };
+    // יצירת חלון הדפסה חדש
+    const printWindow = window.open('', '_blank');
 
-    // 4. כתיבת ה-HTML
-    doc.open();
-    doc.write(html);
-    doc.close();
+    if (!printWindow) {
+        alert("הדפדפן חסם את חלון ההדפסה. אנא אפשר חלונות קופצים לאתר.");
+        document.title = originalTitle;
+        return;
+    }
+
+    // כתיבת תוכן ה-PDF לחלון החדש
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+
+    // המתנה לטעינת התוכן והתמונה
+    printWindow.onload = function () {
+
+        setTimeout(() => {
+
+            printWindow.focus();
+            printWindow.print();
+
+            // סגירת החלון לאחר ההדפסה
+            setTimeout(() => {
+                printWindow.close();
+                document.title = originalTitle;
+            }, 1000);
+
+        }, 500);
+    };
 }
 
 // פונקציית שמירה ל-JPEG
