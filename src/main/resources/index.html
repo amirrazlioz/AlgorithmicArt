@@ -1504,7 +1504,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 							<b> על מנת לדייק את יצירת התמונה שרציתם – חיזרו על הפעולה עד לקבלת התמונה הרצויה כתבו  שוב פרומפט ל Copilot </b>
 					</p>
 					<p style="text-align: right; color: #94a3b8; margin-bottom: 15px;">
-							<b> תמצאו משהו שתרצו לשנות בתמונה ותנסו לשנות את בקוד </b>
+							<b> אנא מצאו שורה בקוד שיצר copilot תשנו ידנית, והריצו </b>
 					</p>
 					
 				</div>
@@ -1530,7 +1530,7 @@ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 				<div class="challenge-card printable" style="width: 100%;">
 					<div class="ai-reflection-container printable">
 					<label for="ai-chat-log">🤖 תיעוד שיחה עם כלי AI (העתקת הטקסט):</label>
-					<textarea id="ai-chat-log" placeholder="הדבקו כאן את השאלות ששאלתם את ה-ChatGPT ואת התשובות שקיבלתם..."></textarea>
+					<textarea id="ai-chat-log" placeholder="הדבקו כאן את השאלות ששאלתם את ה-Copilot ואת התשובות שקיבלתם..."></textarea>
 					</div>
 				</div>
 			
@@ -2765,94 +2765,6 @@ function printCreativePage() {
         });
     }
 }
-
-/*
-function printCreativePage() {
-	
-    // 1. שליפת נתונים - שימוש ב-IDs הנכונים וב-value עבור תיבות טקסט
-    const studentName = document.getElementById('studentName')?.value || "לא הוכנס שם";
-    const creativeCode = document.getElementById('creative-code')?.value || "// לא נכתב קוד";
-    
-    // כאן התיקון: שואבים מהתיבה שבה התלמיד הכין את ההנחיה ל-AI
-    const aiLog = document.getElementById('ai-chat-log')?.value || "אין תיעוד להנחיית AI";
-    
-    const canvas = document.getElementById('creativeCanvas');
-    
-    // כאן התיקון: במידה וזו תיבת טקסט (textarea), משתמשים ב-value
-    const codeExpElement = document.getElementById('code-exp-log');
-    const CodeExp = (codeExpElement?.tagName === 'TEXTAREA' ? codeExpElement.value : codeExpElement?.innerHTML) || "אין הסבר";
-    
-    // 2. צילום הקנבס
-    let imageData = "";
-    try {
-        imageData = canvas.toDataURL("image/png");
-    } catch (e) {
-        console.error("קנבס לא זמין לצילום");
-    }
-	
-	// שליחת אירוע לגוגל אנליטיקס
-    gtag('event', 'generate_creative_pdf', {
-        'student_name': document.getElementById('studentName').value || 'anonymous',
-        'page_type': 'creative_free_style'
-    });
-
-    // 3. בניית ה-HTML עם מעברי דף
-    const printHtml = `
-        <html dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
-                body { font-family: 'Assistant', sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; background: white; }
-                .header { text-align: center; border-bottom: 3px solid #a855f7; padding-bottom: 15px; margin-bottom: 30px; }
-                .section { margin-bottom: 30px; }
-                .section-title { font-size: 1.3rem; font-weight: bold; color: #7c3aed; border-right: 5px solid #a855f7; padding-right: 12px; margin-bottom: 15px; }
-                
-                .new-page { 
-                    break-before: page; 
-                    padding-top: 40px; 
-                }
-
-                .canvas-img { display: block; margin: 0 auto; max-width: 400px; border: 2px solid #334155; border-radius: 12px; }
-                pre { background: #f1f5f9; padding: 20px; border-radius: 10px; font-family: monospace; direction: ltr; white-space: pre-wrap; border: 1px solid #cbd5e1; }
-                .ai-log-box { background: #fdf4ff; padding: 15px; border-radius: 10px; border: 1px solid #fae8ff; white-space: pre-wrap; }
-                footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #64748b; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>סיכום יצירה אלגוריתמית</h1>
-                <p>תלמיד/ה: <strong>${studentName}</strong></p>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">התוצר הסופי</div>
-                <img src="${imageData}" class="canvas-img">
-            </div>
-
-            <div class="section new-page">
-                <div class="section-title">הקוד שכתבתי</div>
-                <pre>${creativeCode}</pre>
-            </div>
-
-            <div class="section new-page">
-                <div class="section-title"> תיעוד שיחה עם כלי AI (Prompt)</div>
-                <div class="ai-log-box">${aiLog}</div>
-            </div>
-            
-            <div class="section new-page">
-                <div class="section-title">הסבר הקוד</div>
-                <div class="ai-log-box">${CodeExp}</div>
-            </div>
-
-            <footer>נוצר ב-Algorithmic Art Studio</footer>
-        </body>
-        </html>
-    `;
-
-    executePrint(printHtml);
-}
-*/
 
 // פונקציית ביצוע ההדפסה ב-Iframe
 function executePrint(html) {
