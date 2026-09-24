@@ -2841,6 +2841,7 @@ function goToFeedback() {
     let baseUrl = "";
 
     // 3. בחירת הטופס המתאים לפי הדף הפעיל
+	/*
     const studioPage = document.getElementById('studio-page');
     const creativePage = document.getElementById('creative-page');
 
@@ -2851,6 +2852,27 @@ function goToFeedback() {
 		// creativeBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
 		creativeBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSd1pfRs6vIL7hFEGDe2j3kjKnhKV-f89rbBsdCD_wIAreVHtQ/viewform";
     }
+	*/
+	
+	// אתגרי הקוד 
+	// https://forms.gle/9Z9ziqeCWe2MhpRM7
+	
+	// צשימה יצירתית
+	// https://forms.gle/jSVERcm1EGmkq9VC9
+	// https://docs.google.com/forms/d/e/1FAIpQLSf718eVn9mORr1i2emsK9aJdqunMlHiv7bcvCDmf7gZND5JZw/viewform?usp=sharing&ouid=116891000095183184146
+	
+	// 3. בחירת הטופס המתאים לפי הדף הפעיל
+    const studioPage = document.getElementById('studio-page');
+    const creativePage = document.getElementById('creative-page');
+
+    if (studioPage && studioPage.classList.contains('active')) {
+		baseUrl = "https://forms.gle/9Z9ziqeCWe2MhpRM7";
+    } else if (creativePage && creativePage.classList.contains('active')) {
+        // קישור מלא לטופס "דף יצירתי" (תחליף כאן לקישור הארוך של הטופס השני)
+		// creativeBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSefvBbqiz4Ngr1ASLKEnR0qd2kpolj8kSv0o7lAKFgCtKgmXQ/viewform";
+		creativeBaseUrl = "https://forms.gle/jSVERcm1EGmkq9VC9";
+    }
+	
 
     if (baseUrl) {
         // 4. בניית הכתובת הסופית עם הנתונים (Pre-filled URL)
